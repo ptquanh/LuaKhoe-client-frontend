@@ -9,13 +9,11 @@ import { useDiagnose } from "@/hooks/useDiagnose";
 import DiagnoseExamples from "./_components/DiagnoseExamples";
 import {
   BigUploadIcon,
-  CameraIcon,
   FocusIcon,
   InfoCircleIcon,
   LeafIcon,
   RainSlashIcon,
   SunIcon,
-  UploadIcon,
 } from "./_components/Icons";
 
 const { Title, Text, Paragraph } = Typography;
