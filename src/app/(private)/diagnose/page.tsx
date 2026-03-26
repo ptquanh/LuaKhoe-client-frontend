@@ -7,7 +7,14 @@ import { useState } from "react";
 import { useDiagnose } from "@/hooks/useDiagnose";
 
 import DiagnoseExamples from "./_components/DiagnoseExamples";
-import { BigUploadIcon } from "./_components/Icons";
+import {
+  BigUploadIcon,
+  FocusIcon,
+  InfoCircleIcon,
+  LeafIcon,
+  RainSlashIcon,
+  SunIcon,
+} from "./_components/Icons";
 
 const { Title, Text, Paragraph } = Typography;
 const { Dragger } = Upload;
