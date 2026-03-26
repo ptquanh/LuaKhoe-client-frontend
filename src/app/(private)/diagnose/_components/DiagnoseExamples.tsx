@@ -16,7 +16,7 @@ export default function DiagnoseExamples() {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('/images/good-1.jpg')" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-2 left-2 text-xs text-white">
                 Rõ nét, đủ sáng
               </div>
@@ -29,7 +29,7 @@ export default function DiagnoseExamples() {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('/images/good-2.jpg')" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-2 left-2 text-xs text-white">
                 Thấy rõ vết bệnh
               </div>
@@ -52,7 +52,7 @@ export default function DiagnoseExamples() {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('/images/bad-1.jpg')" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
               <div className="absolute bottom-2 left-2 text-xs text-white">
                 Bị mờ, không rõ
               </div>
@@ -65,7 +65,7 @@ export default function DiagnoseExamples() {
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('/images/bad-2.jpg')" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
               <div className="absolute bottom-2 left-2 text-xs text-white">
                 Quá tối, thiếu sáng
               </div>

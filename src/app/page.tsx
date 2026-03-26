@@ -85,7 +85,7 @@ export default function HomePage() {
         className="relative flex min-h-screen items-center pt-20"
         style={{
           background:
-            "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600') center/cover no-repeat",
+            "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.6)), url('/images/background-home.jpg')",
         }}
       >
         <div className="mx-auto w-full max-w-6xl px-6 py-20">

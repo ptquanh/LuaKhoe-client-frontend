@@ -1,6 +1,7 @@
 "use client";
 
-import { Alert, Button, Form, Input, Typography } from "antd";
+import { Alert, Button, Checkbox, Form, Input, Typography } from "antd";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { ROUTES } from "@/constants/routes";
@@ -14,34 +15,59 @@ export default function LoginPage() {
   const { login, isLoading, error } = useAuth();
   const [form] = Form.useForm();
 
-  const onFinish = async (values: LoginPayload) => {
-    await login(values, () => router.push(ROUTES.DIAGNOSE));
+  const onFinish = async (values: {
+    phone: string;
+    password: string;
+    remember?: boolean;
+  }) => {
+    const payload: LoginPayload = {
+      phone: values.phone,
+      password: values.password,
+    };
+
+    // In a real app, 'admin' might have a different route/permission. Here we just login normally,
+    // and let the backend return the user role. Then we can redirect based on role.
+    await login(payload, () => router.push(ROUTES.DIAGNOSE));
   };
 
   return (
-    <main className="flex min-h-screen flex-col bg-gradient-to-b from-green-50 to-white">
-      {/* Header */}
-      <header className="flex items-center bg-white px-6 py-4 shadow-sm">
-        <button
-          onClick={() => router.push(ROUTES.HOME)}
-          className="flex items-center gap-2"
-        >
-          <span className="text-2xl">🌾</span>
-          <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
-        </button>
-      </header>
+    <main className="flex min-h-screen bg-white">
+      {/* Left side: Image banner (hidden on mobile) */}
+      <div className="relative hidden w-1/2 flex-col justify-end overflow-hidden p-12 lg:flex">
+        {/* Unsplash image representing a Vietnamese rice field/mountain landscape */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/images/background-login.jpg')",
+          }}
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
 
-      {/* Form */}
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-          <div className="mb-8 text-center">
-            <div className="mb-3 text-5xl">🌿</div>
-            <Title level={2} className="!mb-1 !text-green-800">
+        <div className="relative z-10 max-w-lg text-white">
+          <h1 className="mb-4 text-4xl leading-tight font-bold">
+            Chẩn đoán bệnh lúa
+            <br />
+            bằng trí tuệ nhân tạo
+          </h1>
+          <p className="text-lg text-gray-200">
+            Bảo vệ mùa màng với công nghệ AI tiên tiến
+          </p>
+        </div>
+      </div>
+
+      {/* Right side: Login form */}
+      <div className="flex w-full items-center justify-center p-8 sm:p-12 lg:w-1/2">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="mb-10">
+            <div className="mb-8 flex items-center gap-2">
+              <span className="text-2xl">🌿</span>
+              <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
+            </div>
+            <Title level={2} className="mb-2! text-gray-800!">
               Đăng nhập
             </Title>
-            <Text className="text-gray-400">
-              Chào mừng bạn trở lại với Lúa Khoẻ
-            </Text>
+            <Text className="text-gray-500">Chào mừng bạn trở lại!</Text>
           </div>
 
           {error && (
@@ -49,7 +75,7 @@ export default function LoginPage() {
               message={error}
               type="error"
               showIcon
-              className="mb-6 rounded-lg"
+              className="mb-6 rounded-lg font-medium"
             />
           )}
 
@@ -61,61 +87,80 @@ export default function LoginPage() {
             requiredMark={false}
           >
             <Form.Item
-              label="Email"
-              name="email"
+              label={
+                <span className="font-medium text-gray-700">Số điện thoại</span>
+              }
+              name="phone"
               rules={[
-                { required: true, message: "Vui lòng nhập email" },
-                { type: "email", message: "Email không hợp lệ" },
+                { required: true, message: "Vui lòng nhập số điện thoại" },
               ]}
+              className="mb-5"
             >
-              <Input placeholder="email@example.com" className="rounded-lg" />
+              <Input
+                placeholder="Nhập số điện thoại"
+                className="h-11 rounded-lg"
+              />
             </Form.Item>
 
             <Form.Item
-              label="Mật khẩu"
+              label={
+                <span className="font-medium text-gray-700">Mật khẩu</span>
+              }
               name="password"
-              rules={[
-                { required: true, message: "Vui lòng nhập mật khẩu" },
-                { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
-              ]}
+              rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
+              className="mb-5"
             >
-              <Input.Password placeholder="••••••••" className="rounded-lg" />
+              <Input.Password
+                placeholder="Nhập mật khẩu"
+                className="h-11 rounded-lg"
+              />
             </Form.Item>
 
-            <div className="mb-4 flex justify-end">
-              <button className="text-sm text-green-600 hover:text-green-700">
+            <div className="mb-6 flex items-center justify-between">
+              <Form.Item name="remember" valuePropName="checked" noStyle>
+                <Checkbox className="text-gray-500">Ghi nhớ đăng nhập</Checkbox>
+              </Form.Item>
+
+              <Link
+                href="#"
+                className="text-sm font-medium text-green-600 hover:text-green-700"
+              >
                 Quên mật khẩu?
-              </button>
+              </Link>
             </div>
 
-            <Form.Item className="mb-2">
+            <Form.Item className="mb-6">
               <Button
                 type="primary"
                 htmlType="submit"
                 block
                 loading={isLoading}
                 style={{
-                  backgroundColor: "#166534",
-                  borderColor: "#166534",
-                  height: 48,
-                  fontSize: 16,
+                  backgroundColor: "#22c55e",
+                  borderColor: "#22c55e",
                 }}
-                className="rounded-lg font-medium"
+                className="h-12 rounded-lg text-base font-medium shadow-sm hover:border-green-600! hover:bg-green-600!"
               >
                 Đăng nhập
               </Button>
             </Form.Item>
-          </Form>
 
-          <div className="mt-4 text-center">
-            <Text className="text-gray-400">Chưa có tài khoản? </Text>
-            <button
-              onClick={() => router.push(ROUTES.REGISTER)}
-              className="font-medium text-green-600 hover:text-green-700"
-            >
-              Đăng ký ngay
-            </button>
-          </div>
+            <div className="text-center">
+              <Text className="text-gray-500">Chưa có tài khoản? </Text>
+              <Link
+                href={ROUTES.REGISTER}
+                className="font-medium text-green-600 hover:text-green-700"
+              >
+                Đăng ký ngay
+              </Link>
+            </div>
+
+            <div className="mt-8 border-t border-gray-100 pt-6 text-center">
+              <Text className="text-xs text-gray-400">
+                Nhập &quot;admin&quot; làm số điện thoại để xem Admin Dashboard
+              </Text>
+            </div>
+          </Form>
         </div>
       </div>
     </main>
