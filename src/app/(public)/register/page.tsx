@@ -31,14 +31,7 @@ export default function RegisterPage() {
   const { register, isLoading, error } = useAuth();
   const [form] = Form.useForm();
 
-  const onFinish = async (values: {
-    full_name: string;
-    phone: string;
-    email?: string;
-    password: string;
-    province: string;
-    agreement: boolean;
-  }) => {
+  const onFinish = async (values: any) => {
     const payload: RegisterPayload = {
       full_name: values.full_name,
       phone: values.phone,
@@ -203,7 +196,7 @@ export default function RegisterPage() {
                 backgroundColor: "#22c55e",
                 borderColor: "#22c55e",
               }}
-              className="h-12 rounded-lg text-base font-medium shadow-sm hover:border-green-600! hover:bg-green-600!"
+              className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
             >
               Đăng ký
             </Button>
