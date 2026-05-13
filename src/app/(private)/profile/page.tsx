@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, User, MapPin, KeyRound, CheckCircle } from "lucide-react";
+import { Save, User, MapPin, KeyRound } from "lucide-react";
 import {
   Alert,
   Button,
@@ -11,15 +11,28 @@ import {
   Card,
   Row,
   Col,
-  Space,
 } from "antd";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { ChangePasswordPayload, UpdateProfilePayload } from "@/types/auth.type";
 
 const { Title, Text } = Typography;
+
+// Dynamically import the map to avoid window undefined SSR error
+const LocationMap = dynamic(() => import("@/components/LocationMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[300px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-500 border-t-transparent"></div>
+      <p className="mt-3 text-sm font-medium text-gray-400">
+        Đang tải bản đồ...
+      </p>
+    </div>
+  ),
+});
 
 export default function ProfilePage() {
   const {
@@ -41,16 +54,26 @@ export default function ProfilePage() {
   const [formProfile] = Form.useForm();
   const [formPassword] = Form.useForm();
   const [isGpsLoading, setIsGpsLoading] = useState(false);
+  const [mapLat, setMapLat] = useState("");
+  const [mapLng, setMapLng] = useState("");
 
-  // Sync profile data to form when loaded
+  // Sync profile data to form & map states when loaded
   useEffect(() => {
     if (profile && profile.profile) {
+      const lat = profile.profile.gpsLatitude
+        ? profile.profile.gpsLatitude.toString()
+        : "";
+      const lng = profile.profile.gpsLongitude
+        ? profile.profile.gpsLongitude.toString()
+        : "";
       formProfile.setFieldsValue({
         firstName: profile.profile.firstName || "",
         lastName: profile.profile.lastName || "",
-        latitude: profile.profile.gpsLatitude || "",
-        longitude: profile.profile.gpsLongitude || "",
+        latitude: lat,
+        longitude: lng,
       });
+      setMapLat(lat);
+      setMapLng(lng);
     }
   }, [profile, formProfile]);
 
@@ -63,15 +86,28 @@ export default function ProfilePage() {
     };
 
     if (values.latitude && values.longitude) {
-      payload.gps = {
+      // Backend expects a JSON string under "gps" field
+      payload.gps = JSON.stringify({
         latitude: parseFloat(values.latitude),
         longitude: parseFloat(values.longitude),
-      };
+      });
     }
 
     await updateProfile(payload, () => {
       message.success("Cập nhật thông tin cá nhân thành công!");
     });
+  };
+
+  // Handle map selection
+  const handleMapLocationSelect = (lat: number, lng: number) => {
+    const latStr = lat.toFixed(6);
+    const lngStr = lng.toFixed(6);
+    formProfile.setFieldsValue({
+      latitude: latStr,
+      longitude: lngStr,
+    });
+    setMapLat(latStr);
+    setMapLng(lngStr);
   };
 
   // Get current GPS using Browser Geolocation
@@ -84,10 +120,14 @@ export default function ProfilePage() {
     setIsGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const latStr = position.coords.latitude.toFixed(6);
+        const lngStr = position.coords.longitude.toFixed(6);
         formProfile.setFieldsValue({
-          latitude: position.coords.latitude.toFixed(6),
-          longitude: position.coords.longitude.toFixed(6),
+          latitude: latStr,
+          longitude: lngStr,
         });
+        setMapLat(latStr);
+        setMapLng(lngStr);
         message.success("Đã lấy toạ độ GPS hiện tại thành công!");
         setIsGpsLoading(false);
       },
@@ -123,9 +163,17 @@ export default function ProfilePage() {
 
   const isScreenLoading = isProfileLoading || isAuthLoading;
 
+  // Render map position array
+  const parsedLat = parseFloat(mapLat);
+  const parsedLng = parseFloat(mapLng);
+  const mapPosition: [number, number] =
+    !isNaN(parsedLat) && !isNaN(parsedLng)
+      ? [parsedLat, parsedLng]
+      : [10.762622, 106.660172]; // Default to Ho Chi Minh City if not available
+
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-20 sm:px-6">
-      <div className="mb-8">
+    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pb-20 sm:px-6">
+      <div>
         <Title level={2} className="mb-1! text-gray-800!">
           Thông tin cá nhân
         </Title>
@@ -135,7 +183,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Avatar Card */}
-      <Card className="mb-6 rounded-2xl border-gray-100 shadow-sm">
+      <Card className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
         <div className="flex items-center gap-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-full border border-green-200 bg-green-50">
             <User className="h-8 w-8 text-green-600" />
@@ -156,27 +204,32 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      {/* Profile info and Location GPS Section */}
-      <Card
-        className="mb-6 rounded-2xl border-gray-100 shadow-sm"
-        title="Thông tin cơ bản"
+      <Form
+        form={formProfile}
+        layout="vertical"
+        onFinish={handleSaveProfile}
+        size="large"
+        requiredMark={false}
+        className="flex flex-col gap-8"
       >
-        {profileError && (
-          <Alert
-            message={profileError}
-            type="error"
-            showIcon
-            className="mb-6 rounded-lg font-medium"
-          />
-        )}
-
-        <Form
-          form={formProfile}
-          layout="vertical"
-          onFinish={handleSaveProfile}
-          size="large"
-          requiredMark={false}
+        {/* Card 1: Basic Profile Info */}
+        <Card
+          className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md"
+          title={
+            <span className="text-lg font-bold text-gray-800">
+              Thông tin cơ bản
+            </span>
+          }
         >
+          {profileError && (
+            <Alert
+              message={profileError}
+              type="error"
+              showIcon
+              className="mb-6 rounded-lg font-medium"
+            />
+          )}
+
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item
@@ -214,7 +267,7 @@ export default function ProfilePage() {
                 <Input
                   value={user?.username}
                   disabled
-                  className="rounded-lg bg-gray-50 text-gray-500"
+                  className="cursor-not-allowed rounded-lg bg-gray-50 text-gray-500"
                 />
               </Form.Item>
             </Col>
@@ -225,82 +278,115 @@ export default function ProfilePage() {
                 <Input
                   value={user?.email}
                   disabled
-                  className="rounded-lg bg-gray-50 text-gray-500"
+                  className="cursor-not-allowed rounded-lg bg-gray-50 text-gray-500"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Card 2: Rice Field GPS Location */}
+        <Card
+          className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md"
+          title={
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-green-600" />
+              <span className="text-lg font-bold text-gray-800">
+                Vị trí ruộng (GPS)
+              </span>
+            </div>
+          }
+          extra={
+            <Button
+              type="dashed"
+              onClick={handleGetCurrentGps}
+              loading={isGpsLoading}
+              className="flex items-center justify-center rounded-lg text-xs font-medium hover:!border-green-600 hover:!text-green-600 sm:text-sm"
+            >
+              Lấy vị trí tự động
+            </Button>
+          }
+        >
+          <div className="mb-5">
+            <p className="text-sm leading-relaxed text-gray-500">
+              Vui lòng kéo thả Marker màu xanh hoặc click vào vị trí bất kì trên
+              bản đồ dưới đây để chọn tọa độ mảnh ruộng của bạn. Hệ thống sẽ tự
+              động đồng bộ.
+            </p>
+          </div>
+
+          {/* Interactive Leaflet Map */}
+          <div className="mb-6 h-[320px] w-full overflow-hidden rounded-2xl border border-gray-100 shadow-inner">
+            <LocationMap
+              position={mapPosition}
+              onLocationSelect={handleMapLocationSelect}
+            />
+          </div>
+
+          <Row gutter={16}>
+            <Col xs={12}>
+              <Form.Item
+                label={
+                  <span className="font-medium text-gray-600">
+                    Vĩ độ (Latitude)
+                  </span>
+                }
+                name="latitude"
+              >
+                <Input
+                  placeholder="Ví dụ: 10.7626"
+                  className="rounded-lg"
+                  onChange={(e) => setMapLat(e.target.value)}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={12}>
+              <Form.Item
+                label={
+                  <span className="font-medium text-gray-600">
+                    Kinh độ (Longitude)
+                  </span>
+                }
+                name="longitude"
+              >
+                <Input
+                  placeholder="Ví dụ: 106.6602"
+                  className="rounded-lg"
+                  onChange={(e) => setMapLng(e.target.value)}
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <div className="mt-4 mb-6 border-t border-gray-100 pt-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h4 className="flex items-center gap-1.5 text-base font-semibold text-gray-800">
-                  <MapPin className="h-5 w-5 text-green-600" /> Vị trí ruộng
-                  (GPS)
-                </h4>
-                <p className="mt-0.5 text-xs text-gray-400">
-                  Cung cấp toạ độ GPS giúp hệ thống hỗ trợ tốt hơn cho vùng
-                  trồng của bạn.
-                </p>
-              </div>
-              <Button
-                type="dashed"
-                onClick={handleGetCurrentGps}
-                loading={isGpsLoading}
-                className="hover:!border-green-600 hover:!text-green-600"
-              >
-                Lấy vị trí tự động
-              </Button>
-            </div>
-
-            <Row gutter={16}>
-              <Col xs={12}>
-                <Form.Item
-                  label={
-                    <span className="font-medium text-gray-600">
-                      Vĩ độ (Latitude)
-                    </span>
-                  }
-                  name="latitude"
-                >
-                  <Input placeholder="Ví dụ: 10.7626" className="rounded-lg" />
-                </Form.Item>
-              </Col>
-              <Col xs={12}>
-                <Form.Item
-                  label={
-                    <span className="font-medium text-gray-600">
-                      Kinh độ (Longitude)
-                    </span>
-                  }
-                  name="longitude"
-                >
-                  <Input placeholder="Ví dụ: 106.6602" className="rounded-lg" />
-                </Form.Item>
-              </Col>
-            </Row>
+          <div className="mt-2 flex justify-start">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isUpdating}
+              icon={<Save className="h-4 w-4" />}
+              style={{
+                backgroundColor: "#22c55e",
+                borderColor: "#22c55e",
+              }}
+              className="flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-sm hover:!border-green-600 hover:!bg-green-600"
+            >
+              Lưu thay đổi hồ sơ & vị trí
+            </Button>
           </div>
+        </Card>
+      </Form>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={isUpdating}
-            icon={<Save className="h-4 w-4" />}
-            style={{
-              backgroundColor: "#22c55e",
-              borderColor: "#22c55e",
-            }}
-            className="flex h-10 items-center gap-2 rounded-lg text-sm font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
-          >
-            Lưu thay đổi
-          </Button>
-        </Form>
-      </Card>
-
-      {/* Security Section (Change Password) */}
+      {/* Card 3: Security & Password Section */}
       <Card
-        className="rounded-2xl border-gray-100 shadow-sm"
-        title="Bảo mật & Mật khẩu"
+        className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md"
+        title={
+          <div className="flex items-center gap-2">
+            <KeyRound className="h-5 w-5 text-green-600" />
+            <span className="text-lg font-bold text-gray-800">
+              Bảo mật & Mật khẩu
+            </span>
+          </div>
+        }
       >
         {authError && (
           <Alert
@@ -386,7 +472,7 @@ export default function ProfilePage() {
               backgroundColor: "#22c55e",
               borderColor: "#22c55e",
             }}
-            className="flex h-10 items-center gap-2 rounded-lg text-sm font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+            className="flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-sm hover:!border-green-600 hover:!bg-green-600"
           >
             Đổi mật khẩu
           </Button>

@@ -92,8 +92,5 @@ export interface ChangePasswordPayload {
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
-  gps?: {
-    longitude: number;
-    latitude: number;
-  };
+  gps?: string;
 }

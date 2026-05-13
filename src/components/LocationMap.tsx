@@ -42,13 +42,22 @@ export default function LocationMap({
     });
 
     // Add marker
-    const marker = L.marker(position, { icon: customIcon }).addTo(map);
+    const marker = L.marker(position, {
+      icon: customIcon,
+      draggable: true,
+    }).addTo(map);
     markerRef.current = marker;
 
     // Handle map click
     map.on("click", (e) => {
       onLocationSelect(e.latlng.lat, e.latlng.lng);
       marker.setLatLng(e.latlng);
+    });
+
+    // Handle marker drag
+    marker.on("dragend", () => {
+      const latLng = marker.getLatLng();
+      onLocationSelect(latLng.lat, latLng.lng);
     });
 
     // Cleanup
