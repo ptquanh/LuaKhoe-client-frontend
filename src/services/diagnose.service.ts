@@ -62,9 +62,6 @@ export const diagnoseService = {
     const response: AxiosResponse<AnalyzeApiResponse> = await axiosClient.post(
       "/analyze",
       formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
     );
 
     return mapApiResponseToResult(response.data);

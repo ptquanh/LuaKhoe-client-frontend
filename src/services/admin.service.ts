@@ -1,4 +1,4 @@
-import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import axiosClient from "@/lib/axiosClient";
 import {
   ConfigCreatePayload,
   ConfigUpdatePayload,
@@ -8,14 +8,14 @@ import { IngestionRequest, IngestionResponse } from "@/types/advisory.type";
 
 export const adminService = {
   getConfigs: async (): Promise<SystemConfig[]> => {
-    const response = await aiAxiosClient.get<SystemConfig[]>("/admin/configs/");
+    const response = await axiosClient.get<SystemConfig[]>("/admin/configs/");
     return response.data;
   },
 
   addConfig: async (
     payload: ConfigCreatePayload,
   ): Promise<{ status: string; message: string }> => {
-    const response = await aiAxiosClient.post<{
+    const response = await axiosClient.post<{
       status: string;
       message: string;
     }>("/admin/configs/", payload);
@@ -26,7 +26,7 @@ export const adminService = {
     key: string,
     payload: ConfigUpdatePayload,
   ): Promise<{ status: string; message: string }> => {
-    const response = await aiAxiosClient.put<{
+    const response = await axiosClient.put<{
       status: string;
       message: string;
     }>(`/admin/configs/${key}`, payload);
@@ -34,7 +34,7 @@ export const adminService = {
   },
 
   ingestText: async (payload: IngestionRequest): Promise<IngestionResponse> => {
-    const response = await aiAxiosClient.post<IngestionResponse>(
+    const response = await axiosClient.post<IngestionResponse>(
       "/ingest",
       payload,
     );
@@ -45,12 +45,9 @@ export const adminService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await aiAxiosClient.post<IngestionResponse>(
+    const response = await axiosClient.post<IngestionResponse>(
       "/ingest/file",
       formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
     );
 
     return response.data;

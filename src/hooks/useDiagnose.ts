@@ -1,30 +1,50 @@
 import { useState } from "react";
-
-import { diagnoseService } from "@/services/diagnose.service";
-import { DiagnoseResult } from "@/types/diagnose.type";
+import { diagnosisService } from "@/services/diagnosis.service";
+import {
+  DiagnosisResponse,
+  CreateDiagnosisPayload,
+} from "@/types/diagnosis.type";
 
 export function useDiagnose() {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<DiagnoseResult | null>(null);
+  const [result, setResult] = useState<DiagnosisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const predict = async (image: File) => {
+  const predict = async (payload: CreateDiagnosisPayload) => {
     setIsLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const data = await diagnoseService.predict(image);
+      const response = await diagnosisService.predict(payload);
 
-      if (data.low_confidence) {
-        setError(
-          "AI chưa đủ tin cậy về kết quả này. Vui lòng chụp lại ảnh rõ hơn hoặc liên hệ chuyên gia.",
+      if (response.success && response.data) {
+        const threshold = Number(
+          process.env.NEXT_PUBLIC_DIAGNOSIS_CONFIDENCE_THRESHOLD,
         );
+        const hasLowConfidence = response.data.results.some(
+          (r) => r.confidence < threshold,
+        );
+        if (hasLowConfidence) {
+          setError(
+            "AI chưa đủ tin cậy về kết quả nhận diện này. Vui lòng chụp ảnh cận cảnh, rõ nét hơn để đạt độ chính xác cao nhất.",
+          );
+        }
+        setResult(response.data);
+        return response.data;
+      } else {
+        setError(
+          response.message ||
+            "Có lỗi xảy ra khi phân tích ảnh. Vui lòng thử lại.",
+        );
+        return null;
       }
-
-      setResult(data);
-    } catch {
-      setError("Có lỗi xảy ra khi phân tích ảnh. Vui lòng thử lại.");
+    } catch (err: any) {
+      console.error("Diagnosis error:", err);
+      setError(
+        "Có lỗi hệ thống khi kết nối tới máy chủ phân tích. Vui lòng thử lại sau.",
+      );
+      return null;
     } finally {
       setIsLoading(false);
     }

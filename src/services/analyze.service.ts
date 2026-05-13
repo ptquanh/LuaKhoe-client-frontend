@@ -1,4 +1,4 @@
-import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { AnalyzeApiResponse } from "@/types/analyze.type";
 
 export const analyzeService = {
@@ -6,12 +6,9 @@ export const analyzeService = {
     const formData = new FormData();
     formData.append("file", image);
 
-    const response = await aiAxiosClient.post<AnalyzeApiResponse>(
+    const response = await axiosClient.post<AnalyzeApiResponse>(
       "/analyze",
       formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      },
     );
 
     return response.data;

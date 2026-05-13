@@ -1,4 +1,4 @@
-import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import axiosClient from "@/lib/axiosClient";
 import {
   DiseaseEvent,
   RecommendationRequest,
@@ -10,7 +10,7 @@ export const advisoryService = {
     events: DiseaseEvent[],
   ): Promise<RecommendationResponse> => {
     const payload: RecommendationRequest = { events };
-    const response = await aiAxiosClient.post<RecommendationResponse>(
+    const response = await axiosClient.post<RecommendationResponse>(
       "/recommend",
       payload,
     );
