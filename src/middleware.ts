@@ -4,9 +4,13 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
   const { pathname } = request.nextUrl;
 
-  // Define public routes
-  const isPublicRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname === "/";
-  
+  const isPublicRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/verify-otp") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname === "/";
+
   // Define admin routes
   const isAdminRoute = pathname.startsWith("/admin");
 
@@ -17,7 +21,7 @@ export function middleware(request: NextRequest) {
   // Note: We can't easily check 'is_admin' from the JWT payload without a library like jose
   // or decoding it manually in the middleware. For now, we'll let the client-side handle
   // the specific role redirection or use a simplified approach.
-  
+
   return NextResponse.next();
 }
 

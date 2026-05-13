@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Button, Checkbox, Form, Input, Select, Typography } from "antd";
+import { Alert, Button, Checkbox, Form, Input, Typography } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -10,22 +10,6 @@ import { RegisterPayload } from "@/types/auth.type";
 
 const { Title, Text } = Typography;
 
-const PROVINCES = [
-  { value: "An Giang", label: "An Giang" },
-  { value: "Bạc Liêu", label: "Bạc Liêu" },
-  { value: "Bến Tre", label: "Bến Tre" },
-  { value: "Cà Mau", label: "Cà Mau" },
-  { value: "Cần Thơ", label: "Cần Thơ" },
-  { value: "Đồng Tháp", label: "Đồng Tháp" },
-  { value: "Hậu Giang", label: "Hậu Giang" },
-  { value: "Kiên Giang", label: "Kiên Giang" },
-  { value: "Long An", label: "Long An" },
-  { value: "Sóc Trăng", label: "Sóc Trăng" },
-  { value: "Tiền Giang", label: "Tiền Giang" },
-  { value: "Trà Vinh", label: "Trà Vinh" },
-  { value: "Vĩnh Long", label: "Vĩnh Long" },
-];
-
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, error } = useAuth();
@@ -33,13 +17,19 @@ export default function RegisterPage() {
 
   const onFinish = async (values: any) => {
     const payload: RegisterPayload = {
-      full_name: values.full_name,
       username: values.username,
-      email: values.email || undefined,
+      email: values.email,
       password: values.password,
-      province: values.province,
     };
-    await register(payload, () => router.push(ROUTES.LOGIN));
+
+    await register(payload, () => {
+      // Auto redirect to verify-otp page with query parameters
+      router.push(
+        `${ROUTES.VERIFY_OTP}?email=${encodeURIComponent(
+          values.email,
+        )}&action=register`,
+      );
+    });
   };
 
   return (
@@ -55,7 +45,7 @@ export default function RegisterPage() {
             Tạo tài khoản
           </Title>
           <Text className="text-gray-500">
-            Bắt đầu chẩn đoán bệnh lúa miễn phí
+            Đăng ký tài khoản để bắt đầu chẩn đoán bệnh lúa
           </Text>
         </div>
 
@@ -77,36 +67,29 @@ export default function RegisterPage() {
           className="w-full"
         >
           <Form.Item
-            label={<span className="font-medium text-gray-700">Họ và tên</span>}
-            name="full_name"
-            rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
-            className="mb-4"
-          >
-            <Input placeholder="Nguyễn Văn A" className="h-11 rounded-lg" />
-          </Form.Item>
-
-          <Form.Item
             label={
-              <span className="font-medium text-gray-700">Tên đăng nhập / Số điện thoại</span>
+              <span className="font-medium text-gray-700">Tên đăng nhập</span>
             }
             name="username"
             rules={[
               { required: true, message: "Vui lòng nhập tên đăng nhập" },
+              { min: 3, message: "Tên đăng nhập tối thiểu 3 ký tự" },
             ]}
             className="mb-4"
           >
-            <Input placeholder="0901234567" className="h-11 rounded-lg" />
+            <Input
+              placeholder="Nhập tên đăng nhập"
+              className="h-11 rounded-lg"
+            />
           </Form.Item>
 
           <Form.Item
-            label={
-              <span className="font-medium text-gray-700">
-                Email{" "}
-                <span className="font-normal text-gray-400">(tùy chọn)</span>
-              </span>
-            }
+            label={<span className="font-medium text-gray-700">Email</span>}
             name="email"
-            rules={[{ type: "email", message: "Email không hợp lệ" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập địa chỉ email" },
+              { type: "email", message: "Email không hợp lệ" },
+            ]}
             className="mb-4"
           >
             <Input
@@ -120,32 +103,19 @@ export default function RegisterPage() {
             name="password"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
-              { min: 6, message: "Mật khẩu tối thiểu 6 ký tự" },
-            ]}
-            className="mb-4"
-          >
-            <Input.Password
-              placeholder="Tối thiểu 6 ký tự"
-              className="h-11 rounded-lg"
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="font-medium text-gray-700">
-                Tỉnh / Thành phố
-              </span>
-            }
-            name="province"
-            rules={[
-              { required: true, message: "Vui lòng chọn tỉnh/thành phố" },
+              { min: 8, message: "Mật khẩu tối thiểu 8 ký tự" },
+              {
+                pattern:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                message:
+                  "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+              },
             ]}
             className="mb-6"
           >
-            <Select
-              placeholder="-- Chọn tỉnh/thành --"
+            <Input.Password
+              placeholder="Tối thiểu 8 ký tự, đủ chữ hoa/thường/số/ký tự đặc biệt"
               className="h-11 rounded-lg"
-              options={PROVINCES}
             />
           </Form.Item>
 

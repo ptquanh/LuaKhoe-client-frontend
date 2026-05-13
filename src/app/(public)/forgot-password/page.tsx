@@ -1,133 +1,227 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Alert, Button, Form, Input, Typography, Steps, message } from "antd";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Leaf, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/hooks/useAuth";
+
+const { Title, Text } = Typography;
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-  const [showOtp, setShowOtp] = useState(false);
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [countdown, setCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const { forgotPassword, resetPassword, isLoading, error, setError } =
+    useAuth();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [email, setEmail] = useState("");
 
-  useEffect(() => {
-    if (showOtp && countdown > 0) {
-      const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(t);
+  const [formEmail] = Form.useForm();
+  const [formReset] = Form.useForm();
+
+  // Step 1: Submit email to request OTP
+  const handleEmailSubmit = async (values: { email: string }) => {
+    setError(null);
+    await forgotPassword({ email: values.email }, () => {
+      setEmail(values.email);
+      setCurrentStep(1);
+      message.success("Mã khôi phục đã được gửi về email của bạn.");
+    });
+  };
+
+  // Step 2: Submit OTP and New Password to reset
+  const handleResetSubmit = async (values: any) => {
+    setError(null);
+    if (values.newPassword !== values.confirmNewPassword) {
+      setError("Mật khẩu xác nhận không khớp.");
+      return;
     }
-    if (countdown === 0) setCanResend(true);
-  }, [showOtp, countdown]);
 
-  const handleSendOtp = () => {
-    if (!phone.trim()) { setError("Vui lòng nhập số điện thoại"); return; }
-    setError("");
-    setShowOtp(true);
-    setCountdown(60);
-    setCanResend(false);
-    setTimeout(() => inputRefs.current[0]?.focus(), 100);
-  };
-
-  const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) inputRefs.current[index - 1]?.focus();
-  };
-
-  const handleConfirmOtp = () => {
-    if (otp.join("").length === 6) router.push(ROUTES.LOGIN);
-  };
-
-  const handleResend = () => {
-    setOtp(["", "", "", "", "", ""]);
-    setCountdown(60);
-    setCanResend(false);
-    inputRefs.current[0]?.focus();
+    await resetPassword(
+      {
+        email,
+        newPassword: values.newPassword,
+        confirmNewPassword: values.confirmNewPassword,
+        otpCode: values.otpCode,
+      },
+      () => {
+        message.success("Đặt lại mật khẩu thành công! Hãy đăng nhập lại.");
+        router.push(ROUTES.LOGIN);
+      },
+    );
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center px-4 py-12 font-[Inter,sans-serif]">
-      {/* OTP Modal Overlay */}
-      {showOtp && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
-          <div className="bg-white rounded-xl border border-[#E0E0E0] p-8 w-full max-w-[400px] text-center">
-            <h2 className="text-[20px] font-[600] text-[#1B1B1B] mb-2">Nhập mã OTP</h2>
-            <p className="text-[14px] text-[#5C5C5C] mb-6">
-              Mã xác nhận đã được gửi đến <span className="font-[500] text-[#1B1B1B]">{phone}</span>
-            </p>
-            <div className="flex justify-center gap-3 mb-6">
-              {otp.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { inputRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  value={digit}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-[20px] font-[600] rounded-lg border border-[#E0E0E0] focus:border-[#2F9E44] focus:outline-none transition-colors"
-                  maxLength={1}
-                />
-              ))}
-            </div>
-            <button
-              onClick={handleConfirmOtp}
-              disabled={otp.join("").length < 6}
-              className="w-full h-12 rounded-lg bg-[#2F9E44] text-white text-[16px] font-[500] hover:bg-[#1F6F2E] transition-colors disabled:bg-[#E0E0E0] disabled:text-[#9E9E9E] cursor-pointer disabled:cursor-not-allowed mb-4"
-            >
-              Xác nhận
-            </button>
-            <div className="text-[14px] text-[#5C5C5C]">
-              {canResend ? (
-                <button onClick={handleResend} className="text-[#2F9E44] font-[500] cursor-pointer">
-                  Gửi lại mã
-                </button>
-              ) : (
-                <span>Gửi lại sau <span className="text-[#2F9E44] font-[500]">{countdown}s</span></span>
-              )}
-            </div>
-            <button onClick={() => setShowOtp(false)} className="mt-4 text-[14px] text-[#5C5C5C] hover:text-[#1B1B1B] cursor-pointer">
-              Đóng
-            </button>
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 sm:px-6">
+      <div className="w-full max-w-[480px] rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+        {/* Header / Logo */}
+        <div className="mb-6">
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-2xl">🌱</span>
+            <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
           </div>
+          <Title level={2} className="mb-1! text-gray-800!">
+            Quên mật khẩu
+          </Title>
+          <Text className="text-gray-500">
+            Khôi phục mật khẩu tài khoản của bạn
+          </Text>
         </div>
-      )}
 
-      <div className="w-full max-w-[400px] bg-white rounded-xl border border-[#E0E0E0] p-8">
-        <button onClick={() => router.push(ROUTES.LOGIN)} className="flex items-center gap-1 text-[14px] text-[#5C5C5C] hover:text-[#1B1B1B] mb-6 cursor-pointer">
-          <ArrowLeft className="w-4 h-4" /> Quay lại đăng nhập
-        </button>
-        <div className="flex items-center gap-2 mb-6">
-          <Leaf className="w-6 h-6 text-[#2F9E44]" />
-          <span className="text-[18px] font-[600] text-[#1B1B1B]">Lúa Khoẻ</span>
-        </div>
-        <h1 className="text-[24px] font-[600] text-[#1B1B1B] mb-1">Quên mật khẩu</h1>
-        <p className="text-[14px] text-[#5C5C5C] mb-6">Nhập số điện thoại để nhận mã OTP</p>
-        <div>
-          <label className="block text-[14px] text-[#1B1B1B] mb-1.5">Số điện thoại</label>
-          <input
-            type="text"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="0901234567"
-            className={`w-full h-11 px-3 rounded-lg border ${error ? "border-[#E53935]" : "border-[#E0E0E0]"} bg-white text-[14px] placeholder:text-[#9E9E9E] focus:outline-none focus:border-[#2F9E44]`}
+        {/* Steps indicator */}
+        <Steps
+          current={currentStep}
+          size="small"
+          className="mb-8"
+          items={[{ title: "Gửi yêu cầu" }, { title: "Đặt lại mật khẩu" }]}
+        />
+
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            className="mb-6 rounded-lg font-medium"
           />
-          {error && <p className="text-[12px] text-[#E53935] mt-1">{error}</p>}
+        )}
+
+        {currentStep === 0 ? (
+          <Form
+            form={formEmail}
+            layout="vertical"
+            onFinish={handleEmailSubmit}
+            size="large"
+            requiredMark={false}
+          >
+            <Form.Item
+              label={
+                <span className="font-medium text-gray-700">
+                  Email khôi phục
+                </span>
+              }
+              name="email"
+              rules={[
+                { required: true, message: "Vui lòng nhập email" },
+                { type: "email", message: "Email không hợp lệ" },
+              ]}
+              className="mb-6"
+            >
+              <Input
+                placeholder="Nhập email tài khoản"
+                className="h-11 rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item className="mb-4">
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={isLoading}
+                style={{
+                  backgroundColor: "#22c55e",
+                  borderColor: "#22c55e",
+                }}
+                className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+              >
+                Gửi mã OTP
+              </Button>
+            </Form.Item>
+          </Form>
+        ) : (
+          <Form
+            form={formReset}
+            layout="vertical"
+            onFinish={handleResetSubmit}
+            size="large"
+            requiredMark={false}
+          >
+            <div className="mb-6 rounded-lg border border-green-100 bg-green-50/50 p-4 text-sm text-green-800">
+              Mã xác nhận OTP đã được gửi về email:{" "}
+              <strong className="font-semibold">{email}</strong>
+            </div>
+
+            <Form.Item
+              label={<span className="font-medium text-gray-700">Mã OTP</span>}
+              name="otpCode"
+              rules={[
+                { required: true, message: "Vui lòng nhập mã OTP" },
+                { len: 6, message: "Mã OTP phải gồm 6 ký tự" },
+              ]}
+              className="mb-4"
+            >
+              <Input.OTP length={6} className="gap-2" />
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <span className="font-medium text-gray-700">Mật khẩu mới</span>
+              }
+              name="newPassword"
+              rules={[
+                { required: true, message: "Vui lòng nhập mật khẩu mới" },
+                { min: 8, message: "Mật khẩu tối thiểu 8 ký tự" },
+                {
+                  pattern:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                  message:
+                    "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+                },
+              ]}
+              className="mb-4"
+            >
+              <Input.Password
+                placeholder="Nhập mật khẩu mới"
+                className="h-11 rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label={
+                <span className="font-medium text-gray-700">
+                  Xác nhận mật khẩu mới
+                </span>
+              }
+              name="confirmNewPassword"
+              rules={[
+                { required: true, message: "Vui lòng xác nhận mật khẩu mới" },
+              ]}
+              className="mb-6"
+            >
+              <Input.Password
+                placeholder="Nhập lại mật khẩu mới"
+                className="h-11 rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item className="mb-4">
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={isLoading}
+                style={{
+                  backgroundColor: "#22c55e",
+                  borderColor: "#22c55e",
+                }}
+                className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+              >
+                Đặt lại mật khẩu
+              </Button>
+            </Form.Item>
+          </Form>
+        )}
+
+        <div className="mt-6 text-center">
+          <Link
+            href={ROUTES.LOGIN}
+            className="font-medium text-green-600 hover:text-green-700"
+          >
+            Quay lại Đăng nhập
+          </Link>
         </div>
-        <button onClick={handleSendOtp} className="w-full h-12 mt-6 rounded-lg bg-[#2F9E44] text-white text-[16px] font-[500] hover:bg-[#1F6F2E] transition-colors cursor-pointer">
-          Gửi OTP
-        </button>
       </div>
-    </div>
+    </main>
   );
 }

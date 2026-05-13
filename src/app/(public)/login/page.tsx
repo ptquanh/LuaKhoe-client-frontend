@@ -1,25 +1,33 @@
 "use client";
 
-import { Alert, Button, Checkbox, Form, Input, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Form,
+  Input,
+  Typography,
+  Divider,
+} from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
-import { LoginPayload } from "@/types/auth.type";
+import { LoginPayload, ROLE } from "@/types/auth.type";
 
 const { Title, Text } = Typography;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, login, isLoading, error } = useAuth();
+  const { user, login, loginWithGoogle, isLoading, error } = useAuth();
   const [form] = Form.useForm();
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      if (user.is_admin) {
+      if (user.role === ROLE.ADMIN) {
         router.push(ROUTES.ADMIN_DASHBOARD);
       } else {
         router.push(ROUTES.DIAGNOSE);
@@ -28,12 +36,12 @@ export default function LoginPage() {
   }, [user, router]);
 
   const onFinish = async (values: {
-    username: string;
+    usernameOrEmail: string;
     password: string;
     remember?: boolean;
   }) => {
     const payload: LoginPayload = {
-      username: values.username,
+      usernameOrEmail: values.usernameOrEmail,
       password: values.password,
     };
 
@@ -97,16 +105,21 @@ export default function LoginPage() {
           >
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">Tên đăng nhập / Số điện thoại</span>
+                <span className="font-medium text-gray-700">
+                  Email hoặc tên đăng nhập
+                </span>
               }
-              name="username"
+              name="usernameOrEmail"
               rules={[
-                { required: true, message: "Vui lòng nhập tên đăng nhập" },
+                {
+                  required: true,
+                  message: "Vui lòng nhập email hoặc tên đăng nhập",
+                },
               ]}
               className="mb-5"
             >
               <Input
-                placeholder="Nhập tên đăng nhập"
+                placeholder="Nhập email hoặc tên đăng nhập"
                 className="h-11 rounded-lg"
               />
             </Form.Item>
@@ -131,14 +144,14 @@ export default function LoginPage() {
               </Form.Item>
 
               <Link
-                href="#"
+                href={ROUTES.FORGOT_PASSWORD}
                 className="text-sm font-medium text-green-600 hover:text-green-700"
               >
                 Quên mật khẩu?
               </Link>
             </div>
 
-            <Form.Item className="mb-6">
+            <Form.Item className="mb-4">
               <Button
                 type="primary"
                 htmlType="submit"
@@ -154,6 +167,25 @@ export default function LoginPage() {
               </Button>
             </Form.Item>
 
+            <Divider className="my-6">Hoặc tiếp tục với</Divider>
+
+            <Button
+              block
+              size="large"
+              onClick={loginWithGoogle}
+              icon={
+                <svg className="mr-2 inline-block h-5 w-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#EA4335"
+                    d="M12.24 10.285V14.4h6.887C18.2 16.8 15.645 18.4 12.24 18.4c-3.53 0-6.4-2.87-6.4-6.4s2.87-6.4 6.4-6.4c1.53 0 2.93.54 4.03 1.43l3.033-3.033C17.415 2.155 14.99 1.2 12.24 1.2c-5.965 0-10.8 4.835-10.8 10.8s4.835 10.8 10.8 10.8c6.225 0 10.335-4.38 10.335-10.515 0-.705-.06-1.39-.18-2.015H12.24z"
+                  />
+                </svg>
+              }
+              className="mb-6 h-12 rounded-lg border-gray-300 font-medium shadow-sm hover:bg-gray-50!"
+            >
+              Đăng nhập bằng Google
+            </Button>
+
             <div className="text-center">
               <Text className="text-gray-500">Chưa có tài khoản? </Text>
               <Link
@@ -162,12 +194,6 @@ export default function LoginPage() {
               >
                 Đăng ký ngay
               </Link>
-            </div>
-
-            <div className="mt-8 border-t border-gray-100 pt-6 text-center">
-              <Text className="text-xs text-gray-400">
-                Mặc định hệ thống: <b>system_users</b> / <b>Abcd@1234</b>
-              </Text>
             </div>
           </Form>
         </div>

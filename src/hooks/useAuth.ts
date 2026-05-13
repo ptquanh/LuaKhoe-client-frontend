@@ -5,7 +5,23 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
 import { authService } from "@/services/auth.service";
-import { LoginPayload, RegisterPayload, User } from "@/types/auth.type";
+import {
+  ChangePasswordPayload,
+  ForgotPasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+  ResetPasswordPayload,
+  ResendEmailPayload,
+  User,
+  VerifyOtpPayload,
+} from "@/types/auth.type";
+
+const getErrorMessage = (err: any): string => {
+  const data = err.response?.data;
+  if (!data) return "Kết nối máy chủ thất bại.";
+  if (Array.isArray(data.message)) return data.message.join(", ");
+  return data.message || data.detail || "Đã có lỗi xảy ra. Vui lòng thử lại.";
+};
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +34,12 @@ export function useAuth() {
       const token = getCookie(ACCESS_TOKEN);
       if (!token) return null;
       try {
-        return await authService.getMe();
+        const res = await authService.getMe();
+        if (res.success && res.data) {
+          return res.data;
+        }
+        deleteCookie(ACCESS_TOKEN);
+        return null;
       } catch {
         deleteCookie(ACCESS_TOKEN);
         return null;
@@ -32,14 +53,19 @@ export function useAuth() {
     setError(null);
     try {
       const res = await authService.login(payload);
-      setCookie(ACCESS_TOKEN, res.access_token, {
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
-      onSuccess?.();
+      if (res.success && res.data) {
+        setCookie(ACCESS_TOKEN, res.data.accessToken, {
+          maxAge: 60 * 60 * 24 * 7,
+        });
+        await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+        onSuccess?.();
+      } else {
+        setError(
+          res.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+        );
+      }
     } catch (err: any) {
-      const message = err.response?.data?.detail || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
-      setError(message);
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -49,16 +75,123 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      await authService.register(payload);
-      // After register, user needs to login or we could auto-login if the register endpoint returned a token
-      // Currently backend register returns UserResponse, not Token
-      onSuccess?.();
+      const res = await authService.register(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(res.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      }
     } catch (err: any) {
-      const message = err.response?.data?.detail || "Đăng ký thất bại. Vui lòng thử lại.";
-      setError(message);
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const verifyOtp = async (
+    payload: VerifyOtpPayload,
+    onSuccess?: () => void,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.verifyOtp(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(res.message || "Mã xác thực không đúng hoặc đã hết hạn.");
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resendEmail = async (
+    payload: ResendEmailPayload,
+    onSuccess?: () => void,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.resendEmail(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(res.message || "Không thể gửi lại email. Vui lòng thử lại.");
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const forgotPassword = async (
+    payload: ForgotPasswordPayload,
+    onSuccess?: () => void,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.forgotPassword(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(
+          res.message || "Gửi yêu cầu khôi phục thất bại. Vui lòng thử lại.",
+        );
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (
+    payload: ResetPasswordPayload,
+    onSuccess?: () => void,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.resetPassword(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(res.message || "Đặt lại mật khẩu thất bại. Vui lòng thử lại.");
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const changePassword = async (
+    payload: ChangePasswordPayload,
+    onSuccess?: () => void,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.changePassword(payload);
+      if (res.success) {
+        onSuccess?.();
+      } else {
+        setError(res.message || "Đổi mật khẩu thất bại.");
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithGoogle = () => {
+    window.location.href = authService.getSocialLoginUrl("google");
   };
 
   const logout = () => {
@@ -67,12 +200,19 @@ export function useAuth() {
     window.location.href = ROUTES.LOGIN;
   };
 
-  return { 
-    user, 
-    login, 
-    register, 
-    logout, 
-    isLoading: isLoading || isUserLoading, 
-    error 
+  return {
+    user,
+    login,
+    register,
+    verifyOtp,
+    resendEmail,
+    forgotPassword,
+    resetPassword,
+    changePassword,
+    loginWithGoogle,
+    logout,
+    isLoading: isLoading || isUserLoading,
+    error,
+    setError,
   };
 }

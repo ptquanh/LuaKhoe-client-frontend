@@ -1,11 +1,11 @@
 import { AxiosResponse } from "axios";
 
-import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { DiagnoseResult, AnalyzeApiResponse } from "@/types/diagnose.type";
 
 function mapApiResponseToResult(raw: AnalyzeApiResponse): DiagnoseResult {
   const prediction = raw.prediction;
-  
+
   // Default fallback values
   let severity: "low" | "medium" | "high" | "critical" = "medium";
   let diseaseName = prediction.disease;
@@ -16,12 +16,21 @@ function mapApiResponseToResult(raw: AnalyzeApiResponse): DiagnoseResult {
     if (ragRec.disease_name && ragRec.disease_name !== "") {
       diseaseName = ragRec.disease_name;
     }
-    
+
     if (ragRec.severity_assessment) {
       const severityText = ragRec.severity_assessment.toLowerCase();
-      if (severityText.includes("cấp bách") || severityText.includes("critical")) severity = "critical";
-      else if (severityText.includes("nghiêm trọng") || severityText.includes("high")) severity = "high";
-      else if (severityText.includes("nhẹ") || severityText.includes("low")) severity = "low";
+      if (
+        severityText.includes("cấp bách") ||
+        severityText.includes("critical")
+      )
+        severity = "critical";
+      else if (
+        severityText.includes("nghiêm trọng") ||
+        severityText.includes("high")
+      )
+        severity = "high";
+      else if (severityText.includes("nhẹ") || severityText.includes("low"))
+        severity = "low";
       // "trung bình" / "medium" or unrecognized texts default to "medium"
     }
   }
@@ -50,10 +59,13 @@ export const diagnoseService = {
     const formData = new FormData();
     formData.append("file", image);
 
-    const response: AxiosResponse<AnalyzeApiResponse> =
-      await aiAxiosClient.post("/analyze", formData, {
+    const response: AxiosResponse<AnalyzeApiResponse> = await axiosClient.post(
+      "/analyze",
+      formData,
+      {
         headers: { "Content-Type": "multipart/form-data" },
-      });
+      },
+    );
 
     return mapApiResponseToResult(response.data);
   },

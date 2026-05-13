@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { Leaf } from "lucide-react";
 
-interface ImageWithFallbackProps
-  extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackText?: string;
 }
 
@@ -23,7 +22,7 @@ export function ImageWithFallback({
         className={`flex items-center justify-center bg-[#F0F2F5] text-[#9E9E9E] ${className ?? ""}`}
       >
         <div className="flex flex-col items-center gap-2">
-          <Leaf className="w-8 h-8" />
+          <Leaf className="h-8 w-8" />
           <span className="text-[12px]">{fallbackText ?? alt ?? "Image"}</span>
         </div>
       </div>

@@ -60,7 +60,7 @@ export interface DiagnoseResult {
 
   // All unique diseases detected with their highest confidence
   detections: DetectionItem[];
-  
+
   // From RAG Backend (Advanced info)
   rag_recommendation: RecommendationResult | null;
 
