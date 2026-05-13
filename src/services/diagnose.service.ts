@@ -1,33 +1,60 @@
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 
-import { AI_API_BASE_URL } from "@/constants/env";
-import {
-  DiagnoseResponse,
-  MOCK_DIAGNOSE_RESPONSE,
-} from "@/types/diagnose.type";
+import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import { DiagnoseResult, AnalyzeApiResponse } from "@/types/diagnose.type";
 
-const aiAxiosClient = axios.create({
-  baseURL: AI_API_BASE_URL,
-  timeout: 60000,
-});
+function mapApiResponseToResult(raw: AnalyzeApiResponse): DiagnoseResult {
+  const prediction = raw.prediction;
+  
+  // Default fallback values
+  let severity: "low" | "medium" | "high" | "critical" = "medium";
+  let diseaseName = prediction.disease;
 
-const USE_MOCK = true; // Đổi thành false khi FastAPI xong
+  // Determine severity and disease name based on RAG if available
+  if (raw.recommendation && raw.recommendation.recommendation) {
+    const ragRec = raw.recommendation.recommendation;
+    if (ragRec.disease_name && ragRec.disease_name !== "") {
+      diseaseName = ragRec.disease_name;
+    }
+    
+    if (ragRec.severity_assessment) {
+      const severityText = ragRec.severity_assessment.toLowerCase();
+      if (severityText.includes("cấp bách") || severityText.includes("critical")) severity = "critical";
+      else if (severityText.includes("nghiêm trọng") || severityText.includes("high")) severity = "high";
+      else if (severityText.includes("nhẹ") || severityText.includes("low")) severity = "low";
+      // "trung bình" / "medium" or unrecognized texts default to "medium"
+    }
+  }
+
+  // Handle Healthy explicitly
+  if (prediction.disease.toLowerCase() === "healthy") {
+    severity = "low";
+    diseaseName = "Khỏe mạnh";
+  }
+
+  return {
+    disease_key: prediction.disease,
+    disease_name: diseaseName,
+    confidence: prediction.confidence,
+    severity: severity,
+    rag_recommendation: raw.recommendation?.recommendation || null,
+    annotated_image: prediction.annotated_image || null,
+    detections: prediction.detections || [],
+    low_confidence: prediction.low_confidence ?? false,
+    latency_ms: prediction.latency_ms + (raw.recommendation?.latency_ms || 0),
+  };
+}
 
 export const diagnoseService = {
-  predict: async (image: File): Promise<DiagnoseResponse> => {
-    if (USE_MOCK) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      return MOCK_DIAGNOSE_RESPONSE;
-    }
-
+  predict: async (image: File): Promise<DiagnoseResult> => {
     const formData = new FormData();
     formData.append("file", image);
 
-    const response: AxiosResponse<DiagnoseResponse> = await aiAxiosClient.post(
-      "/predict",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return response.data;
+    const response: AxiosResponse<AnalyzeApiResponse> =
+      await aiAxiosClient.post("/analyze", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+    return mapApiResponseToResult(response.data);
   },
 };

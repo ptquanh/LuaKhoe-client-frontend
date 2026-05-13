@@ -34,12 +34,12 @@ export default function RegisterPage() {
   const onFinish = async (values: any) => {
     const payload: RegisterPayload = {
       full_name: values.full_name,
-      phone: values.phone,
+      username: values.username,
       email: values.email || undefined,
       password: values.password,
       province: values.province,
     };
-    await register(payload, () => router.push(ROUTES.DIAGNOSE));
+    await register(payload, () => router.push(ROUTES.LOGIN));
   };
 
   return (
@@ -87,15 +87,11 @@ export default function RegisterPage() {
 
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Số điện thoại</span>
+              <span className="font-medium text-gray-700">Tên đăng nhập / Số điện thoại</span>
             }
-            name="phone"
+            name="username"
             rules={[
-              { required: true, message: "Vui lòng nhập số điện thoại" },
-              {
-                pattern: /^[0-9]{10,11}$/,
-                message: "Số điện thoại không hợp lệ",
-              },
+              { required: true, message: "Vui lòng nhập tên đăng nhập" },
             ]}
             className="mb-4"
           >

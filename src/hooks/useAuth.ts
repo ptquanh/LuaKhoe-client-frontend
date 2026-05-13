@@ -1,28 +1,44 @@
-import { deleteCookie, setCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
 import { authService } from "@/services/auth.service";
-import { LoginPayload, RegisterPayload } from "@/types/auth.type";
+import { LoginPayload, RegisterPayload, User } from "@/types/auth.type";
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: user, isLoading: isUserLoading } = useQuery<User | null>({
+    queryKey: ["auth-me"],
+    queryFn: async () => {
+      const token = getCookie(ACCESS_TOKEN);
+      if (!token) return null;
+      try {
+        return await authService.getMe();
+      } catch {
+        deleteCookie(ACCESS_TOKEN);
+        return null;
+      }
+    },
+    retry: false,
+  });
 
   const login = async (payload: LoginPayload, onSuccess?: () => void) => {
     setIsLoading(true);
     setError(null);
     try {
       const res = await authService.login(payload);
-      setCookie(ACCESS_TOKEN, res.data.access_token, {
+      setCookie(ACCESS_TOKEN, res.access_token, {
         maxAge: 60 * 60 * 24 * 7,
       });
+      await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
       onSuccess?.();
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
+    } catch (err: any) {
+      const message = err.response?.data?.detail || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -33,15 +49,12 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await authService.register(payload);
-      setCookie(ACCESS_TOKEN, res.data.access_token, {
-        maxAge: 60 * 60 * 24 * 7,
-      });
+      await authService.register(payload);
+      // After register, user needs to login or we could auto-login if the register endpoint returned a token
+      // Currently backend register returns UserResponse, not Token
       onSuccess?.();
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Đăng ký thất bại. Vui lòng thử lại.";
+    } catch (err: any) {
+      const message = err.response?.data?.detail || "Đăng ký thất bại. Vui lòng thử lại.";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -50,8 +63,16 @@ export function useAuth() {
 
   const logout = () => {
     deleteCookie(ACCESS_TOKEN);
+    queryClient.setQueryData(["auth-me"], null);
     window.location.href = ROUTES.LOGIN;
   };
 
-  return { login, register, logout, isLoading, error };
+  return { 
+    user, 
+    login, 
+    register, 
+    logout, 
+    isLoading: isLoading || isUserLoading, 
+    error 
+  };
 }

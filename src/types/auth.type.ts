@@ -1,22 +1,29 @@
+export interface User {
+  id: number;
+  username: string;
+  email?: string;
+  full_name?: string;
+  phone?: string;
+  role?: string;
+  province?: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
 export interface LoginPayload {
-  phone: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterPayload {
-  phone: string;
-  email?: string;
+  username: string;
   password: string;
-  full_name: string;
-  province: string;
+  email?: string;
+  full_name?: string;
+  province?: string;
 }
 
-export interface AuthResponse {
+export interface TokenResponse {
   access_token: string;
-  refresh_token?: string;
-  user: {
-    id: string;
-    email: string;
-    full_name: string;
-  };
+  token_type: string;
 }

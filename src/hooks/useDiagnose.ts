@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 import { diagnoseService } from "@/services/diagnose.service";
-import { DiagnoseResponse } from "@/types/diagnose.type";
+import { DiagnoseResult } from "@/types/diagnose.type";
 
 export function useDiagnose() {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<DiagnoseResponse | null>(null);
+  const [result, setResult] = useState<DiagnoseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const predict = async (image: File) => {
@@ -16,11 +16,10 @@ export function useDiagnose() {
     try {
       const data = await diagnoseService.predict(image);
 
-      if (!data.is_valid_image) {
+      if (data.low_confidence) {
         setError(
-          "Vui lòng chụp lại ảnh lá lúa rõ hơn để AI phân tích chính xác.",
+          "AI chưa đủ tin cậy về kết quả này. Vui lòng chụp lại ảnh rõ hơn hoặc liên hệ chuyên gia.",
         );
-        return;
       }
 
       setResult(data);

@@ -3,6 +3,7 @@
 import { Alert, Button, Checkbox, Form, Input, Typography } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,29 +13,37 @@ const { Title, Text } = Typography;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuth();
+  const { user, login, isLoading, error } = useAuth();
   const [form] = Form.useForm();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      if (user.is_admin) {
+        router.push(ROUTES.ADMIN_DASHBOARD);
+      } else {
+        router.push(ROUTES.DIAGNOSE);
+      }
+    }
+  }, [user, router]);
+
   const onFinish = async (values: {
-    phone: string;
+    username: string;
     password: string;
     remember?: boolean;
   }) => {
     const payload: LoginPayload = {
-      phone: values.phone,
+      username: values.username,
       password: values.password,
     };
 
-    // In a real app, 'admin' might have a different route/permission. Here we just login normally,
-    // and let the backend return the user role. Then we can redirect based on role.
-    await login(payload, () => router.push(ROUTES.DIAGNOSE));
+    await login(payload);
   };
 
   return (
     <main className="flex min-h-screen bg-white">
       {/* Left side: Image banner (hidden on mobile) */}
       <div className="relative hidden w-1/2 flex-col justify-end overflow-hidden p-12 lg:flex">
-        {/* Unsplash image representing a Vietnamese rice field/mountain landscape */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -88,16 +97,16 @@ export default function LoginPage() {
           >
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">Số điện thoại</span>
+                <span className="font-medium text-gray-700">Tên đăng nhập / Số điện thoại</span>
               }
-              name="phone"
+              name="username"
               rules={[
-                { required: true, message: "Vui lòng nhập số điện thoại" },
+                { required: true, message: "Vui lòng nhập tên đăng nhập" },
               ]}
               className="mb-5"
             >
               <Input
-                placeholder="Nhập số điện thoại"
+                placeholder="Nhập tên đăng nhập"
                 className="h-11 rounded-lg"
               />
             </Form.Item>
@@ -157,7 +166,7 @@ export default function LoginPage() {
 
             <div className="mt-8 border-t border-gray-100 pt-6 text-center">
               <Text className="text-xs text-gray-400">
-                Nhập &quot;admin&quot; làm số điện thoại để xem Admin Dashboard
+                Mặc định hệ thống: <b>system_users</b> / <b>Abcd@1234</b>
               </Text>
             </div>
           </Form>

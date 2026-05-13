@@ -1,16 +1,19 @@
-import { AxiosResponse } from "axios";
-
-import axiosClient from "@/lib/axiosClient";
-import { AuthResponse, LoginPayload, RegisterPayload } from "@/types/auth.type";
+import { aiAxiosClient } from "@/lib/aiAxiosClient";
+import { LoginPayload, RegisterPayload, TokenResponse, User } from "@/types/auth.type";
 
 export const authService = {
-  login: (payload: LoginPayload): Promise<AxiosResponse<AuthResponse>> =>
-    axiosClient.post("/auth/login", payload),
+  login: async (payload: LoginPayload): Promise<TokenResponse> => {
+    const response = await aiAxiosClient.post<TokenResponse>("/auth/login", payload);
+    return response.data;
+  },
 
-  register: (payload: RegisterPayload): Promise<AxiosResponse<AuthResponse>> =>
-    axiosClient.post("/auth/register", payload),
+  register: async (payload: RegisterPayload): Promise<User> => {
+    const response = await aiAxiosClient.post<User>("/auth/register", payload);
+    return response.data;
+  },
 
-  getProfile: (): Promise<AxiosResponse> => axiosClient.get("/auth/whoami"),
-
-  logout: (): Promise<AxiosResponse> => axiosClient.post("/auth/logout"),
+  getMe: async (): Promise<User> => {
+    const response = await aiAxiosClient.get<User>("/auth/me");
+    return response.data;
+  },
 };
