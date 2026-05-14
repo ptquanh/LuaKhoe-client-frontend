@@ -111,6 +111,7 @@ export interface DiagnosisResponse {
   modelVersionId: string;
   createdAt: string;
   results: DiagnosisResultResponse[];
+  feedbacks?: any[];
   advisory?: DiagnosisAdvisory | null;
 
   // Enriched DiagnoseResult fields returned by Predict API
@@ -137,6 +138,7 @@ export interface GetHistoryParams {
   offset?: number;
   keyword?: string;
   disease?: string;
+  feedbackStatus?: string;
   fromDate?: string;
   toDate?: string;
   sort?: string;

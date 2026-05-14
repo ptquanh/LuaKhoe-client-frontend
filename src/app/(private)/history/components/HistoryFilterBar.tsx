@@ -1,13 +1,20 @@
 "use client";
 
-import { ArrowUpDown, Calendar, Filter, Search } from "lucide-react";
-import React from "react";
+import {
+  ArrowUpDown,
+  Calendar,
+  Filter,
+  MessageSquareHeart,
+  Search,
+} from "lucide-react";
 
 interface HistoryFilterBarProps {
   keyword: string;
   setKeyword: (keyword: string) => void;
   diseaseFilter: string;
   setDiseaseFilter: (disease: string) => void;
+  feedbackStatusFilter: string;
+  setFeedbackStatusFilter: (status: string) => void;
   timeFilter: string;
   setTimeFilter: (time: string) => void;
   sortFilter: string;
@@ -22,6 +29,15 @@ const diseases = [
   "Bệnh khô vằn",
   "Bệnh đốm nâu",
   "Khỏe mạnh",
+];
+
+const feedbackStatuses = [
+  "Tất cả",
+  "Đã gửi phản hồi",
+  "Chờ phản hồi",
+  "Đã duyệt",
+  "Đã từ chối",
+  "Chưa gửi phản hồi",
 ];
 
 const times = [
@@ -41,6 +57,8 @@ export function HistoryFilterBar({
   setKeyword,
   diseaseFilter,
   setDiseaseFilter,
+  feedbackStatusFilter,
+  setFeedbackStatusFilter,
   timeFilter,
   setTimeFilter,
   sortFilter,
@@ -70,6 +88,21 @@ export function HistoryFilterBar({
           {diseases.map((d) => (
             <option key={d} value={d}>
               {d}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <MessageSquareHeart className="h-4 w-4 text-[#5C5C5C]" />
+        <select
+          value={feedbackStatusFilter}
+          onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+          className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
+        >
+          {feedbackStatuses.map((f) => (
+            <option key={f} value={f}>
+              {f}
             </option>
           ))}
         </select>

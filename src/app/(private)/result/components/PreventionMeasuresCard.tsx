@@ -1,22 +1,15 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import React from "react";
 
 interface PreventionMeasuresCardProps {
   preventionMeasures?: string[];
-  defaultPrevention: string;
 }
 
 export function PreventionMeasuresCard({
   preventionMeasures,
-  defaultPrevention,
 }: PreventionMeasuresCardProps) {
-  const measures = preventionMeasures?.length
-    ? preventionMeasures
-    : defaultPrevention
-        .split(/\n|(?<=\.)\s+/)
-        .filter((s) => s.trim().length > 0);
+  const measures = preventionMeasures?.length ? preventionMeasures : [];
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-sm transition-all hover:shadow-md">
@@ -34,19 +27,27 @@ export function PreventionMeasuresCard({
         </div>
       </div>
 
-      <ul className="grid grid-cols-1 gap-3 pt-2 md:grid-cols-2">
-        {measures.map((measure, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-3 rounded-xl border border-[#E0E0E0]/60 bg-[#F7F7F7]/50 p-3.5 text-[14px] leading-[1.6] text-[#5C5C5C]"
-          >
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1976D2]/10 text-[12px] font-[700] text-[#1976D2]">
-              ✓
-            </span>
-            <span className="flex-1 font-[500] text-[#1B1B1B]">{measure}</span>
-          </li>
-        ))}
-      </ul>
+      {measures.length === 0 ? (
+        <div className="pt-2 text-[14px] text-[#757575] italic">
+          Chưa có thông tin biện pháp phòng ngừa cụ thể cho bệnh này.
+        </div>
+      ) : (
+        <ul className="grid grid-cols-1 gap-3 pt-2 md:grid-cols-2">
+          {measures.map((measure, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-3 rounded-xl border border-[#E0E0E0]/60 bg-[#F7F7F7]/50 p-3.5 text-[14px] leading-[1.6] text-[#5C5C5C]"
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1976D2]/10 text-[12px] font-[700] text-[#1976D2]">
+                ✓
+              </span>
+              <span className="flex-1 font-[500] text-[#1B1B1B]">
+                {measure}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

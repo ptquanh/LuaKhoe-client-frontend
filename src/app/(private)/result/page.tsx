@@ -6,7 +6,9 @@ import { Suspense, useEffect, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { diagnosisService } from "@/services/diagnosis.service";
+import { feedbackService } from "@/services/feedback.service";
 import { DiagnosisResponse } from "@/types/diagnose.type";
+import { FeedbackItem } from "@/types/feedback.type";
 
 import { DiagnosisFeedbackCard } from "./components/DiagnosisFeedbackCard";
 import { NutritionAdjustmentCard } from "./components/NutritionAdjustmentCard";
@@ -16,45 +18,6 @@ import { ResultImagePreview } from "./components/ResultImagePreview";
 import { TreatmentProtocolCard } from "./components/TreatmentProtocolCard";
 import { UrgentActionsCard } from "./components/UrgentActionsCard";
 
-const defaultMockResult = {
-  disease: "Bệnh đạo ôn (Blast Disease)",
-  severity: "high" as const,
-  confidence: 92,
-  urgentActions: [
-    "Phun thuốc Tricyclazole 75WP ngay hôm nay (0.3kg/ha)",
-    "Rút bớt nước ruộng, để ruộng khô 3-5 ngày",
-    "Loại bỏ lá bệnh nặng và tiêu hủy",
-  ],
-  treatments: {
-    chemical: [
-      "Phun Tricyclazole 75WP liều 0.3kg/ha khi phát hiện bệnh",
-      "Kết hợp Isoprothiolane 40EC phun phòng 2 lần cách nhau 7-10 ngày",
-      "Phun vào sáng sớm hoặc chiều mát, tránh trời nắng gắt",
-    ],
-    biological: [
-      "Sử dụng chế phẩm sinh học Trichoderma harzianum (10^8 bào tử/ml) phun định kỳ 7 ngày/lần",
-      "Kết hợp Bacillus subtilis để tăng khả năng đề kháng",
-      "Thay đổi lượng nước tưới để giảm độ ẩm vi sinh trong ruộng",
-    ],
-    cultivation: [
-      "Giảm lượng đạm bón xuống 20%, tăng kali để tăng sức đề kháng",
-      "Rút nước ruộng định kỳ, tránh úng nước kéo dài",
-      "Loại bỏ tàn dư rơm rạ sau thu hoạch để giảm nguồn bệnh",
-      "Luân canh với cây họ đậu hoặc ngô trong vụ tới",
-    ],
-  },
-  npk: {
-    current: "Đã bón quá nhiều đạm (N), thiếu kali (K)",
-    recommendation:
-      "Giảm đạm xuống 80kg N/ha, tăng kali lên 60kg K₂O/ha, giữ lân ở mức 40kg P₂O₅/ha",
-  },
-  prevention:
-    "Chọn giống kháng bệnh (OM6976, Jasmine), không bón thừa đạm, luân canh hợp lý",
-  sources: "Sở NN&PTNT Đồng bằng sông Cửu Long, IRRI Rice Knowledge Bank",
-  confidenceNote:
-    "Độ tin cậy cao. Nếu triệu chứng không cải thiện sau 7 ngày, hãy liên hệ khuyến nông địa phương.",
-};
-
 function ResultPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,6 +26,9 @@ function ResultPageContent() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DiagnosisResponse | null>(null);
+  const [existingFeedback, setExistingFeedback] = useState<FeedbackItem | null>(
+    null,
+  );
 
   const [checkedActions, setCheckedActions] = useState<boolean[]>([]);
 
@@ -73,19 +39,30 @@ function ResultPageContent() {
       return;
     }
 
-    const fetchDiagnosis = async () => {
+    const fetchDiagnosisAndFeedback = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await diagnosisService.getById(id);
+
+        const [res, fbRes] = await Promise.all([
+          diagnosisService.getById(id),
+          feedbackService.getMyFeedbacks().catch(() => null),
+        ]);
+
         if (res.success && res.data) {
           setData(res.data);
           const urgentCount =
-            res.data.rag_recommendation?.immediate_actions?.length ||
-            defaultMockResult.urgentActions.length;
+            res.data.rag_recommendation?.immediate_actions?.length || 0;
           setCheckedActions(new Array(urgentCount).fill(false));
         } else {
           setError(res.message || "Không thể tải dữ liệu chẩn đoán.");
+        }
+
+        if (fbRes?.success && fbRes.data) {
+          const found = fbRes.data.find((item) => item.diagnosisId === id);
+          if (found) {
+            setExistingFeedback(found);
+          }
         }
       } catch (err: any) {
         setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
@@ -94,7 +71,7 @@ function ResultPageContent() {
       }
     };
 
-    fetchDiagnosis();
+    fetchDiagnosisAndFeedback();
   }, [id]);
 
   const toggleCheck = (index: number) => {
@@ -103,8 +80,29 @@ function ResultPageContent() {
     );
   };
 
-  const handleFeedbackSubmit = (rating: number, comment: string) => {
-    console.log("Feedback submitted:", { id, rating, comment });
+  const handleFeedbackSubmit = async (rating: number, comment: string) => {
+    if (!id) return;
+    try {
+      const prefix = rating > 0 ? `[Đánh giá: ${rating}/5 sao] ` : "";
+      const userMessage = `${prefix}${comment}`;
+      const res = await feedbackService.submit({
+        diagnosisId: id,
+        userMessage,
+        actualDiseaseIds: [],
+      });
+      setExistingFeedback({
+        id: res.data?.id || Date.now().toString(),
+        diagnosisId: id,
+        userId: "current",
+        userMessage,
+        actualDiseases: [],
+        status: "PENDING",
+        createdAt: new Date().toISOString(),
+      });
+      console.log("Feedback submitted successfully");
+    } catch (err) {
+      console.error("Lỗi gửi phản hồi:", err);
+    }
   };
 
   if (loading) {
@@ -147,29 +145,23 @@ function ResultPageContent() {
   }
 
   const rag = data.rag_recommendation;
-  const diseaseName =
-    data.disease_name || data.disease_key || defaultMockResult.disease;
+  const diseaseName = data.disease_name || data.disease_key || "Không xác định";
   const isHealthy =
     diseaseName.toLowerCase().includes("healthy") ||
     diseaseName.toLowerCase().includes("khỏe mạnh") ||
     diseaseName.toLowerCase().includes("bình thường") ||
     data.disease_key === "Healthy";
-  const severityKey = data.severity || defaultMockResult.severity;
+  const severityKey = data.severity || "medium";
   const confVal = data.confidence
     ? data.confidence > 1
       ? Math.round(data.confidence)
       : Math.round(data.confidence * 100)
-    : defaultMockResult.confidence;
+    : 0;
 
-  const urgentActions = rag?.immediate_actions?.length
-    ? rag.immediate_actions
-    : defaultMockResult.urgentActions;
+  const urgentActions = rag?.immediate_actions || [];
 
   const previewImg =
-    data.annotated_image ||
-    data.resultImageUrl ||
-    data.originalImageUrl ||
-    defaultMockResult.disease;
+    data.annotated_image || data.resultImageUrl || data.originalImageUrl || "";
 
   return (
     <div className="mx-auto max-w-[900px] px-4 pt-4 pb-20 md:px-0">
@@ -190,7 +182,7 @@ function ResultPageContent() {
         />
 
         {/* Urgent Actions */}
-        {!isHealthy && (
+        {!isHealthy && urgentActions.length > 0 && (
           <UrgentActionsCard
             urgentActions={urgentActions}
             checkedActions={checkedActions}
@@ -207,29 +199,29 @@ function ResultPageContent() {
               rag?.treatment_protocol?.cultural ||
               (rag?.treatment_protocol as any)?.cultivation
             }
-            defaultTreatments={defaultMockResult.treatments}
           />
         )}
 
         {/* Nutrition Adjustment */}
         {!isHealthy && (
-          <NutritionAdjustmentCard
-            npkAdjustment={rag?.npk_adjustment}
-            defaultNpk={defaultMockResult.npk}
-          />
+          <NutritionAdjustmentCard npkAdjustment={rag?.npk_adjustment} />
         )}
 
         {/* Prevention Measures */}
-        <PreventionMeasuresCard
-          preventionMeasures={rag?.prevention_measures}
-          defaultPrevention={defaultMockResult.prevention}
-        />
+        {!isHealthy && (
+          <PreventionMeasuresCard
+            preventionMeasures={rag?.prevention_measures}
+          />
+        )}
 
         {/* Image Preview */}
         <ResultImagePreview imageUrl={previewImg} diseaseName={diseaseName} />
 
         {/* Feedback Card */}
-        <DiagnosisFeedbackCard onSubmitFeedback={handleFeedbackSubmit} />
+        <DiagnosisFeedbackCard
+          onSubmitFeedback={handleFeedbackSubmit}
+          existingFeedback={existingFeedback}
+        />
 
         {/* Footer Sources */}
         <div className="rounded-2xl border border-[#E0E0E0] bg-[#F7F7F7] p-5">
@@ -237,11 +229,12 @@ function ResultPageContent() {
             <span className="font-[700] text-[#5C5C5C]">Nguồn tham khảo:</span>{" "}
             {rag?.sources_used?.length
               ? rag.sources_used.join(", ")
-              : defaultMockResult.sources}
+              : "Hệ thống chuyên gia Lúa Khỏe, IRRI Rice Knowledge Bank"}
           </p>
           <p className="text-[13px] leading-[1.6] text-[#757575]">
             <span className="font-[700] text-[#5C5C5C]">Lưu ý:</span>{" "}
-            {rag?.confidence_note || defaultMockResult.confidenceNote}
+            {rag?.confidence_note ||
+              "Độ tin cậy cao. Nếu triệu chứng không cải thiện sau 7 ngày, hãy liên hệ khuyến nông địa phương."}
           </p>
         </div>
       </div>

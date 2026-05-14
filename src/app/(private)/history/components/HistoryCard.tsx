@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React from "react";
 
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { DiagnosisResponse } from "@/types/diagnose.type";
@@ -50,6 +49,18 @@ export function HistoryCard({ item }: HistoryCardProps) {
     displayResults.length === 1 &&
     displayResults[0].disease?.name === "Khỏe mạnh";
 
+  const feedback = item.feedbacks?.[0];
+  const fbStatus = feedback ? feedback.status : "Chưa gửi phản hồi";
+
+  let fbBadgeClass = "bg-[#F3F4F6] text-[#6B7280]";
+  if (fbStatus === "Đã duyệt") {
+    fbBadgeClass = "bg-[#E6F4EA] text-[#2E7D32]";
+  } else if (fbStatus === "Đã từ chối") {
+    fbBadgeClass = "bg-[#FFEBEE] text-[#C62828]";
+  } else if (fbStatus === "Chờ phản hồi") {
+    fbBadgeClass = "bg-[#FFF8E1] text-[#F57F17]";
+  }
+
   return (
     <div
       onClick={() => router.push(`/result?id=${item.id}`)}
@@ -97,12 +108,20 @@ export function HistoryCard({ item }: HistoryCardProps) {
         </div>
       </div>
       <div className="p-3">
-        <div className="flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-[12px] text-[#5C5C5C]">{dateStr}</span>
           <span
             className={`text-[12px] font-[600] ${isHealthy ? "text-[#2F9E44]" : "text-[#E65100]"}`}
           >
             {isHealthy ? "Cây khỏe mạnh" : `${displayResults.length} phát hiện`}
+          </span>
+        </div>
+        <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2">
+          <span className="text-[11px] text-[#5C5C5C]">Phản hồi AI:</span>
+          <span
+            className={`rounded px-2 py-0.5 text-[11px] font-[600] ${fbBadgeClass}`}
+          >
+            {fbStatus}
           </span>
         </div>
       </div>

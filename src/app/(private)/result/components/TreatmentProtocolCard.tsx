@@ -1,7 +1,6 @@
 "use client";
 
 import { FlaskConical, Sprout, Tractor } from "lucide-react";
-import React from "react";
 
 import {
   Accordion,
@@ -14,20 +13,14 @@ interface TreatmentProtocolCardProps {
   chemicalSteps?: string[] | string;
   biologicalSteps?: string[] | string;
   cultivationSteps?: string[] | string;
-  defaultTreatments: {
-    chemical: string[];
-    biological: string[];
-    cultivation: string[];
-  };
 }
 
 export function TreatmentProtocolCard({
   chemicalSteps,
   biologicalSteps,
   cultivationSteps,
-  defaultTreatments,
 }: TreatmentProtocolCardProps) {
-  const parseSteps = (textOrArray: any, defaultArray: string[]) => {
+  const parseSteps = (textOrArray: any): string[] => {
     if (Array.isArray(textOrArray) && textOrArray.length > 0) {
       return textOrArray;
     }
@@ -37,30 +30,39 @@ export function TreatmentProtocolCard({
         .filter((s) => s.trim().length > 0)
         .map((step) => step.replace(/^[•\-\d.]\s*/, ""));
     }
-    return defaultArray;
+    return [];
   };
 
-  const chemList = parseSteps(chemicalSteps, defaultTreatments.chemical);
-  const bioList = parseSteps(biologicalSteps, defaultTreatments.biological);
-  const cultList = parseSteps(cultivationSteps, defaultTreatments.cultivation);
+  const chemList = parseSteps(chemicalSteps);
+  const bioList = parseSteps(biologicalSteps);
+  const cultList = parseSteps(cultivationSteps);
 
-  const renderList = (list: string[], badgeBg: string, badgeText: string) => (
-    <ul className="space-y-3 px-6 pt-2 pb-4">
-      {list.map((step, i) => (
-        <li
-          key={i}
-          className="flex items-start gap-3.5 text-[15px] leading-[1.6] text-[#5C5C5C]"
-        >
-          <span
-            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-[700] shadow-sm ${badgeBg} ${badgeText}`}
+  const renderList = (list: string[], badgeBg: string, badgeText: string) => {
+    if (list.length === 0) {
+      return (
+        <div className="px-6 py-4 text-[14px] text-[#757575] italic">
+          Chưa có thông tin phác đồ cụ thể cho phương pháp này.
+        </div>
+      );
+    }
+    return (
+      <ul className="space-y-3 px-6 pt-2 pb-4">
+        {list.map((step, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3.5 text-[15px] leading-[1.6] text-[#5C5C5C]"
           >
-            {i + 1}
-          </span>
-          <span className="flex-1 font-[500] text-[#1B1B1B]">{step}</span>
-        </li>
-      ))}
-    </ul>
-  );
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-[700] shadow-sm ${badgeBg} ${badgeText}`}
+            >
+              {i + 1}
+            </span>
+            <span className="flex-1 font-[500] text-[#1B1B1B]">{step}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white shadow-sm transition-all hover:shadow-md">

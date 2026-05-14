@@ -1,26 +1,54 @@
 "use client";
 
 import { CheckCircle2, MessageSquareHeart, Send, Star } from "lucide-react";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { FeedbackItem } from "@/types/feedback.type";
 
 interface DiagnosisFeedbackCardProps {
   onSubmitFeedback: (rating: number, comment: string) => void;
+  existingFeedback?: FeedbackItem | null;
 }
 
 export function DiagnosisFeedbackCard({
   onSubmitFeedback,
+  existingFeedback,
 }: DiagnosisFeedbackCardProps) {
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [feedbackText, setFeedbackText] = useState<string>("");
   const [submitted, setSubmitted] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (existingFeedback) {
+      setSubmitted(true);
+      const msg = existingFeedback.userMessage || "";
+      const match = msg.match(/\[Đánh giá: (\d+)\/5 sao\]/);
+      if (match) {
+        setRating(Number(match[1]));
+        setFeedbackText(msg.replace(match[0], "").trim());
+      } else if (msg.includes("tích cực") || msg.includes("5/5")) {
+        setRating(5);
+        setFeedbackText(msg);
+      } else {
+        setRating(5);
+        setFeedbackText(msg);
+      }
+    }
+  }, [existingFeedback]);
+
   const handleStarClick = (rate: number) => {
+    if (existingFeedback) return;
     setRating(rate);
     setSubmitted(false);
+    if (rate >= 4) {
+      onSubmitFeedback(rate, "Đánh giá tích cực");
+      setSubmitted(true);
+    }
   };
 
   const handleSend = () => {
+    if (existingFeedback) return;
     onSubmitFeedback(rating, feedbackText);
     setSubmitted(true);
   };
@@ -48,10 +76,11 @@ export function DiagnosisFeedbackCard({
               <button
                 key={star}
                 type="button"
+                disabled={!!existingFeedback}
                 onClick={() => handleStarClick(star)}
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                className="cursor-pointer p-1 transition-transform hover:scale-115 focus:outline-none"
+                onMouseEnter={() => !existingFeedback && setHoverRating(star)}
+                onMouseLeave={() => !existingFeedback && setHoverRating(0)}
+                className={`p-1 transition-transform focus:outline-none ${existingFeedback ? "cursor-default" : "cursor-pointer hover:scale-115"}`}
               >
                 <Star
                   className={`h-8 w-8 transition-colors ${
@@ -74,7 +103,7 @@ export function DiagnosisFeedbackCard({
           )}
         </div>
 
-        {rating > 0 && rating <= 3 && !submitted && (
+        {rating > 0 && rating <= 3 && !submitted && !existingFeedback && (
           <div className="animate-in slide-in-from-top-2 flex flex-col gap-3 duration-300">
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5">
               <p className="text-[13.5px] leading-[1.5] font-[500] text-amber-900">
@@ -101,21 +130,40 @@ export function DiagnosisFeedbackCard({
           </div>
         )}
 
-        {submitted && (
+        {existingFeedback && (
+          <div className="animate-in slide-in-from-top-2 mt-2 rounded-xl border border-[#E0E0E0] bg-[#F8F9FA] p-4 duration-300">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[14px] font-[600] text-[#1B1B1B]">
+                Nội dung phản hồi của bạn:
+              </span>
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-[600] ${
+                  existingFeedback.status === "ACCEPTED"
+                    ? "bg-[#E6F4EA] text-[#1F6F2E]"
+                    : existingFeedback.status === "REJECTED"
+                      ? "bg-[#FFEBEE] text-[#C62828]"
+                      : "bg-[#FFF8E1] text-[#F57F17]"
+                }`}
+              >
+                {existingFeedback.status === "ACCEPTED"
+                  ? "Đã duyệt"
+                  : existingFeedback.status === "REJECTED"
+                    ? "Đã từ chối"
+                    : "Chờ xử lý"}
+              </span>
+            </div>
+            <p className="text-[14px] leading-[1.6] text-[#5C5C5C] italic">
+              &quot;{feedbackText || "Đánh giá chất lượng chẩn đoán AI"}&quot;
+            </p>
+          </div>
+        )}
+
+        {submitted && !existingFeedback && (
           <div className="animate-in slide-in-from-top-2 rounded-xl border border-[#2F9E44]/30 bg-[#E6F4EA] p-4 duration-300">
             <p className="flex items-center gap-2.5 text-[15px] font-[600] text-[#1F6F2E]">
               <CheckCircle2 className="h-5 w-5 text-[#2F9E44]" />
               Cảm ơn đóng góp của bạn! Chúng tôi đã ghi nhận phản hồi để nâng
               cấp AI.
-            </p>
-          </div>
-        )}
-
-        {rating >= 4 && !submitted && (
-          <div className="animate-in slide-in-from-top-2 rounded-xl border border-[#2F9E44]/30 bg-[#E6F4EA] p-4 duration-300">
-            <p className="flex items-center gap-2.5 text-[15px] font-[600] text-[#1F6F2E]">
-              <CheckCircle2 className="h-5 w-5 text-[#2F9E44]" />
-              Tuyệt vời! Cảm ơn bạn đã tin tưởng và sử dụng trợ lý AI Lúa Khỏe.
             </p>
           </div>
         )}

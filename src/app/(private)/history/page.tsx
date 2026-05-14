@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { diagnosisService } from "@/services/diagnosis.service";
 import { DiagnosisResponse } from "@/types/diagnose.type";
@@ -12,6 +12,7 @@ import { HistoryFilterBar } from "./components/HistoryFilterBar";
 export default function DiagnosisHistoryPage() {
   const [keyword, setKeyword] = useState("");
   const [diseaseFilter, setDiseaseFilter] = useState("Tất cả");
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState("Tất cả");
   const [timeFilter, setTimeFilter] = useState("all");
   const [sortFilter, setSortFilter] = useState("-createdAt");
   const [page, setPage] = useState(1);
@@ -24,7 +25,7 @@ export default function DiagnosisHistoryPage() {
   // Reset page when filter changes
   useEffect(() => {
     setPage(1);
-  }, [keyword, diseaseFilter, timeFilter, sortFilter]);
+  }, [keyword, diseaseFilter, feedbackStatusFilter, timeFilter, sortFilter]);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -46,6 +47,10 @@ export default function DiagnosisHistoryPage() {
           offset,
           keyword: keyword ? keyword : undefined,
           disease: diseaseFilter !== "Tất cả" ? diseaseFilter : undefined,
+          feedbackStatus:
+            feedbackStatusFilter !== "Tất cả"
+              ? feedbackStatusFilter
+              : undefined,
           fromDate,
           sort: sortFilter,
         });
@@ -65,7 +70,14 @@ export default function DiagnosisHistoryPage() {
     }
 
     fetchHistory();
-  }, [keyword, diseaseFilter, timeFilter, sortFilter, page]);
+  }, [
+    keyword,
+    diseaseFilter,
+    feedbackStatusFilter,
+    timeFilter,
+    sortFilter,
+    page,
+  ]);
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
@@ -85,6 +97,8 @@ export default function DiagnosisHistoryPage() {
         setKeyword={setKeyword}
         diseaseFilter={diseaseFilter}
         setDiseaseFilter={setDiseaseFilter}
+        feedbackStatusFilter={feedbackStatusFilter}
+        setFeedbackStatusFilter={setFeedbackStatusFilter}
         timeFilter={timeFilter}
         setTimeFilter={setTimeFilter}
         sortFilter={sortFilter}

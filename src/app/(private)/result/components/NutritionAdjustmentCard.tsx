@@ -1,18 +1,11 @@
 "use client";
 
-import React from "react";
-
 interface NutritionAdjustmentCardProps {
   npkAdjustment?: string;
-  defaultNpk: {
-    current: string;
-    recommendation: string;
-  };
 }
 
 export function NutritionAdjustmentCard({
   npkAdjustment,
-  defaultNpk,
 }: NutritionAdjustmentCardProps) {
   return (
     <div className="overflow-hidden rounded-2xl border-2 border-[#2F9E44] bg-gradient-to-br from-[#E6F4EA] to-[#F1F8F5] p-6 shadow-sm transition-all hover:shadow-md">
@@ -44,30 +37,9 @@ export function NutritionAdjustmentCard({
             </div>
           </div>
         ) : (
-          <>
-            <div className="flex items-start gap-3 border-b border-[#2F9E44]/10 pb-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-[14px] text-amber-800">
-                ⚠️
-              </span>
-              <div className="text-[15px] leading-[1.6] text-[#1B1B1B]">
-                <span className="font-[700] text-amber-900">
-                  Tình trạng dinh dưỡng hiện tại:
-                </span>{" "}
-                {defaultNpk.current}
-              </div>
-            </div>
-            <div className="flex items-start gap-3 pt-1">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#2F9E44]/10 text-[14px] text-[#2F9E44]">
-                💡
-              </span>
-              <div className="text-[15px] leading-[1.6] text-[#1B1B1B]">
-                <span className="font-[700] text-[#1F6F2E]">
-                  Khuyến nghị từ chuyên gia:
-                </span>{" "}
-                {defaultNpk.recommendation}
-              </div>
-            </div>
-          </>
+          <div className="text-[14px] text-[#757575] italic">
+            Chưa có khuyến nghị điều chỉnh dinh dưỡng cụ thể cho chẩn đoán này.
+          </div>
         )}
       </div>
     </div>
