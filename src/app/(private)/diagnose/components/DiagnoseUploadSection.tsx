@@ -95,71 +95,32 @@ export function DiagnoseUploadSection({
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
-          {/* Image Comparison: Original vs Annotated */}
-          {result?.annotated_image ? (
-            <div className="relative flex flex-col">
-              <button
-                onClick={handleReset}
-                className="absolute top-2 right-2 z-20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              <div className="grid grid-cols-2 gap-0 border-b border-[#E0E0E0]">
-                {/* Original Image */}
-                <div className="relative border-r border-[#E0E0E0]">
-                  <div className="absolute top-2 left-2 z-10 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-                    <span className="text-[11px] font-[600] tracking-wide text-white uppercase">
-                      Ảnh gốc
-                    </span>
-                  </div>
-                  <div className="flex aspect-square w-full items-center justify-center bg-black/5 p-2">
-                    <img
-                      src={file.url}
-                      alt="Original"
-                      className="max-h-full max-w-full rounded-lg object-contain"
-                    />
-                  </div>
-                </div>
-                {/* Annotated Image with Mask */}
-                <div className="relative">
-                  <div className="absolute top-2 left-2 z-10 rounded-md bg-[#E53935]/90 px-2 py-0.5 backdrop-blur-sm">
-                    <span className="text-[11px] font-[600] tracking-wide text-white uppercase">
-                      AI phát hiện
-                    </span>
-                  </div>
-                  <div className="flex aspect-square w-full items-center justify-center bg-black/5 p-2">
-                    <img
-                      src={`data:image/png;base64,${result.annotated_image}`}
-                      alt="AI Detection"
-                      className="max-h-full max-w-full rounded-lg object-contain"
-                    />
-                  </div>
-                </div>
+          <div className="relative flex aspect-video w-full items-center justify-center bg-black/5 p-2">
+            <div className="absolute top-2 left-2 z-10 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
+              <span className="text-[11px] font-[600] tracking-wide text-white uppercase">
+                Ảnh gốc
+              </span>
+            </div>
+            <img
+              src={file.url}
+              alt="Preview"
+              className="max-h-[300px] rounded-lg object-contain shadow-sm"
+            />
+            <button
+              onClick={handleReset}
+              className="absolute top-2 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            {isLoading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
+                <Loader2 className="mb-3 h-8 w-8 animate-spin text-[#2F9E44]" />
+                <p className="text-[14px] font-[500] text-[#2F9E44]">
+                  AI đang phân tích hình ảnh...
+                </p>
               </div>
-            </div>
-          ) : (
-            <div className="relative flex aspect-video w-full items-center justify-center bg-black/5 p-2">
-              <img
-                src={file.url}
-                alt="Preview"
-                className="max-h-[300px] rounded-lg object-contain shadow-sm"
-              />
-              <button
-                onClick={handleReset}
-                className="absolute top-2 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
-              >
-                <X className="h-4 w-4" />
-              </button>
-              {isLoading && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
-                  <Loader2 className="mb-3 h-8 w-8 animate-spin text-[#2F9E44]" />
-                  <p className="text-[14px] font-[500] text-[#2F9E44]">
-                    AI đang phân tích hình ảnh...
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="border-t border-[#E0E0E0] bg-[#FAFAFA] p-4">
             <label className="mb-2 block text-[13px] font-[500] text-[#1B1B1B]">

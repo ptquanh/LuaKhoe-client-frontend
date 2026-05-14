@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { diagnosisService } from "@/services/diagnosis.service";
-import { DiagnosisResponse } from "@/types/diagnosis.type";
+import { DiagnosisResponse } from "@/types/diagnose.type";
 
 export function useDiagnosisHistory() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,8 +12,12 @@ export function useDiagnosisHistory() {
     setError(null);
     try {
       const response = await diagnosisService.getHistory();
-      if (response.success && response.data) {
-        setData(response.data);
+      if (
+        response.success &&
+        response.data &&
+        Array.isArray(response.data.rows)
+      ) {
+        setData(response.data.rows);
       } else {
         setError(response.message || "Không thể tải lịch sử chẩn đoán.");
       }

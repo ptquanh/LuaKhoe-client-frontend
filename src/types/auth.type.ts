@@ -18,13 +18,6 @@ export enum SOCIAL_PROVIDER {
   GOOGLE = "google",
 }
 
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errCode?: string;
-}
-
 export interface User {
   id: string;
   email: string;

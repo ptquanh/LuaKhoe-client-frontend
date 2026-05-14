@@ -155,7 +155,7 @@ export default function ProfilePage() {
         </Text>
       </div>
 
-      <ProfileHeaderCard user={user} profile={profile} />
+      <ProfileHeaderCard user={user || null} profile={profile} />
 
       <Form
         form={formProfile}
@@ -165,7 +165,7 @@ export default function ProfilePage() {
         requiredMark={false}
         className="flex flex-col gap-8"
       >
-        <BasicInfoCard user={user} profileError={profileError} />
+        <BasicInfoCard user={user || null} profileError={profileError} />
 
         <MapLocationCard
           mapPosition={mapPosition}

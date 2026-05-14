@@ -34,6 +34,7 @@ export interface RecommendationResult {
   prevention_measures: string[];
   sources_used: string[];
   confidence_note: string;
+  summary?: string;
 }
 
 export interface RecommendationResponse {
@@ -73,4 +74,70 @@ export interface DiagnoseResult {
 
 export interface DiagnosePayload {
   image: File;
+}
+
+export interface Disease {
+  id: string;
+  name: string;
+  scientificName?: string | null;
+  signs?: string | null;
+  status: string;
+}
+
+export interface DiagnosisResultResponse {
+  id: string;
+  diagnosisId: string;
+  diseaseId: string;
+  disease: Disease;
+  confidence: number; // 0-100 decimal percentage
+  maskPolygon?: any;
+}
+
+export interface DiagnosisAdvisory {
+  advisory: RecommendationResult | string | any;
+  sources: { source: string; id: string }[];
+  disease: string;
+}
+
+export interface DiagnosisResponse {
+  id: string;
+  userId: string;
+  originalImageUrl: string;
+  resultImageUrl: string | null;
+  gpsLat: number | null;
+  gpsLng: number | null;
+  weatherData: any | null;
+  envDescription: string | null;
+  modelVersionId: string;
+  createdAt: string;
+  results: DiagnosisResultResponse[];
+  advisory?: DiagnosisAdvisory | null;
+
+  // Enriched DiagnoseResult fields returned by Predict API
+  disease_key?: string;
+  disease_name?: string;
+  confidence?: number;
+  severity?: "low" | "medium" | "high" | "critical";
+  detections?: DetectionItem[];
+  rag_recommendation?: RecommendationResult | null;
+  annotated_image?: string | null;
+  low_confidence?: boolean;
+  latency_ms?: number;
+}
+
+export interface CreateDiagnosisPayload {
+  image: File;
+  gpsLat?: number | null;
+  gpsLng?: number | null;
+  envDescription?: string | null;
+}
+
+export interface GetHistoryParams {
+  limit?: number;
+  offset?: number;
+  keyword?: string;
+  disease?: string;
+  fromDate?: string;
+  toDate?: string;
+  sort?: string;
 }

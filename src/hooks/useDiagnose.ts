@@ -3,7 +3,7 @@ import { diagnosisService } from "@/services/diagnosis.service";
 import {
   DiagnosisResponse,
   CreateDiagnosisPayload,
-} from "@/types/diagnosis.type";
+} from "@/types/diagnose.type";
 
 export function useDiagnose() {
   const [isLoading, setIsLoading] = useState(false);

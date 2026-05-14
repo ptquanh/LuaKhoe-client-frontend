@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { HistoryFilterBar } from "./components/HistoryFilterBar";
 import { HistoryCard } from "./components/HistoryCard";
 import { diagnosisService } from "@/services/diagnosis.service";
-import { DiagnosisResponse } from "@/types/diagnosis.type";
+import { DiagnosisResponse } from "@/types/diagnose.type";
 import { Loader2 } from "lucide-react";
 
 const img1 =

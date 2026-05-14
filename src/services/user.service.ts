@@ -1,21 +1,18 @@
 import axiosClient from "@/lib/axiosClient";
-import {
-  ApiResponse,
-  UpdateProfilePayload,
-  UserWithProfile,
-} from "@/types/auth.type";
+import { UpdateProfilePayload, UserWithProfile } from "@/types/auth.type";
+import { BaseResponse } from "@/types/common.type";
 
 export const userService = {
-  getProfile: async (): Promise<ApiResponse<UserWithProfile>> => {
+  getProfile: async (): Promise<BaseResponse<UserWithProfile>> => {
     const response =
-      await axiosClient.get<ApiResponse<UserWithProfile>>("/users/profile");
+      await axiosClient.get<BaseResponse<UserWithProfile>>("/users/profile");
     return response.data;
   },
 
   updateProfile: async (
     payload: UpdateProfilePayload,
-  ): Promise<ApiResponse<UserWithProfile>> => {
-    const response = await axiosClient.put<ApiResponse<UserWithProfile>>(
+  ): Promise<BaseResponse<UserWithProfile>> => {
+    const response = await axiosClient.put<BaseResponse<UserWithProfile>>(
       "/users/profile",
       payload,
     );

@@ -1,17 +1,16 @@
 import axiosClient from "@/lib/axiosClient";
-import { ApiResponse } from "@/types/auth.type";
 import {
   CreateDiagnosisPayload,
   DiagnosisResponse,
   DiagnosisAdvisory,
   GetHistoryParams,
-  PaginatedDiagnosisHistory,
-} from "@/types/diagnosis.type";
+} from "@/types/diagnose.type";
+import { BaseResponse, PaginatedResponse } from "@/types/common.type";
 
 export const diagnosisService = {
   predict: async (
     payload: CreateDiagnosisPayload,
-  ): Promise<ApiResponse<DiagnosisResponse>> => {
+  ): Promise<BaseResponse<DiagnosisResponse>> => {
     const formData = new FormData();
     formData.append("image", payload.image);
 
@@ -25,7 +24,7 @@ export const diagnosisService = {
       formData.append("envDescription", payload.envDescription);
     }
 
-    const response = await axiosClient.post<ApiResponse<DiagnosisResponse>>(
+    const response = await axiosClient.post<BaseResponse<DiagnosisResponse>>(
       "/diagnosis/predict",
       formData,
     );
@@ -35,15 +34,15 @@ export const diagnosisService = {
 
   getHistory: async (
     params?: GetHistoryParams,
-  ): Promise<ApiResponse<PaginatedDiagnosisHistory>> => {
+  ): Promise<BaseResponse<PaginatedResponse<DiagnosisResponse>>> => {
     const response = await axiosClient.get<
-      ApiResponse<PaginatedDiagnosisHistory>
+      BaseResponse<PaginatedResponse<DiagnosisResponse>>
     >("/diagnosis/history", { params });
     return response.data;
   },
 
-  getById: async (id: string): Promise<ApiResponse<DiagnosisResponse>> => {
-    const response = await axiosClient.get<ApiResponse<DiagnosisResponse>>(
+  getById: async (id: string): Promise<BaseResponse<DiagnosisResponse>> => {
+    const response = await axiosClient.get<BaseResponse<DiagnosisResponse>>(
       `/diagnosis/${id}`,
     );
     return response.data;
@@ -52,8 +51,8 @@ export const diagnosisService = {
   getAdvisory: async (
     diseaseName: string,
     context?: string,
-  ): Promise<ApiResponse<DiagnosisAdvisory>> => {
-    const response = await axiosClient.post<ApiResponse<DiagnosisAdvisory>>(
+  ): Promise<BaseResponse<DiagnosisAdvisory>> => {
+    const response = await axiosClient.post<BaseResponse<DiagnosisAdvisory>>(
       "/nutrition/advisory",
       { diseaseName, context },
     );

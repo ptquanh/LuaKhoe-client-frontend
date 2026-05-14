@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { diagnosisService } from "@/services/diagnosis.service";
-import { DiagnosisAdvisory } from "@/types/diagnosis.type";
+import { DiagnosisAdvisory } from "@/types/diagnose.type";
 
 export function useDiagnosisAdvisory() {
   const [isLoading, setIsLoading] = useState(false);

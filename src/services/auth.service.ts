@@ -1,6 +1,5 @@
 import axiosClient from "@/lib/axiosClient";
 import {
-  ApiResponse,
   ChangePasswordPayload,
   ForgotPasswordPayload,
   LoginPayload,
@@ -12,34 +11,37 @@ import {
   UserWithProfile,
   VerifyOtpPayload,
 } from "@/types/auth.type";
+import { BaseResponse } from "@/types/common.type";
 
 export const authService = {
-  login: async (payload: LoginPayload): Promise<ApiResponse<LoginResponse>> => {
-    const response = await axiosClient.post<ApiResponse<LoginResponse>>(
+  login: async (
+    payload: LoginPayload,
+  ): Promise<BaseResponse<LoginResponse>> => {
+    const response = await axiosClient.post<BaseResponse<LoginResponse>>(
       "/auth/login",
       payload,
     );
     return response.data;
   },
 
-  register: async (payload: RegisterPayload): Promise<ApiResponse<User>> => {
-    const response = await axiosClient.post<ApiResponse<User>>(
+  register: async (payload: RegisterPayload): Promise<BaseResponse<User>> => {
+    const response = await axiosClient.post<BaseResponse<User>>(
       "/auth/register",
       payload,
     );
     return response.data;
   },
 
-  getMe: async (): Promise<ApiResponse<UserWithProfile>> => {
+  getMe: async (): Promise<BaseResponse<UserWithProfile>> => {
     const response =
-      await axiosClient.get<ApiResponse<UserWithProfile>>("/auth/whoami");
+      await axiosClient.get<BaseResponse<UserWithProfile>>("/auth/whoami");
     return response.data;
   },
 
   verifyOtp: async (
     payload: VerifyOtpPayload,
-  ): Promise<ApiResponse<unknown>> => {
-    const response = await axiosClient.post<ApiResponse<unknown>>(
+  ): Promise<BaseResponse<unknown>> => {
+    const response = await axiosClient.post<BaseResponse<unknown>>(
       "/auth/verify-otp",
       payload,
     );
@@ -48,8 +50,8 @@ export const authService = {
 
   resendEmail: async (
     payload: ResendEmailPayload,
-  ): Promise<ApiResponse<unknown>> => {
-    const response = await axiosClient.post<ApiResponse<unknown>>(
+  ): Promise<BaseResponse<unknown>> => {
+    const response = await axiosClient.post<BaseResponse<unknown>>(
       "/auth/resend-email",
       payload,
     );
@@ -58,8 +60,8 @@ export const authService = {
 
   forgotPassword: async (
     payload: ForgotPasswordPayload,
-  ): Promise<ApiResponse<unknown>> => {
-    const response = await axiosClient.post<ApiResponse<unknown>>(
+  ): Promise<BaseResponse<unknown>> => {
+    const response = await axiosClient.post<BaseResponse<unknown>>(
       "/auth/forgot-password",
       payload,
     );
@@ -68,8 +70,8 @@ export const authService = {
 
   resetPassword: async (
     payload: ResetPasswordPayload,
-  ): Promise<ApiResponse<unknown>> => {
-    const response = await axiosClient.post<ApiResponse<unknown>>(
+  ): Promise<BaseResponse<unknown>> => {
+    const response = await axiosClient.post<BaseResponse<unknown>>(
       "/auth/reset-password",
       payload,
     );
@@ -78,8 +80,8 @@ export const authService = {
 
   changePassword: async (
     payload: ChangePasswordPayload,
-  ): Promise<ApiResponse<unknown>> => {
-    const response = await axiosClient.post<ApiResponse<unknown>>(
+  ): Promise<BaseResponse<unknown>> => {
+    const response = await axiosClient.post<BaseResponse<unknown>>(
       "/auth/change-password",
       payload,
     );

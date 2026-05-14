@@ -23,7 +23,7 @@ const menuItems = [
   { label: "Người dùng", href: ROUTES.ADMIN_USERS, icon: Users },
   { label: "Bệnh lúa", href: ROUTES.ADMIN_DISEASES, icon: Bug },
   { label: "Tài liệu RAG", href: ROUTES.ADMIN_DOCUMENTS, icon: FileText },
-  { label: "AI Models", href: ROUTES.ADMIN_MODELS, icon: Brain },
+  { label: "Mô hình", href: ROUTES.ADMIN_MODELS, icon: Brain },
   { label: "Phản hồi AI", href: ROUTES.ADMIN_FEEDBACK, icon: MessageSquare },
   { label: "Cấu hình", href: ROUTES.ADMIN_CONFIGS, icon: Settings },
 ];

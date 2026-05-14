@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { DiagnosisResponse } from "@/types/diagnosis.type";
+import { DiagnosisResponse } from "@/types/diagnose.type";
 
 interface HistoryCardProps {
   item: DiagnosisResponse;
