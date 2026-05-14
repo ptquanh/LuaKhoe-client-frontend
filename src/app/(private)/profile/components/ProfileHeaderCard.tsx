@@ -1,6 +1,7 @@
-import React from "react";
 import { Card } from "antd";
 import { User as UserIcon } from "lucide-react";
+import React from "react";
+
 import { User } from "@/types/auth.type";
 
 interface ProfileHeaderCardProps {

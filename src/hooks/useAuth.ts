@@ -1,6 +1,6 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
@@ -10,8 +10,8 @@ import {
   ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
-  ResetPasswordPayload,
   ResendEmailPayload,
+  ResetPasswordPayload,
   User,
   VerifyOtpPayload,
 } from "@/types/auth.type";

@@ -1,7 +1,7 @@
 "use client";
 
+import { Filter, Flag, Search, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
-import { Search, ThumbsUp, ThumbsDown, Flag, Filter } from "lucide-react";
 
 interface Feedback {
   id: number;

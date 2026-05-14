@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Search,
   ChevronLeft,
   ChevronRight,
+  Search,
   Shield,
   ShieldOff,
 } from "lucide-react";
+import { useState } from "react";
 
 interface UserItem {
   id: number;

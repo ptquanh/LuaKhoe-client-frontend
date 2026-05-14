@@ -1,44 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Download,
-  Share2,
-  CheckCircle,
-  Star,
-  Send,
-} from "lucide-react";
-import { PieChart, Pie, Cell } from "recharts";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
+import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+
 import { ROUTES } from "@/constants/routes";
+import { diagnosisService } from "@/services/diagnosis.service";
+import { DiagnosisResponse } from "@/types/diagnose.type";
 
-const diseaseImg =
-  "https://images.unsplash.com/photo-1634641568774-1906553ade90?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyaWNlJTIwcGxhbnQlMjBkaXNlYXNlJTIwbGVhZiUyMGJyb3duJTIwc3BvdHxlbnwxfHx8fDE3NzMzNzA3MTR8MA&ixlib=rb-4.1.0&q=80&w=1080";
+import { DiagnosisFeedbackCard } from "./components/DiagnosisFeedbackCard";
+import { NutritionAdjustmentCard } from "./components/NutritionAdjustmentCard";
+import { PreventionMeasuresCard } from "./components/PreventionMeasuresCard";
+import { ResultHeroCard } from "./components/ResultHeroCard";
+import { ResultImagePreview } from "./components/ResultImagePreview";
+import { TreatmentProtocolCard } from "./components/TreatmentProtocolCard";
+import { UrgentActionsCard } from "./components/UrgentActionsCard";
 
-const confidenceData = [
-  { name: "Confidence", value: 92 },
-  { name: "Remaining", value: 8 },
-];
-
-const severityColors: Record<
-  string,
-  { bg: string; text: string; label: string }
-> = {
-  low: { bg: "#E6F4EA", text: "#2E7D32", label: "Nhẹ" },
-  medium: { bg: "#FFF8E1", text: "#F57F17", label: "Trung bình" },
-  high: { bg: "#FFF3E0", text: "#E65100", label: "Nặng" },
-  critical: { bg: "#FFEBEE", text: "#C62828", label: "Nghiêm trọng" },
-};
-
-const mockResult = {
+const defaultMockResult = {
   disease: "Bệnh đạo ôn (Blast Disease)",
   severity: "high" as const,
   confidence: 92,
@@ -74,20 +52,50 @@ const mockResult = {
     "Chọn giống kháng bệnh (OM6976, Jasmine), không bón thừa đạm, luân canh hợp lý",
   sources: "Sở NN&PTNT Đồng bằng sông Cửu Long, IRRI Rice Knowledge Bank",
   confidenceNote:
-    "Độ tin cậy 92%. Nếu triệu chứng không cải thiện sau 7 ngày, hãy liên hệ khuyến nông địa phương.",
+    "Độ tin cậy cao. Nếu triệu chứng không cải thiện sau 7 ngày, hãy liên hệ khuyến nông địa phương.",
 };
 
-const sev = severityColors[mockResult.severity];
-
-export default function ResultPage() {
+function ResultPageContent() {
   const router = useRouter();
-  const [rating, setRating] = useState<number>(0);
-  const [hoverRating, setHoverRating] = useState<number>(0);
-  const [feedbackText, setFeedbackText] = useState<string>("");
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const [checkedActions, setCheckedActions] = useState<boolean[]>(
-    mockResult.urgentActions.map(() => false),
-  );
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DiagnosisResponse | null>(null);
+
+  const [checkedActions, setCheckedActions] = useState<boolean[]>([]);
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      setError("Không tìm thấy ID chẩn đoán.");
+      return;
+    }
+
+    const fetchDiagnosis = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await diagnosisService.getById(id);
+        if (res.success && res.data) {
+          setData(res.data);
+          const urgentCount =
+            res.data.rag_recommendation?.immediate_actions?.length ||
+            defaultMockResult.urgentActions.length;
+          setCheckedActions(new Array(urgentCount).fill(false));
+        } else {
+          setError(res.message || "Không thể tải dữ liệu chẩn đoán.");
+        }
+      } catch (err: any) {
+        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDiagnosis();
+  }, [id]);
 
   const toggleCheck = (index: number) => {
     setCheckedActions((prev) =>
@@ -95,324 +103,165 @@ export default function ResultPage() {
     );
   };
 
-  const handleRatingClick = (selectedRating: number) => {
-    setRating(selectedRating);
-    setFeedbackSubmitted(false);
+  const handleFeedbackSubmit = (rating: number, comment: string) => {
+    console.log("Feedback submitted:", { id, rating, comment });
   };
 
-  const handleSubmitFeedback = () => {
-    console.log("Feedback submitted:", { rating, feedbackText });
-    setFeedbackSubmitted(true);
-  };
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-[#FB8C00]" />
+        <p className="text-[15px] font-[500] text-[#5C5C5C]">
+          Đang tải dữ liệu chẩn đoán chi tiết...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="mx-auto max-w-[900px] pt-6 pb-20">
+        <button
+          onClick={() => router.push(ROUTES.DIAGNOSE)}
+          className="mb-6 flex cursor-pointer items-center gap-1 text-[14px] text-[#5C5C5C] hover:text-[#1B1B1B]"
+        >
+          <ArrowLeft className="h-4 w-4" /> Quay lại
+        </button>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
+          <AlertTriangle className="h-10 w-10 text-red-500" />
+          <h2 className="text-[18px] font-[700] text-red-800">
+            Không tải được chẩn đoán
+          </h2>
+          <p className="text-[14px] text-red-600">
+            {error || "Dữ liệu không tồn tại hoặc đã bị xóa."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-2 rounded-lg bg-red-600 px-4 py-2 text-[14px] font-[500] text-white hover:bg-red-700"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const rag = data.rag_recommendation;
+  const diseaseName =
+    data.disease_name || data.disease_key || defaultMockResult.disease;
+  const isHealthy =
+    diseaseName.toLowerCase().includes("healthy") ||
+    diseaseName.toLowerCase().includes("khỏe mạnh") ||
+    diseaseName.toLowerCase().includes("bình thường") ||
+    data.disease_key === "Healthy";
+  const severityKey = data.severity || defaultMockResult.severity;
+  const confVal = data.confidence
+    ? data.confidence > 1
+      ? Math.round(data.confidence)
+      : Math.round(data.confidence * 100)
+    : defaultMockResult.confidence;
+
+  const urgentActions = rag?.immediate_actions?.length
+    ? rag.immediate_actions
+    : defaultMockResult.urgentActions;
+
+  const previewImg =
+    data.annotated_image ||
+    data.resultImageUrl ||
+    data.originalImageUrl ||
+    defaultMockResult.disease;
 
   return (
-    <div className="mx-auto max-w-[900px] pb-20">
+    <div className="mx-auto max-w-[900px] px-4 pt-4 pb-20 md:px-0">
       <button
-        onClick={() => router.push(ROUTES.DIAGNOSE)}
-        className="mb-4 flex cursor-pointer items-center gap-1 text-[14px] text-[#5C5C5C] hover:text-[#1B1B1B]"
+        onClick={() => router.push(ROUTES.HISTORY)}
+        className="mb-6 flex cursor-pointer items-center gap-1 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#1B1B1B]"
       >
-        <ArrowLeft className="h-4 w-4" /> Quay lại
+        <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
       </button>
 
-      <div className="space-y-5">
-        {/* Hero Card - Disease Name + Severity */}
-        <div
-          className="rounded-xl border-2 p-6"
-          style={{ backgroundColor: sev.bg, borderColor: sev.text }}
-        >
-          <div className="mb-1 flex items-start justify-between">
-            <span
-              className="inline-block h-7 rounded-md px-3 text-[13px] leading-[28px] font-[600]"
-              style={{ backgroundColor: sev.text, color: "white" }}
-            >
-              {sev.label.toUpperCase()}
-            </span>
-            {/* Confidence Donut */}
-            <div className="relative h-16 w-16 shrink-0">
-              <PieChart width={64} height={64}>
-                <Pie
-                  data={confidenceData}
-                  cx={32}
-                  cy={32}
-                  innerRadius={22}
-                  outerRadius={30}
-                  startAngle={90}
-                  endAngle={-270}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  <Cell fill="#2F9E44" />
-                  <Cell fill="#E0E0E0" />
-                </Pie>
-              </PieChart>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[12px] font-[700] text-[#2F9E44]">
-                  {mockResult.confidence}%
-                </span>
-              </div>
-            </div>
-          </div>
-          <h1 className="text-[28px] leading-[1.2] font-[700] text-[#1B1B1B]">
-            {mockResult.disease}
-          </h1>
-        </div>
+      <div className="space-y-6">
+        {/* Hero Card */}
+        <ResultHeroCard
+          diseaseName={diseaseName}
+          severity={severityKey}
+          confidence={confVal}
+          isHealthy={isHealthy}
+        />
 
-        {/* Urgent To-Do Checklist */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-5">
-          <h3 className="mb-3 text-[18px] font-[700] text-[#1B1B1B]">
-            Việc cần làm ngay hôm nay
-          </h3>
-          <div className="space-y-2.5">
-            {mockResult.urgentActions.map((action, i) => (
-              <label
-                key={i}
-                className="flex cursor-pointer items-start gap-3 rounded-lg border border-[#E0E0E0] p-3 transition-colors hover:bg-[#F7F7F7]"
-              >
-                <input
-                  type="checkbox"
-                  checked={checkedActions[i]}
-                  onChange={() => toggleCheck(i)}
-                  className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer rounded border-[#E0E0E0] text-[#2F9E44] focus:ring-[#2F9E44]"
-                />
-                <span
-                  className={`text-[15px] leading-[1.5] ${checkedActions[i] ? "text-[#9E9E9E] line-through" : "text-[#1B1B1B]"}`}
-                >
-                  {action}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+        {/* Urgent Actions */}
+        {!isHealthy && (
+          <UrgentActionsCard
+            urgentActions={urgentActions}
+            checkedActions={checkedActions}
+            onToggleAction={toggleCheck}
+          />
+        )}
 
-        {/* Treatment Plans - Accordion */}
-        <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
-          <div className="border-b border-[#E0E0E0] px-5 py-4">
-            <h3 className="text-[18px] font-[700] text-[#1B1B1B]">
-              Phác đồ điều trị
-            </h3>
-            <p className="mt-1 text-[13px] text-[#5C5C5C]">
-              Chọn phương pháp phù hợp với điều kiện ruộng của bạn
-            </p>
-          </div>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem
-              value="chemical"
-              className="border-b border-[#E0E0E0]"
-            >
-              <AccordionTrigger className="px-5 py-4 text-[15px] font-[600] text-[#1B1B1B] hover:bg-[#F7F7F7]">
-                🧪 Hóa học (Nhanh, hiệu quả cao)
-              </AccordionTrigger>
-              <AccordionContent className="px-5 pt-1 pb-4">
-                <ol className="space-y-2">
-                  {mockResult.treatments.chemical.map((step, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-[14px] leading-[1.5] text-[#5C5C5C]"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E6F4EA] text-[12px] font-[600] text-[#2F9E44]">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
+        {/* Treatment Protocol */}
+        {!isHealthy && (
+          <TreatmentProtocolCard
+            chemicalSteps={rag?.treatment_protocol?.chemical}
+            biologicalSteps={rag?.treatment_protocol?.biological}
+            cultivationSteps={
+              rag?.treatment_protocol?.cultural ||
+              (rag?.treatment_protocol as any)?.cultivation
+            }
+            defaultTreatments={defaultMockResult.treatments}
+          />
+        )}
 
-            <AccordionItem
-              value="biological"
-              className="border-b border-[#E0E0E0]"
-            >
-              <AccordionTrigger className="px-5 py-4 text-[15px] font-[600] text-[#1B1B1B] hover:bg-[#F7F7F7]">
-                🌱 Sinh học (An toàn, bền vững)
-              </AccordionTrigger>
-              <AccordionContent className="px-5 pt-1 pb-4">
-                <ol className="space-y-2">
-                  {mockResult.treatments.biological.map((step, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-[14px] leading-[1.5] text-[#5C5C5C]"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E6F4EA] text-[12px] font-[600] text-[#2F9E44]">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
+        {/* Nutrition Adjustment */}
+        {!isHealthy && (
+          <NutritionAdjustmentCard
+            npkAdjustment={rag?.npk_adjustment}
+            defaultNpk={defaultMockResult.npk}
+          />
+        )}
 
-            <AccordionItem value="cultivation">
-              <AccordionTrigger className="px-5 py-4 text-[15px] font-[600] text-[#1B1B1B] hover:bg-[#F7F7F7]">
-                🚜 Canh tác (Phòng ngừa lâu dài)
-              </AccordionTrigger>
-              <AccordionContent className="px-5 pt-1 pb-4">
-                <ol className="space-y-2">
-                  {mockResult.treatments.cultivation.map((step, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-3 text-[14px] leading-[1.5] text-[#5C5C5C]"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E6F4EA] text-[12px] font-[600] text-[#2F9E44]">
-                        {i + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-
-        {/* NPK Nutritions Box */}
-        <div className="rounded-xl border-2 border-[#2F9E44] bg-[#E6F4EA] p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2F9E44]">
-              <span className="text-[16px] font-[700] text-white">N-P-K</span>
-            </div>
-            <h3 className="text-[16px] font-[700] text-[#1F6F2E]">
-              Điều chỉnh dinh dưỡng
-            </h3>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[14px] text-[#1B1B1B]">
-              <span className="font-[600]">Tình trạng hiện tại:</span>{" "}
-              {mockResult.npk.current}
-            </p>
-            <p className="text-[14px] text-[#1B1B1B]">
-              <span className="font-[600]">Khuyến nghị:</span>{" "}
-              {mockResult.npk.recommendation}
-            </p>
-          </div>
-        </div>
-
-        {/* Prevention for Next Season */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-5">
-          <h3 className="mb-2 text-[16px] font-[600] text-[#1B1B1B]">
-            Phòng ngừa vụ sau
-          </h3>
-          <p className="text-[14px] leading-[1.5] text-[#5C5C5C]">
-            {mockResult.prevention}
-          </p>
-        </div>
+        {/* Prevention Measures */}
+        <PreventionMeasuresCard
+          preventionMeasures={rag?.prevention_measures}
+          defaultPrevention={defaultMockResult.prevention}
+        />
 
         {/* Image Preview */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-4">
-          <ImageWithFallback
-            src={diseaseImg}
-            alt="Uploaded"
-            className="max-h-[320px] w-full rounded-lg border border-[#E0E0E0] object-cover"
-          />
-          <div className="mt-3 flex gap-2">
-            <button className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#E0E0E0] px-4 text-[13px] text-[#5C5C5C] hover:bg-[#F0F2F5]">
-              <Download className="h-4 w-4" /> Tải ảnh
-            </button>
-            <button className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#E0E0E0] px-4 text-[13px] text-[#5C5C5C] hover:bg-[#F0F2F5]">
-              <Share2 className="h-4 w-4" /> Chia sẻ
-            </button>
-          </div>
-        </div>
+        <ResultImagePreview imageUrl={previewImg} diseaseName={diseaseName} />
 
-        {/* Feedback with Star Rating */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-5">
-          <h4 className="mb-3 text-[15px] font-[600] text-[#1B1B1B]">
-            Kết quả chẩn đoán có chính xác và hữu ích không?
-          </h4>
+        {/* Feedback Card */}
+        <DiagnosisFeedbackCard onSubmitFeedback={handleFeedbackSubmit} />
 
-          {/* Star Rating */}
-          <div className="mb-4 flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onClick={() => handleRatingClick(star)}
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                className="cursor-pointer transition-transform hover:scale-110"
-              >
-                <Star
-                  className={`h-8 w-8 transition-colors ${
-                    star <= (hoverRating || rating)
-                      ? "fill-[#FB8C00] text-[#FB8C00]"
-                      : "text-[#E0E0E0]"
-                  }`}
-                />
-              </button>
-            ))}
-            {rating > 0 && (
-              <span className="ml-2 text-[14px] font-[500] text-[#5C5C5C]">
-                {rating === 5
-                  ? "Rất tốt"
-                  : rating === 4
-                    ? "Tốt"
-                    : rating === 3
-                      ? "Tạm được"
-                      : rating === 2
-                        ? "Chưa tốt"
-                        : "Không chính xác"}
-              </span>
-            )}
-          </div>
-
-          {/* Conditional Text Area for Low Ratings (1-3 stars) */}
-          {rating > 0 && rating <= 3 && (
-            <div className="animate-in slide-in-from-top-2 space-y-3 duration-300">
-              <div className="rounded-lg border border-[#FB8C00]/30 bg-[#FFF8E1] p-3">
-                <p className="text-[13px] leading-[1.5] text-[#F57F17]">
-                  💡 Vui lòng cho chúng tôi biết vấn đề để cải thiện hệ thống AI
-                </p>
-              </div>
-              <textarea
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Vui lòng mô tả chi tiết:&#10;• AI có nhận diện sai bệnh không?&#10;• Phác đồ điều trị có phù hợp không?&#10;• Lời khuyên có thiếu sót gì không?"
-                rows={4}
-                className="w-full resize-none rounded-lg border border-[#E0E0E0] px-4 py-3 text-[14px] leading-[1.6] focus:border-[#2F9E44] focus:outline-none"
-              />
-              <button
-                onClick={handleSubmitFeedback}
-                disabled={!feedbackText.trim()}
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-5 text-[14px] font-[500] text-white transition-colors hover:bg-[#1F6F2E] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" /> Gửi phản hồi
-              </button>
-            </div>
-          )}
-
-          {/* Success Message */}
-          {feedbackSubmitted && (
-            <div className="animate-in slide-in-from-top-2 mt-3 rounded-lg border border-[#2F9E44]/30 bg-[#E6F4EA] p-3 duration-300">
-              <p className="flex items-center gap-2 text-[14px] text-[#1F6F2E]">
-                <CheckCircle className="h-4 w-4" />
-                Cảm ơn phản hồi của bạn! Chuyên gia sẽ xem xét để cải thiện hệ
-                thống.
-              </p>
-            </div>
-          )}
-
-          {rating >= 4 && (
-            <div className="animate-in slide-in-from-top-2 mt-3 rounded-lg border border-[#2F9E44]/30 bg-[#E6F4EA] p-3 duration-300">
-              <p className="flex items-center gap-2 text-[14px] text-[#1F6F2E]">
-                <CheckCircle className="h-4 w-4" />
-                Cảm ơn! Rất vui vì kết quả chẩn đoán hữu ích cho bạn.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer - Sources & Confidence Note */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-[#F7F7F7] p-4">
-          <p className="mb-1.5 text-[12px] leading-[1.5] text-[#757575]">
-            <span className="font-[600]">Nguồn tham khảo:</span>{" "}
-            {mockResult.sources}
+        {/* Footer Sources */}
+        <div className="rounded-2xl border border-[#E0E0E0] bg-[#F7F7F7] p-5">
+          <p className="mb-2 text-[13px] leading-[1.6] text-[#757575]">
+            <span className="font-[700] text-[#5C5C5C]">Nguồn tham khảo:</span>{" "}
+            {rag?.sources_used?.length
+              ? rag.sources_used.join(", ")
+              : defaultMockResult.sources}
           </p>
-          <p className="text-[12px] leading-[1.5] text-[#757575]">
-            <span className="font-[600]">Lưu ý:</span>{" "}
-            {mockResult.confidenceNote}
+          <p className="text-[13px] leading-[1.6] text-[#757575]">
+            <span className="font-[700] text-[#5C5C5C]">Lưu ý:</span>{" "}
+            {rag?.confidence_note || defaultMockResult.confidenceNote}
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-[#FB8C00]" />
+          <p className="text-[15px] font-[500] text-[#5C5C5C]">
+            Đang chuẩn bị giao diện kết quả...
+          </p>
+        </div>
+      }
+    >
+      <ResultPageContent />
+    </Suspense>
   );
 }

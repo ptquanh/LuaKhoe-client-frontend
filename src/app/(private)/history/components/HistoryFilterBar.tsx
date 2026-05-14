@@ -1,7 +1,7 @@
 "use client";
 
+import { ArrowUpDown, Calendar, Filter, Search } from "lucide-react";
 import React from "react";
-import { Filter, Calendar, Search, ArrowUpDown } from "lucide-react";
 
 interface HistoryFilterBarProps {
   keyword: string;

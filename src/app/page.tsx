@@ -1,29 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import {
-  Leaf,
-  Upload,
-  Brain,
-  FileText,
-  Shield,
-  ChevronDown,
-  Star,
-  Zap,
   BarChart3,
-  Microscope,
+  Brain,
+  ChevronDown,
   Clock,
+  FileText,
+  Leaf,
+  Microscope,
+  Shield,
+  Star,
+  Upload,
   Users,
+  Zap,
 } from "lucide-react";
-import { ROUTES } from "@/constants/routes";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from "@/components/ui/accordion";
+import { ROUTES } from "@/constants/routes";
 
 const heroBg =
   "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80";

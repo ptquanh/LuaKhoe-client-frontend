@@ -1,8 +1,9 @@
 "use client";
 
+import { Bell, History, Leaf, Search, Stethoscope, User } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { Leaf, Search, Bell, User, Stethoscope, History } from "lucide-react";
 import { useState } from "react";
+
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PrivateLayout({

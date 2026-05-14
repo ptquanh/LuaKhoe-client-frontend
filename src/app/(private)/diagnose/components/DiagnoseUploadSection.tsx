@@ -1,5 +1,5 @@
+import { Loader2, Upload, X } from "lucide-react";
 import React, { useState } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
 
 interface DiagnoseUploadSectionProps {
   file: { raw: File; url: string } | null;

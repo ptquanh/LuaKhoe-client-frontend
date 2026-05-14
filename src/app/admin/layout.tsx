@@ -1,21 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import {
-  Leaf,
-  LayoutDashboard,
-  Users,
+  Brain,
   Bug,
   FileText,
-  Brain,
-  MessageSquare,
-  Settings,
+  LayoutDashboard,
+  Leaf,
   LogOut,
   Menu,
+  MessageSquare,
+  Settings,
+  Users,
   X,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useState } from "react";
+
 import { ROUTES } from "@/constants/routes";
 
 const menuItems = [

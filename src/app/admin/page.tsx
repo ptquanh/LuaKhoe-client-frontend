@@ -2,11 +2,11 @@
 
 import {
   Activity,
-  Users,
   Brain,
   FileText,
-  TrendingUp,
   Image,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 
 const stats = [

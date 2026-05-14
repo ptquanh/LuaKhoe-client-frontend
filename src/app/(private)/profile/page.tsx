@@ -1,15 +1,15 @@
 "use client";
 
-import { Form, Typography, message } from "antd";
+import { Form, message, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { ChangePasswordPayload, UpdateProfilePayload } from "@/types/auth.type";
 
-import { ProfileHeaderCard } from "./components/ProfileHeaderCard";
 import { BasicInfoCard } from "./components/BasicInfoCard";
 import { MapLocationCard } from "./components/MapLocationCard";
+import { ProfileHeaderCard } from "./components/ProfileHeaderCard";
 import { SecurityCard } from "./components/SecurityCard";
 
 const { Title, Text } = Typography;

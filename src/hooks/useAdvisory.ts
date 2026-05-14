@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { advisoryService } from "@/services/advisory.service";
 import { DiseaseEvent, RecommendationResponse } from "@/types/advisory.type";
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { message } from "antd";
+import { useCallback, useEffect, useState } from "react";
+
 import { aiModelService } from "@/services/ai-model.service";
 import { AiModel } from "@/types/ai-model.type";
 

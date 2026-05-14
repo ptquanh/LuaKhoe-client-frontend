@@ -1,7 +1,7 @@
 import { AxiosResponse } from "axios";
 
 import axiosClient from "@/lib/axiosClient";
-import { DiagnoseResult, AnalyzeApiResponse } from "@/types/diagnose.type";
+import { AnalyzeApiResponse, DiagnoseResult } from "@/types/diagnose.type";
 
 function mapApiResponseToResult(raw: AnalyzeApiResponse): DiagnoseResult {
   const prediction = raw.prediction;

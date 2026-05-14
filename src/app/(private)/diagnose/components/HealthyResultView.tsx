@@ -17,25 +17,9 @@ export function HealthyResultView({
           ✅ Khỏe mạnh
         </div>
       </div>
-      <h2 className="mb-3 text-[24px] font-[700] text-[#1F6F2E]">
+      <h2 className="mb-1 text-[24px] font-[700] text-[#1F6F2E]">
         {diseaseName}
       </h2>
-      <div className="flex items-center gap-3 rounded-lg bg-white/60 p-3">
-        <span className="text-[13px] font-[500] text-[#5C5C5C]">
-          Độ chính xác:
-        </span>
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#E0E0E0]">
-          <div
-            className="h-full bg-[#2F9E44]"
-            style={{
-              width: `${confidencePercent}%`,
-            }}
-          />
-        </div>
-        <span className="text-[14px] font-[700] text-[#1B1B1B]">
-          {confidencePercent}%
-        </span>
-      </div>
     </div>
   );
 }

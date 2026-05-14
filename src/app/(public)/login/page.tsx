@@ -4,10 +4,10 @@ import {
   Alert,
   Button,
   Checkbox,
+  Divider,
   Form,
   Input,
   Typography,
-  Divider,
 } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Upload,
-  FileText,
-  Trash2,
+  AlertCircle,
   CheckCircle,
   Clock,
-  AlertCircle,
+  FileText,
+  Trash2,
+  Upload,
   X,
 } from "lucide-react";
+import { useState } from "react";
 
 interface Doc {
   id: number;

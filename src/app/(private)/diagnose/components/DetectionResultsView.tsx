@@ -16,23 +16,26 @@ export function DetectionResultsView({
   severityStyle,
 }: DetectionResultsViewProps) {
   // Group detections by disease name to ensure no duplicates, keeping max confidence
-  const aggregatedDetections = resultsList.reduce((acc: any[], current: any) => {
-    const name = current.disease?.name || current.disease || diseaseName;
-    const existing = acc.find((item) => item.name === name);
-    if (!existing || current.confidence > existing.confidence) {
-      if (existing) {
-        existing.confidence = current.confidence;
-        existing.color = current.color || existing.color;
-      } else {
-        acc.push({
-          name,
-          confidence: current.confidence,
-          color: current.color || "#FB8C00", // Default orange if color is missing
-        });
+  const aggregatedDetections = resultsList.reduce(
+    (acc: any[], current: any) => {
+      const name = current.disease?.name || current.disease || diseaseName;
+      const existing = acc.find((item) => item.name === name);
+      if (!existing || current.confidence > existing.confidence) {
+        if (existing) {
+          existing.confidence = current.confidence;
+          existing.color = current.color || existing.color;
+        } else {
+          acc.push({
+            name,
+            confidence: current.confidence,
+            color: current.color || "#FB8C00", // Default orange if color is missing
+          });
+        }
       }
-    }
-    return acc;
-  }, []);
+      return acc;
+    },
+    [],
+  );
 
   const detections =
     aggregatedDetections.length > 0
@@ -63,19 +66,21 @@ export function DetectionResultsView({
                   Phát hiện #{i + 1}
                 </span>
                 {/* Color Legend (Matches bounding box on image) */}
-                <div 
-                  className="flex h-4 w-4 items-center justify-center rounded-sm shadow-sm border border-black/10"
+                <div
+                  className="flex h-4 w-4 items-center justify-center rounded-sm border border-black/10 shadow-sm"
                   style={{ backgroundColor: color }}
                   title={`Vùng khoanh vùng trên ảnh: ${color}`}
                 >
-                  <Target className={`h-2.5 w-2.5 ${color.toLowerCase() === '#f3f3f3' || color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#0bffff' || color.toLowerCase() === '#ffff44' ? 'text-black/60' : 'text-white'}`} />
+                  <Target
+                    className={`h-2.5 w-2.5 ${color.toLowerCase() === "#f3f3f3" || color.toLowerCase() === "#ffffff" || color.toLowerCase() === "#0bffff" || color.toLowerCase() === "#ffff44" ? "text-black/60" : "text-white"}`}
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-1.5 text-[12px] font-[600] text-[#FB8C00]">
                 <Info className="h-3.5 w-3.5" /> AI Phân tích
               </div>
             </div>
-            
+
             {/* Disease Name */}
             <div className="mb-3 flex items-center gap-2">
               <h2 className="text-[20px] font-[700] text-[#E65100]">
@@ -87,12 +92,12 @@ export function DetectionResultsView({
               <span className="text-[12px] font-[500] text-[#5C5C5C]">
                 Độ tin cậy:
               </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#E0E0E0] border border-black/5 shadow-inner">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
                 <div
                   className="h-full border-r border-black/10 transition-all duration-500 ease-out"
                   style={{
                     width: `${detPercent}%`,
-                    backgroundColor: "#FB8C00"
+                    backgroundColor: "#FB8C00",
                   }}
                 />
               </div>

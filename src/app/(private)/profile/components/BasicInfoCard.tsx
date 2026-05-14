@@ -1,5 +1,6 @@
+import { Alert, Card, Col, Form, Input, Row } from "antd";
 import React from "react";
-import { Card, Form, Input, Row, Col, Alert } from "antd";
+
 import { User } from "@/types/auth.type";
 
 interface BasicInfoCardProps {

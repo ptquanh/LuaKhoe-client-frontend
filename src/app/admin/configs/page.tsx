@@ -1,7 +1,7 @@
 "use client";
 
+import { Check, Edit2, Plus, Search, X } from "lucide-react";
 import { useState } from "react";
-import { Plus, Edit2, Search, Check, X } from "lucide-react";
 
 interface Config {
   id: string;

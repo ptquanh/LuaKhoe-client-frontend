@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
 import { message } from "antd";
+import { Loader2, Upload, X } from "lucide-react";
+import React, { useState } from "react";
+
 import { aiModelService } from "@/services/ai-model.service";
 
 interface UploadModelModalProps {

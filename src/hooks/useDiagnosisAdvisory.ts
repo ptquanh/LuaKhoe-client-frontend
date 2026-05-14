@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
+
 import { diagnosisService } from "@/services/diagnosis.service";
 import { DiagnosisAdvisory } from "@/types/diagnose.type";
 

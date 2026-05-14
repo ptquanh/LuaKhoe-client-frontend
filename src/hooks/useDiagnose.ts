@@ -1,8 +1,9 @@
 import { useState } from "react";
+
 import { diagnosisService } from "@/services/diagnosis.service";
 import {
-  DiagnosisResponse,
   CreateDiagnosisPayload,
+  DiagnosisResponse,
 } from "@/types/diagnose.type";
 
 export function useDiagnose() {

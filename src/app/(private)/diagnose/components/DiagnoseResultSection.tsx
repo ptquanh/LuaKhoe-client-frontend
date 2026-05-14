@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ChevronRight, Maximize2, X } from "lucide-react";
+import { useState } from "react";
 
 import { AdvisorySectionView } from "./AdvisorySectionView";
 import { DetectionResultsView } from "./DetectionResultsView";
@@ -80,17 +80,19 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
             )}
 
             {!isHealthy && (
-              <AdvisorySectionView
-                advisoryData={advisoryData}
-                ragRecommendation={ragRecommendation}
-              />
-            )}
+              <>
+                <AdvisorySectionView
+                  advisoryData={advisoryData}
+                  ragRecommendation={ragRecommendation}
+                />
 
-            <div className="mt-6 flex justify-end">
-              <button className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#2F9E44] px-4 text-[14px] font-[500] text-[#2F9E44] transition-colors hover:bg-[#E6F4EA]">
-                Xem chi tiết phác đồ <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+                <div className="mt-6 flex justify-end">
+                  <button className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#2F9E44] px-4 text-[14px] font-[500] text-[#2F9E44] transition-colors hover:bg-[#E6F4EA]">
+                    Xem chi tiết phác đồ <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -98,7 +100,7 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
       {/* Image Zoom Modal */}
       {zoomedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm duration-200"
           onClick={() => setZoomedImage(null)}
         >
           <div

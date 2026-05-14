@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Leaf } from "lucide-react";
+import { useState } from "react";
 
 interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   fallbackText?: string;

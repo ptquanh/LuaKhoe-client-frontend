@@ -1,13 +1,14 @@
-import React from "react";
 import {
-  Info,
-  Sun,
-  Maximize,
-  Droplets,
-  Leaf,
   CheckCircle,
+  Droplets,
+  Info,
+  Leaf,
+  Maximize,
+  Sun,
   XCircle,
 } from "lucide-react";
+import React from "react";
+
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 interface DiagnoseGuidelinesProps {

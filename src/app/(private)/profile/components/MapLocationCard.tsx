@@ -1,7 +1,7 @@
-import React from "react";
-import { Card, Form, Input, Button, Row, Col } from "antd";
+import { Button, Card, Col, Form, Input, Row } from "antd";
 import { MapPin, Save } from "lucide-react";
 import dynamic from "next/dynamic";
+import React from "react";
 
 const LocationMap = dynamic(() => import("@/components/LocationMap"), {
   ssr: false,

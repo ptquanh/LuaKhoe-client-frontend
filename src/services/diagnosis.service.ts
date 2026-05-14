@@ -1,11 +1,11 @@
 import axiosClient from "@/lib/axiosClient";
+import { BaseResponse, PaginatedResponse } from "@/types/common.type";
 import {
   CreateDiagnosisPayload,
-  DiagnosisResponse,
   DiagnosisAdvisory,
+  DiagnosisResponse,
   GetHistoryParams,
 } from "@/types/diagnose.type";
-import { BaseResponse, PaginatedResponse } from "@/types/common.type";
 
 export const diagnosisService = {
   predict: async (

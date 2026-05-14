@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert, Button, Form, Input, Typography, message } from "antd";
+import { Alert, Button, Form, Input, message, Typography } from "antd";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";

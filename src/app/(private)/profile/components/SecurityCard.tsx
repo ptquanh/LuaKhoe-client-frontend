@@ -1,6 +1,6 @@
-import React from "react";
-import { Card, Form, Input, Button, Alert } from "antd";
+import { Alert, Button, Card, Form, Input } from "antd";
 import { KeyRound } from "lucide-react";
+import React from "react";
 
 interface SecurityCardProps {
   formPassword: any;

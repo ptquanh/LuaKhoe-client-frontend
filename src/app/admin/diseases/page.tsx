@@ -1,7 +1,7 @@
 "use client";
 
+import { Check, Edit2, Plus, Search, Trash2, X } from "lucide-react";
 import { useState } from "react";
-import { Plus, Edit2, Search, X, Check, Trash2 } from "lucide-react";
 
 interface Disease {
   id: number;

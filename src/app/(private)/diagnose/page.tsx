@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Info } from "lucide-react";
+import { useState } from "react";
+
 import { useDiagnose } from "@/hooks/useDiagnose";
+
 import { DiagnoseGuidelines } from "./components/DiagnoseGuidelines";
-import { DiagnoseUploadSection } from "./components/DiagnoseUploadSection";
 import { DiagnoseResultSection } from "./components/DiagnoseResultSection";
+import { DiagnoseUploadSection } from "./components/DiagnoseUploadSection";
 
 const suggestedTags = [
   "Lá vàng",
