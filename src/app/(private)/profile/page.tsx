@@ -1,14 +1,13 @@
 "use client";
 
 import { Form, message, Typography } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { ChangePasswordPayload, UpdateProfilePayload } from "@/types/auth.type";
 
 import { BasicInfoCard } from "./components/BasicInfoCard";
-import { MapLocationCard } from "./components/MapLocationCard";
 import { ProfileHeaderCard } from "./components/ProfileHeaderCard";
 import { SecurityCard } from "./components/SecurityCard";
 
@@ -33,26 +32,13 @@ export default function ProfilePage() {
 
   const [formProfile] = Form.useForm();
   const [formPassword] = Form.useForm();
-  const [isGpsLoading, setIsGpsLoading] = useState(false);
-  const [mapLat, setMapLat] = useState("");
-  const [mapLng, setMapLng] = useState("");
 
   useEffect(() => {
     if (profile && profile.profile) {
-      const lat = profile.profile.gpsLatitude
-        ? profile.profile.gpsLatitude.toString()
-        : "";
-      const lng = profile.profile.gpsLongitude
-        ? profile.profile.gpsLongitude.toString()
-        : "";
       formProfile.setFieldsValue({
         firstName: profile.profile.firstName || "",
         lastName: profile.profile.lastName || "",
-        latitude: lat,
-        longitude: lng,
       });
-      setMapLat(lat);
-      setMapLng(lng);
     }
   }, [profile, formProfile]);
 
@@ -63,58 +49,9 @@ export default function ProfilePage() {
       lastName: values.lastName,
     };
 
-    if (values.latitude && values.longitude) {
-      payload.gps = JSON.stringify({
-        latitude: parseFloat(values.latitude),
-        longitude: parseFloat(values.longitude),
-      });
-    }
-
     await updateProfile(payload, () => {
       message.success("Cập nhật thông tin cá nhân thành công!");
     });
-  };
-
-  const handleMapLocationSelect = (lat: number, lng: number) => {
-    const latStr = lat.toFixed(6);
-    const lngStr = lng.toFixed(6);
-    formProfile.setFieldsValue({
-      latitude: latStr,
-      longitude: lngStr,
-    });
-    setMapLat(latStr);
-    setMapLng(lngStr);
-  };
-
-  const handleGetCurrentGps = () => {
-    if (!navigator.geolocation) {
-      message.error("Trình duyệt của bạn không hỗ trợ định vị GPS.");
-      return;
-    }
-
-    setIsGpsLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const latStr = position.coords.latitude.toFixed(6);
-        const lngStr = position.coords.longitude.toFixed(6);
-        formProfile.setFieldsValue({
-          latitude: latStr,
-          longitude: lngStr,
-        });
-        setMapLat(latStr);
-        setMapLng(lngStr);
-        message.success("Đã lấy toạ độ GPS hiện tại thành công!");
-        setIsGpsLoading(false);
-      },
-      (error) => {
-        console.error(error);
-        message.error(
-          "Không thể lấy vị trí GPS. Vui lòng cho phép quyền truy cập vị trí.",
-        );
-        setIsGpsLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
   };
 
   const handleChangePassword = async (values: any) => {
@@ -136,13 +73,6 @@ export default function ProfilePage() {
   };
 
   const isScreenLoading = isProfileLoading || isAuthLoading;
-
-  const parsedLat = parseFloat(mapLat);
-  const parsedLng = parseFloat(mapLng);
-  const mapPosition: [number, number] =
-    !isNaN(parsedLat) && !isNaN(parsedLng)
-      ? [parsedLat, parsedLng]
-      : [10.762622, 106.660172];
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pb-20 sm:px-6">
@@ -167,15 +97,15 @@ export default function ProfilePage() {
       >
         <BasicInfoCard user={user || null} profileError={profileError} />
 
-        <MapLocationCard
-          mapPosition={mapPosition}
-          handleMapLocationSelect={handleMapLocationSelect}
-          handleGetCurrentGps={handleGetCurrentGps}
-          isGpsLoading={isGpsLoading}
-          isUpdating={isUpdating}
-          setMapLat={setMapLat}
-          setMapLng={setMapLng}
-        />
+        <div className="mt-2 flex justify-start">
+          <button
+            type="submit"
+            disabled={isUpdating}
+            className="flex h-11 items-center gap-2 rounded-xl bg-[#22c55e] px-6 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 disabled:opacity-50"
+          >
+            {isUpdating ? "Đang lưu..." : "Lưu thay đổi hồ sơ"}
+          </button>
+        </div>
       </Form>
 
       <SecurityCard

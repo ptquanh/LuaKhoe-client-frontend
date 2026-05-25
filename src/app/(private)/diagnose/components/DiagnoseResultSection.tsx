@@ -6,6 +6,7 @@ import { DetectionResultsView } from "./DetectionResultsView";
 import { parseDiagnoseResult } from "./diagnose.helper";
 import { EmptyResultView } from "./EmptyResultView";
 import { HealthyResultView } from "./HealthyResultView";
+import { EnvAdjustmentView } from "./EnvAdjustmentView";
 
 interface DiagnoseResultSectionProps {
   result: Record<string, any> | null;
@@ -24,6 +25,11 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
     advisoryData,
     ragRecommendation,
     annotatedImage,
+    envAdjustment,
+    province,
+    gpsLat,
+    gpsLng,
+    fieldParams,
   } = parseDiagnoseResult(result);
 
   return (
@@ -65,6 +71,59 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
               </div>
             )}
 
+            {/* Environmental Adjustment Module */}
+            {envAdjustment && envAdjustment.applied && (
+              <EnvAdjustmentView adjustment={envAdjustment} />
+            )}
+
+            {/* Metadata (Location & Field Params) */}
+            {(province || fieldParams) && (
+              <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-[#F8F9FA] p-4 shadow-sm">
+                <div className="mb-3 flex items-center gap-2 border-b border-[#E0E0E0] pb-2 text-[14px] font-[600] text-[#1B1B1B]">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2F9E44] text-white">
+                    <Maximize2 className="h-3 w-3" />
+                  </div>
+                  Thông tin thực địa
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {province && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] font-[500] text-[#5C5C5C] uppercase tracking-wider">Vùng miền</span>
+                      <span className="text-[13px] font-[600] text-[#1B1B1B]">{province}</span>
+                      {gpsLat && gpsLng && (
+                        <span className="text-[10px] text-[#5C5C5C]">
+                          ({gpsLat.toFixed(4)}, {gpsLng.toFixed(4)})
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {fieldParams && (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] font-[500] text-[#5C5C5C] uppercase tracking-wider">Tình trạng ruộng</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        <span className="rounded-md bg-white border border-[#E0E0E0] px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                          {fieldParams.growth}
+                        </span>
+                        <span className="rounded-md bg-white border border-[#E0E0E0] px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                          Nước: {fieldParams.water}
+                        </span>
+                        {fieldParams.leafhopper && (
+                          <span className="rounded-md bg-[#FFF3E0] border border-[#FFE0B2] px-2 py-0.5 text-[11px] font-[600] text-[#E65100]">
+                            Có rầy nâu
+                          </span>
+                        )}
+                        {fieldParams.fog && (
+                          <span className="rounded-md bg-[#E3F2FD] border border-[#BBDEFB] px-2 py-0.5 text-[11px] font-[600] text-[#1565C0]">
+                            Sương mù
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {isHealthy ? (
               <HealthyResultView
                 diseaseName={diseaseName}
@@ -76,6 +135,7 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
                 diseaseName={diseaseName}
                 confidencePercent={confidencePercent}
                 severityStyle={severityStyle}
+                envAdjustment={envAdjustment}
               />
             )}
 

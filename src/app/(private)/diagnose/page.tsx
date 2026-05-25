@@ -3,7 +3,9 @@
 import { Info } from "lucide-react";
 import { useState } from "react";
 
+import { FIELD_PARAM_DEFAULTS } from "@/constants/diagnose";
 import { useDiagnose } from "@/hooks/useDiagnose";
+import { FieldParams } from "@/types/diagnose.type";
 
 import { DiagnoseGuidelines } from "./components/DiagnoseGuidelines";
 import { DiagnoseResultSection } from "./components/DiagnoseResultSection";
@@ -28,6 +30,13 @@ export default function DiagnosePage() {
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+  // Environment and Field condition parameters
+  const [province, setProvince] = useState<string>("");
+  const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
+  const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
+
+  const [fieldParams, setFieldParams] = useState<FieldParams>(FIELD_PARAM_DEFAULTS);
+
   const handleFileSelect = (f: File) => {
     setFile({ raw: f, url: URL.createObjectURL(f) });
     reset();
@@ -43,6 +52,10 @@ export default function DiagnosePage() {
       predict({
         image: file.raw,
         envDescription: description || undefined,
+        province: province || undefined,
+        gpsLat,
+        gpsLng,
+        fieldParams: fieldParams,
       });
     }
   };
@@ -83,6 +96,14 @@ export default function DiagnosePage() {
           selectedTags={selectedTags}
           setSelectedTags={setSelectedTags}
           suggestedTags={suggestedTags}
+          province={province}
+          setProvince={setProvince}
+          fieldParams={fieldParams}
+          setFieldParams={setFieldParams}
+          gpsLat={gpsLat}
+          setGpsLat={setGpsLat}
+          gpsLng={gpsLng}
+          setGpsLng={setGpsLng}
           handleReset={handleReset}
           handlePredict={handlePredict}
         />

@@ -16,6 +16,11 @@ export interface ParsedDiagnoseResult {
   advisoryData: any;
   ragRecommendation: any;
   annotatedImage: string | null;
+  envAdjustment: any;
+  province: string | null;
+  gpsLat: number | null;
+  gpsLng: number | null;
+  fieldParams: any | null;
 }
 
 export function getConfidencePercent(confidence?: string | number): number {
@@ -80,6 +85,11 @@ export function parseDiagnoseResult(
       advisoryData: null,
       ragRecommendation: null,
       annotatedImage: null,
+      envAdjustment: null,
+      province: null,
+      gpsLat: null,
+      gpsLng: null,
+      fieldParams: null,
     };
   }
 
@@ -126,5 +136,10 @@ export function parseDiagnoseResult(
     advisoryData,
     ragRecommendation: result.rag_recommendation,
     annotatedImage,
+    envAdjustment: result.env_adjustment,
+    province: result.province || null,
+    gpsLat: result.gpsLat || null,
+    gpsLng: result.gpsLng || null,
+    fieldParams: result.fieldParams || null,
   };
 }

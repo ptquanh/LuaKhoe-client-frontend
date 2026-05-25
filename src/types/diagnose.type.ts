@@ -99,14 +99,28 @@ export interface DiagnosisAdvisory {
   disease: string;
 }
 
+export interface EnvAdjustment {
+  original_scores: Record<string, number>;
+  adjusted_scores: Record<string, number>;
+  weather: {
+    humidity: number;
+    temperature: number;
+    rainfall: string;
+    wind: string;
+    source: string;
+  };
+  applied: boolean;
+}
+
 export interface DiagnosisResponse {
   id: string;
   userId: string;
   originalImageUrl: string;
   resultImageUrl: string | null;
+  weatherData: any | null;
   gpsLat: number | null;
   gpsLng: number | null;
-  weatherData: any | null;
+  province: string | null;
   envDescription: string | null;
   modelVersionId: string;
   createdAt: string;
@@ -124,13 +138,25 @@ export interface DiagnosisResponse {
   annotated_image?: string | null;
   low_confidence?: boolean;
   latency_ms?: number;
+  env_adjustment?: EnvAdjustment | null;
+}
+
+export interface FieldParams {
+  water?: string;
+  growth?: string;
+  density?: string;
+  fog?: boolean;
+  leafhopper?: boolean;
+  pesticide?: boolean;
 }
 
 export interface CreateDiagnosisPayload {
   image: File;
-  gpsLat?: number | null;
-  gpsLng?: number | null;
   envDescription?: string | null;
+  province?: string;
+  gpsLat?: number;
+  gpsLng?: number;
+  fieldParams?: FieldParams;
 }
 
 export interface GetHistoryParams {

@@ -14,14 +14,20 @@ export const diagnosisService = {
     const formData = new FormData();
     formData.append("image", payload.image);
 
-    if (payload.gpsLat !== undefined && payload.gpsLat !== null) {
-      formData.append("gpsLat", String(payload.gpsLat));
-    }
-    if (payload.gpsLng !== undefined && payload.gpsLng !== null) {
-      formData.append("gpsLng", String(payload.gpsLng));
-    }
     if (payload.envDescription) {
       formData.append("envDescription", payload.envDescription);
+    }
+    if (payload.province) {
+      formData.append("province", payload.province);
+    }
+    if (payload.gpsLat !== undefined) {
+      formData.append("gpsLat", payload.gpsLat.toString());
+    }
+    if (payload.gpsLng !== undefined) {
+      formData.append("gpsLng", payload.gpsLng.toString());
+    }
+    if (payload.fieldParams) {
+      formData.append("fieldParams", JSON.stringify(payload.fieldParams));
     }
 
     const response = await axiosClient.post<BaseResponse<DiagnosisResponse>>(

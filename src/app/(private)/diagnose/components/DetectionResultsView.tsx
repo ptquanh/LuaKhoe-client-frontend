@@ -1,4 +1,4 @@
-import { Info, Maximize, Target } from "lucide-react";
+import { Info, Maximize, Target, TrendingUp } from "lucide-react";
 
 import { getConfidencePercent, SeverityStyle } from "./diagnose.helper";
 
@@ -7,6 +7,7 @@ interface DetectionResultsViewProps {
   diseaseName: string;
   confidencePercent: number;
   severityStyle: SeverityStyle;
+  envAdjustment?: any;
 }
 
 export function DetectionResultsView({
@@ -14,6 +15,7 @@ export function DetectionResultsView({
   diseaseName,
   confidencePercent,
   severityStyle,
+  envAdjustment,
 }: DetectionResultsViewProps) {
   // Group detections by disease name to ensure no duplicates, keeping max confidence
   const aggregatedDetections = resultsList.reduce(
@@ -24,11 +26,13 @@ export function DetectionResultsView({
         if (existing) {
           existing.confidence = current.confidence;
           existing.color = current.color || existing.color;
+          existing.diseaseKey = current.disease?.key || current.diseaseKey;
         } else {
           acc.push({
             name,
             confidence: current.confidence,
             color: current.color || "#FB8C00", // Default orange if color is missing
+            diseaseKey: current.disease?.key || current.diseaseKey,
           });
         }
       }
@@ -45,6 +49,7 @@ export function DetectionResultsView({
             name: diseaseName,
             confidence: confidencePercent,
             color: "#FB8C00",
+            diseaseKey: null,
           },
         ];
 
@@ -54,6 +59,11 @@ export function DetectionResultsView({
         const detPercent = getConfidencePercent(det.confidence);
         const detName = det.name;
         const color = det.color || "#FB8C00";
+        
+        // Find if this specific detection has an original score in envAdjustment
+        const originalScore = envAdjustment?.original_scores?.[det.diseaseKey];
+        const isAdjusted = originalScore !== undefined && Math.abs(originalScore - det.confidence) > 0.001;
+        const originalPercent = originalScore !== undefined ? getConfidencePercent(originalScore) : null;
 
         return (
           <div
@@ -77,7 +87,13 @@ export function DetectionResultsView({
                 </div>
               </div>
               <div className="flex items-center gap-1.5 text-[12px] font-[600] text-[#FB8C00]">
-                <Info className="h-3.5 w-3.5" /> AI Phân tích
+                {isAdjusted ? (
+                  <div className="flex items-center gap-1 text-[#2F9E44] bg-[#E6F4EA] px-2 py-0.5 rounded-full text-[10px]" title={`Đã điều chỉnh từ ${originalPercent}%`}>
+                    <TrendingUp className="h-3 w-3" /> Đã điều chỉnh
+                  </div>
+                ) : (
+                  <><Info className="h-3.5 w-3.5" /> AI Phân tích</>
+                )}
               </div>
             </div>
 
@@ -88,22 +104,31 @@ export function DetectionResultsView({
               </h2>
             </div>
 
-            <div className="flex items-center gap-3 rounded-lg border border-[#F0F2F5] bg-[#FAFAFA] p-2.5">
-              <span className="text-[12px] font-[500] text-[#5C5C5C]">
-                Độ tin cậy:
-              </span>
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
-                <div
-                  className="h-full border-r border-black/10 transition-all duration-500 ease-out"
-                  style={{
-                    width: `${detPercent}%`,
-                    backgroundColor: "#FB8C00",
-                  }}
-                />
+            <div className="flex flex-col gap-2 rounded-lg border border-[#F0F2F5] bg-[#FAFAFA] p-2.5">
+              <div className="flex items-center gap-3">
+                <span className="text-[12px] font-[500] text-[#5C5C5C]">
+                  Độ tin cậy:
+                </span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
+                  <div
+                    className="h-full border-r border-black/10 transition-all duration-500 ease-out"
+                    style={{
+                      width: `${detPercent}%`,
+                      backgroundColor: isAdjusted ? "#2F9E44" : "#FB8C00",
+                    }}
+                  />
+                </div>
+                <span className="text-[13px] font-[700] text-[#1B1B1B]">
+                  {detPercent}%
+                </span>
               </div>
-              <span className="text-[13px] font-[700] text-[#1B1B1B]">
-                {detPercent}%
-              </span>
+              
+              {isAdjusted && (
+                <div className="text-[11px] text-[#5C5C5C] flex justify-between px-1">
+                  <span>Gốc: {originalPercent}%</span>
+                  <span className="text-[#2F9E44] font-[600]">+{detPercent - (originalPercent || 0)}% (tối ưu theo môi trường)</span>
+                </div>
+              )}
             </div>
           </div>
         );

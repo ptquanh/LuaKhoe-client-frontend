@@ -32,8 +32,6 @@ export interface UserProfile {
   userId: string;
   firstName?: string;
   lastName?: string;
-  gpsLatitude?: number;
-  gpsLongitude?: number;
 }
 
 export interface UserWithProfile extends User {
@@ -85,5 +83,4 @@ export interface ChangePasswordPayload {
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
-  gps?: string;
 }
