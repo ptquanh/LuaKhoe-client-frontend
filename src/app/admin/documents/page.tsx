@@ -1,10 +1,7 @@
 "use client";
 
 import {
-  AlertCircle,
   Check,
-  CheckCircle,
-  Clock,
   FileText,
   Loader2,
   Search,
@@ -54,8 +51,13 @@ export default function AdminDocumentsPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = keyword.trim();
+    if (trimmed.length > 0 && trimmed.length < 3) {
+      alert("Từ khóa tìm kiếm phải có tối thiểu 3 ký tự.");
+      return;
+    }
     setOffset(0);
-    setSearchVal(keyword);
+    setSearchVal(trimmed);
   };
 
   const handleClearSearch = () => {
@@ -247,9 +249,12 @@ export default function AdminDocumentsPage() {
                 ) : (
                   chunks.map((c: any, i: number) => {
                     const fileType = c.chunkMetadata?.fileType || "TXT";
-                    const lastUpdated = c.created_at
-                      ? new Date(c.created_at).toLocaleString("vi-VN")
-                      : "—";
+                    const lastUpdated =
+                      c.createdAt || c.created_at
+                        ? new Date(c.createdAt || c.created_at).toLocaleString(
+                            "vi-VN",
+                          )
+                        : "—";
 
                     return (
                       <tr

@@ -1,19 +1,19 @@
 "use client";
 
+import { DiseaseItem, diseaseService } from "@/services/disease.service";
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   Edit2,
+  Loader2,
   Plus,
   Search,
   Trash2,
-  X,
-  Loader2,
   Upload,
-  ChevronLeft,
-  ChevronRight,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { diseaseService, DiseaseItem } from "@/services/disease.service";
 
 const severityMap: Record<string, { label: string; bg: string; text: string }> =
   {
@@ -59,8 +59,13 @@ export default function AdminDiseasesPage() {
   const fetchDiseases = async () => {
     setLoading(true);
     try {
+      const keywordParam =
+        debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 3
+          ? undefined
+          : debouncedSearch.trim() || undefined;
+
       const res = await diseaseService.getDiseasesForAdmin({
-        keyword: debouncedSearch || undefined,
+        keyword: keywordParam,
         limit: PAGE_SIZE,
         offset: (page - 1) * PAGE_SIZE,
       });

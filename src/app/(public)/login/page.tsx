@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Alert,
   Button,
@@ -9,19 +10,25 @@ import {
   Input,
   Typography,
 } from "antd";
+import { setCookie } from "cookies-next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
+import { ACCESS_TOKEN } from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
-import { useAuth } from "@/hooks/useAuth";
+import { getErrorMessage, useAuth } from "@/hooks/useAuth";
+import { authService } from "@/services/auth.service";
 import { LoginPayload, ROLE } from "@/types/auth.type";
 
 const { Title, Text } = Typography;
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
-  const { user, login, loginWithGoogle, isLoading, error } = useAuth();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const { user, login, loginWithGoogle, isLoading, error, setError } =
+    useAuth();
   const [form] = Form.useForm();
 
   // Redirect if already logged in
@@ -34,6 +41,50 @@ export default function LoginPage() {
       }
     }
   }, [user, router]);
+
+  // Handle Google OAuth query parameters callback
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const errorParam = searchParams.get("error");
+    const code = searchParams.get("code");
+
+    if (token) {
+      setCookie(ACCESS_TOKEN, token, {
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      router.replace(ROUTES.LOGIN);
+    } else if (code) {
+      const exchangeCode = async () => {
+        setError(null);
+        try {
+          const res = await authService.socialLoginCallback("google", code);
+          if (res.success && res.data?.accessToken) {
+            setCookie(ACCESS_TOKEN, res.data.accessToken, {
+              maxAge: 60 * 60 * 24 * 7,
+            });
+            await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+          } else {
+            setError(res.message || "Đăng nhập Google thất bại.");
+          }
+        } catch (err: any) {
+          setError(getErrorMessage(err));
+        } finally {
+          router.replace(ROUTES.LOGIN);
+        }
+      };
+      exchangeCode();
+    } else if (errorParam) {
+      let friendlyError = decodeURIComponent(errorParam);
+      if (friendlyError.includes("password must be longer")) {
+        friendlyError = "Mật khẩu đăng nhập phải từ 8 ký tự trở lên.";
+      } else if (friendlyError.toLowerCase().includes("password incorrect")) {
+        friendlyError = "Mật khẩu không chính xác.";
+      }
+      setError(friendlyError);
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [searchParams, router, queryClient, setError]);
 
   const onFinish = async (values: {
     usernameOrEmail: string;
@@ -199,5 +250,22 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <span className="animate-bounce text-4xl">🌱</span>
+            <p className="mt-2 font-medium text-gray-500">Đang tải...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

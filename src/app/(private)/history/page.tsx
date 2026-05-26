@@ -42,10 +42,15 @@ export default function DiagnosisHistoryPage() {
 
         const offset = (page - 1) * limit;
 
+        const keywordParam =
+          keyword.trim().length > 0 && keyword.trim().length < 3
+            ? undefined
+            : keyword.trim() || undefined;
+
         const res = await diagnosisService.getHistory({
           limit,
           offset,
-          keyword: keyword ? keyword : undefined,
+          keyword: keywordParam,
           disease: diseaseFilter !== "Tất cả" ? diseaseFilter : undefined,
           feedbackStatus:
             feedbackStatusFilter !== "Tất cả"

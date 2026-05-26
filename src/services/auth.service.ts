@@ -91,4 +91,23 @@ export const authService = {
   getSocialLoginUrl: (provider: string): string => {
     return `${axiosClient.defaults.baseURL}/auth/login/social?provider=${provider}`;
   },
+  getSocialLoginProviderUrl: async (
+    provider: string,
+  ): Promise<BaseResponse<{ url: string }>> => {
+    const response = await axiosClient.get<BaseResponse<{ url: string }>>(
+      `/auth/login/social?provider=${provider}`,
+    );
+    return response.data;
+  },
+  socialLoginCallback: async (
+    provider: string,
+    code: string,
+  ): Promise<BaseResponse<{ accessToken: string; user: any }>> => {
+    const response = await axiosClient.get<
+      BaseResponse<{ accessToken: string; user: any }>
+    >("/auth/login/social/callback", {
+      params: { provider, code },
+    });
+    return response.data;
+  },
 };

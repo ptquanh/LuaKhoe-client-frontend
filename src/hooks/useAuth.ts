@@ -2,7 +2,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { useState } from "react";
 
-import { ACCESS_TOKEN } from "@/constants/auth";
+import {
+  ACCESS_TOKEN,
+  ERROR_CODE_MAP,
+  VALIDATION_ERROR_MAPPINGS,
+} from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
 import { authService } from "@/services/auth.service";
 import {
@@ -16,11 +20,29 @@ import {
   VerifyOtpPayload,
 } from "@/types/auth.type";
 
-const getErrorMessage = (err: any): string => {
+export const getErrorMessage = (err: any): string => {
   const data = err.response?.data;
   if (!data) return "Kết nối máy chủ thất bại.";
-  if (Array.isArray(data.message)) return data.message.join(", ");
-  return data.message || data.detail || "Đã có lỗi xảy ra. Vui lòng thử lại.";
+
+  const code = data.code?.toLowerCase();
+  if (code && ERROR_CODE_MAP[code]) {
+    return ERROR_CODE_MAP[code];
+  }
+
+  let msg = data.message || data.detail || "";
+  if (Array.isArray(msg)) {
+    msg = msg.join(", ");
+  }
+
+  const msgLower = msg.toLowerCase();
+  const matched = VALIDATION_ERROR_MAPPINGS.find((m) =>
+    msgLower.includes(m.keyword),
+  );
+  if (matched) {
+    return matched.msg;
+  }
+
+  return msg || "Đã có lỗi xảy ra. Vui lòng thử lại.";
 };
 
 export function useAuth() {
@@ -190,8 +212,21 @@ export function useAuth() {
     }
   };
 
-  const loginWithGoogle = () => {
-    window.location.href = authService.getSocialLoginUrl("google");
+  const loginWithGoogle = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await authService.getSocialLoginProviderUrl("google");
+      if (res.success && res.data?.url) {
+        window.location.href = res.data.url;
+      } else {
+        setError(res.message || "Không thể lấy liên kết đăng nhập Google.");
+      }
+    } catch (err: any) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {

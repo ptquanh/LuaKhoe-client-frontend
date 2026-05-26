@@ -21,6 +21,8 @@ export const userService = {
 
   getUsersForAdmin: async (params?: {
     keyword?: string;
+    role?: string;
+    status?: string;
     limit?: number;
     offset?: number;
   }): Promise<BaseResponse<PaginatedResponse<any>>> => {
@@ -37,6 +39,13 @@ export const userService = {
     const response = await axiosClient.put<BaseResponse<any>>(
       `/users/${id}/status`,
       payload,
+    );
+    return response.data;
+  },
+
+  deleteUserForAdmin: async (id: string): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.delete<BaseResponse<any>>(
+      `/users/${id}`,
     );
     return response.data;
   },
