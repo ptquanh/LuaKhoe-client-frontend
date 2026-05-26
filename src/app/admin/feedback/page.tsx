@@ -23,6 +23,8 @@ interface FeedbackDisplay {
   date: string;
   flagged: boolean;
   status: "PENDING" | "ACCEPTED" | "REJECTED";
+  actualDiseases?: string;
+  adminResponse?: string;
 }
 
 export default function AdminFeedbackPage() {
@@ -33,60 +35,81 @@ export default function AdminFeedbackPage() {
     "all" | "positive" | "negative"
   >("all");
 
-  useEffect(() => {
-    const fetchFeedbacks = async () => {
-      try {
-        const res = await feedbackService.getAll();
-        if (res.success && res.data && res.data.length > 0) {
-          const mapped: FeedbackDisplay[] = res.data.map((item) => {
-            const comment = item.userMessage || "";
-            const isPos =
-              comment.includes("4/5") ||
-              comment.includes("5/5") ||
-              comment.includes("tích cực");
-            return {
-              id: item.id,
-              farmer: item.user?.fullName || "Nông dân Ẩn danh",
-              disease:
-                item.diagnosis?.results?.[0]?.disease?.name ||
-                item.diagnosis?.disease_name ||
-                "Chẩn đoán bệnh lúa",
-              rating: isPos ? "positive" : "negative",
-              comment: comment,
-              date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
-              flagged: item.status === "PENDING",
-              status: item.status as any,
-            };
-          });
-          setFeedbacks(mapped);
-        }
-      } catch (err) {
-        console.error("Lỗi tải danh sách phản hồi:", err);
-      } finally {
-        setLoading(false);
+  // Reply Modal States
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [processStatus, setProcessStatus] = useState<"ACCEPTED" | "REJECTED" | null>(null);
+
+  const fetchFeedbacks = async () => {
+    try {
+      setLoading(true);
+      const res = await feedbackService.getAll();
+      if (res.success && res.data) {
+        const mapped: FeedbackDisplay[] = res.data.map((item) => {
+          const comment = item.userMessage || "";
+          const isPos =
+            comment.includes("4/5") ||
+            comment.includes("5/5") ||
+            comment.includes("tích cực");
+          return {
+            id: item.id,
+            farmer: item.user?.fullName || "Nông dân Ẩn danh",
+            disease:
+              item.diagnosis?.results?.[0]?.disease?.name ||
+              item.diagnosis?.disease_name ||
+              "Chẩn đoán bệnh lúa",
+            rating: isPos ? "positive" : "negative",
+            comment: comment,
+            date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
+            flagged: (item.status || "").toUpperCase() === "PENDING",
+            status: (item.status || "PENDING").toUpperCase() as any,
+            actualDiseases: item.actualDiseases?.map(ad => ad.disease?.name).join(', ') || 'Không báo thêm bệnh',
+            adminResponse: item.adminResponse || undefined,
+          };
+        });
+        setFeedbacks(mapped);
       }
-    };
+    } catch (err) {
+      console.error("Lỗi tải danh sách phản hồi:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFeedbacks();
   }, []);
 
-  const handleProcess = async (
-    id: string,
-    newStatus: "ACCEPTED" | "REJECTED",
-  ) => {
+  const submitReply = async () => {
+    if (!selectedFeedbackId || !processStatus) return;
     try {
-      await feedbackService.process(id, { status: newStatus });
+      await feedbackService.process(selectedFeedbackId, {
+        status: processStatus.toLowerCase() as any,
+        response: replyText,
+      });
       setFeedbacks((prev) =>
         prev.map((f) =>
-          f.id === id ? { ...f, status: newStatus, flagged: false } : f,
+          f.id === selectedFeedbackId
+            ? { ...f, status: processStatus, adminResponse: replyText, flagged: false }
+            : f,
         ),
       );
+      setReplyModalOpen(false);
+      setSelectedFeedbackId(null);
+      setReplyText("");
+      setProcessStatus(null);
     } catch (err) {
       console.error("Lỗi xử lý phản hồi:", err);
+      // Fallback local update
       setFeedbacks((prev) =>
         prev.map((f) =>
-          f.id === id ? { ...f, status: newStatus, flagged: false } : f,
+          f.id === selectedFeedbackId
+            ? { ...f, status: processStatus, adminResponse: replyText, flagged: false }
+            : f,
         ),
       );
+      setReplyModalOpen(false);
     }
   };
 
@@ -181,11 +204,24 @@ export default function AdminFeedbackPage() {
         {filtered.map((f) => (
           <div
             key={f.id}
-            className={`rounded-xl border bg-white p-4 transition-colors ${f.flagged ? "border-[#FB8C00] bg-[#FFF8E1]" : "border-[#E0E0E0]"}`}
+            onClick={(e) => {
+              // Ignore clicks on buttons
+              if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("a")) {
+                return;
+              }
+              setSelectedFeedbackId(f.id);
+              const targetStatus = f.status === "PENDING" ? "ACCEPTED" : f.status;
+              if (targetStatus === "ACCEPTED" || targetStatus === "REJECTED") {
+                setProcessStatus(targetStatus);
+              }
+              setReplyText(f.adminResponse || "");
+              setReplyModalOpen(true);
+            }}
+            className={`rounded-xl border bg-white p-4 transition-all duration-200 cursor-pointer hover:border-[#2F9E44] hover:shadow-md ${f.flagged ? "border-[#FB8C00] bg-[#FFF8E1]" : "border-[#E0E0E0]"}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
-                <div className="mb-2 flex items-center gap-2">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
                   {f.rating === "positive" ? (
                     <ThumbsUp className="h-4 w-4 text-[#2E7D32]" />
                   ) : (
@@ -195,8 +231,8 @@ export default function AdminFeedbackPage() {
                     {f.farmer}
                   </span>
                   <span className="text-[12px] text-[#9E9E9E]">·</span>
-                  <span className="text-[13px] font-[500] text-[#2E7D32]">
-                    {f.disease}
+                  <span className="text-[13px] font-[500] text-[#5C5C5C]">
+                    Chẩn đoán AI: <strong className="text-[#2E7D32]">{f.disease}</strong>
                   </span>
                   <span className="text-[12px] text-[#9E9E9E]">·</span>
                   <span className="text-[12px] text-[#9E9E9E]">{f.date}</span>
@@ -216,27 +252,68 @@ export default function AdminFeedbackPage() {
                         : "Chờ xử lý"}
                   </span>
                 </div>
-                <p className="text-[14px] leading-[1.6] text-[#333333]">
-                  {f.comment}
+                
+                <p className="text-[14px] leading-[1.6] text-[#333333] mb-2 font-medium">
+                  "{f.comment}"
                 </p>
+
+                {/* Farmer reported actual diseases */}
+                <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[12px]">
+                  <span className="font-[600] text-[#757575]">Thực tế ruộng:</span>
+                  <span className="rounded bg-[#FFE0B2] px-2.5 py-0.5 font-[600] text-[#E65100]">
+                    {f.actualDiseases}
+                  </span>
+                </div>
+
+                {/* Admin response reply */}
+                {f.adminResponse && (
+                  <div className="mt-3 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-3 text-[13px] hover:bg-[#F0F2F5] transition-colors border-dashed hover:border-[#2F9E44]">
+                    <p className="font-[700] text-[#5C5C5C] mb-1">Cán bộ chuyên môn phản hồi (Nhấn để chỉnh sửa):</p>
+                    <p className="text-[#333333] italic">"{f.adminResponse}"</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
-                {f.status === "PENDING" && (
+                {f.status === "PENDING" ? (
                   <>
                     <button
-                      onClick={() => handleProcess(f.id, "ACCEPTED")}
+                      onClick={() => {
+                        setSelectedFeedbackId(f.id);
+                        setProcessStatus("ACCEPTED");
+                        setReplyText(f.adminResponse || "");
+                        setReplyModalOpen(true);
+                      }}
                       className="flex h-8 cursor-pointer items-center gap-1 rounded-md bg-[#2F9E44] px-3 text-[12px] font-[600] text-white transition-colors hover:bg-[#1F6F2E]"
                     >
-                      <CheckCircle className="h-3.5 w-3.5" /> Duyệt
+                      <CheckCircle className="h-3.5 w-3.5" /> Duyệt & Phản hồi
                     </button>
                     <button
-                      onClick={() => handleProcess(f.id, "REJECTED")}
+                      onClick={() => {
+                        setSelectedFeedbackId(f.id);
+                        setProcessStatus("REJECTED");
+                        setReplyText(f.adminResponse || "");
+                        setReplyModalOpen(true);
+                      }}
                       className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#E53935] px-3 text-[12px] font-[600] text-[#E53935] transition-colors hover:bg-[#FFEBEE]"
                     >
                       <XCircle className="h-3.5 w-3.5" /> Từ chối
                     </button>
                   </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setSelectedFeedbackId(f.id);
+                      if (f.status === "ACCEPTED" || f.status === "REJECTED") {
+                        setProcessStatus(f.status);
+                      }
+                      setReplyText(f.adminResponse || "");
+                      setReplyModalOpen(true);
+                    }}
+                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#2F9E44] px-3 text-[12px] font-[600] text-[#2F9E44] transition-colors hover:bg-[#E6F4EA]"
+                  >
+                    Sửa phản hồi
+                  </button>
                 )}
                 <button
                   onClick={() => toggleFlag(f.id)}
@@ -255,6 +332,65 @@ export default function AdminFeedbackPage() {
           </div>
         )}
       </div>
+
+      {/* Reply Modal */}
+      {replyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[500px] rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="mb-2 text-[18px] font-[700] text-[#1B1B1B]">
+              Phản hồi & Xử lý ý kiến nông dân
+            </h3>
+            <p className="mb-4 text-[13px] text-[#5C5C5C]">
+              Cập nhật nội dung tư vấn kỹ thuật hoặc thay đổi trạng thái duyệt cho phản hồi này.
+            </p>
+            
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-[13px] font-[600] text-[#5C5C5C]">Trạng thái xử lý:</span>
+              <button
+                type="button"
+                onClick={() => setProcessStatus("ACCEPTED")}
+                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "ACCEPTED" ? "bg-[#E6F4EA] text-[#1F6F2E] border border-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              >
+                Duyệt
+              </button>
+              <button
+                type="button"
+                onClick={() => setProcessStatus("REJECTED")}
+                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "REJECTED" ? "bg-[#FFEBEE] text-[#C62828] border border-[#C62828] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              >
+                Từ chối
+              </button>
+            </div>
+
+            <textarea
+              rows={4}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Ví dụ: Cần hạn chế bón phân đạm, tháo cạn nước ruộng và phun hoạt chất..."
+              className="mb-6 w-full resize-none rounded-xl border border-[#E0E0E0] p-4 text-[13px] focus:border-[#2F9E44] focus:ring-2 focus:ring-[#2F9E44]/10 focus:outline-none"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setReplyModalOpen(false);
+                  setSelectedFeedbackId(null);
+                  setReplyText("");
+                  setProcessStatus(null);
+                }}
+                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={submitReply}
+                className={`h-10 cursor-pointer rounded-lg px-4 text-[14px] font-[600] text-white ${processStatus === "ACCEPTED" ? "bg-[#2F9E44] hover:bg-[#1F6F2E]" : "bg-[#E53935] hover:bg-[#C62828]"}`}
+              >
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

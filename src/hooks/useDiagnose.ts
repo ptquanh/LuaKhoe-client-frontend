@@ -20,9 +20,14 @@ export function useDiagnose() {
       const response = await diagnosisService.predict(payload);
 
       if (response.success && response.data) {
-        const threshold = Number(
+        const rawThreshold = Number(
           process.env.NEXT_PUBLIC_DIAGNOSIS_CONFIDENCE_THRESHOLD,
         );
+        const threshold = isNaN(rawThreshold)
+          ? 0.75
+          : rawThreshold > 1
+            ? rawThreshold / 100
+            : rawThreshold;
         const hasLowConfidence = response.data.results.some(
           (r) => r.confidence < threshold,
         );

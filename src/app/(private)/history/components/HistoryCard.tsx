@@ -50,15 +50,20 @@ export function HistoryCard({ item }: HistoryCardProps) {
     displayResults[0].disease?.name === "Khỏe mạnh";
 
   const feedback = item.feedbacks?.[0];
-  const fbStatus = feedback ? feedback.status : "Chưa gửi phản hồi";
-
+  const rawStatus = feedback?.status?.toLowerCase();
+  
+  let fbStatusText = "Chưa gửi phản hồi";
   let fbBadgeClass = "bg-[#F3F4F6] text-[#6B7280]";
-  if (fbStatus === "Đã duyệt") {
-    fbBadgeClass = "bg-[#E6F4EA] text-[#2E7D32]";
-  } else if (fbStatus === "Đã từ chối") {
-    fbBadgeClass = "bg-[#FFEBEE] text-[#C62828]";
-  } else if (fbStatus === "Chờ phản hồi") {
+
+  if (rawStatus === "pending") {
+    fbStatusText = "Chờ phản hồi";
     fbBadgeClass = "bg-[#FFF8E1] text-[#F57F17]";
+  } else if (rawStatus === "accepted") {
+    fbStatusText = "Đã duyệt";
+    fbBadgeClass = "bg-[#E6F4EA] text-[#2E7D32]";
+  } else if (rawStatus === "rejected") {
+    fbStatusText = "Đã từ chối";
+    fbBadgeClass = "bg-[#FFEBEE] text-[#C62828]";
   }
 
   return (
@@ -121,7 +126,7 @@ export function HistoryCard({ item }: HistoryCardProps) {
           <span
             className={`rounded px-2 py-0.5 text-[11px] font-[600] ${fbBadgeClass}`}
           >
-            {fbStatus}
+            {fbStatusText}
           </span>
         </div>
       </div>

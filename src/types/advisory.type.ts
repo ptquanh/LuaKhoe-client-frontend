@@ -1,7 +1,12 @@
+export interface TreatmentStep {
+  disease_name: string;
+  steps: string[];
+}
+
 export interface TreatmentProtocol {
-  chemical?: string[];
-  biological?: string[];
-  cultural?: string[];
+  chemical?: string | TreatmentStep[] | string[];
+  biological?: string | TreatmentStep[] | string[];
+  cultural?: string | string[];
 }
 
 export interface RecommendationResult {

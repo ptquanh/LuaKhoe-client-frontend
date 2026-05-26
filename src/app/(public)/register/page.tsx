@@ -64,6 +64,7 @@ export default function RegisterPage() {
           onFinish={onFinish}
           size="large"
           requiredMark={false}
+          validateTrigger="onBlur"
           className="w-full"
         >
           <Form.Item
@@ -104,17 +105,38 @@ export default function RegisterPage() {
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
               { min: 8, message: "Mật khẩu tối thiểu 8 ký tự" },
-              {
-                pattern:
-                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                message:
-                  "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
-              },
+            ]}
+            className="mb-4"
+          >
+            <Input.Password
+              placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
+              className="h-11 rounded-lg"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="font-medium text-gray-700">Nhập lại mật khẩu</span>
+            }
+            name="confirmPassword"
+            dependencies={["password"]}
+            rules={[
+              { required: true, message: "Vui lòng nhập lại mật khẩu" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error("Mật khẩu nhập lại không khớp!"),
+                  );
+                },
+              }),
             ]}
             className="mb-6"
           >
             <Input.Password
-              placeholder="Tối thiểu 8 ký tự, đủ chữ hoa/thường/số/ký tự đặc biệt"
+              placeholder="Nhập lại mật khẩu"
               className="h-11 rounded-lg"
             />
           </Form.Item>

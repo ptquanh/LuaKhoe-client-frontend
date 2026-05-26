@@ -27,12 +27,14 @@ export function DetectionResultsView({
           existing.confidence = current.confidence;
           existing.color = current.color || existing.color;
           existing.diseaseKey = current.disease?.key || current.diseaseKey;
+          existing.affectedAreaRatio = current.affectedAreaRatio || existing.affectedAreaRatio;
         } else {
           acc.push({
             name,
             confidence: current.confidence,
             color: current.color || "#FB8C00", // Default orange if color is missing
             diseaseKey: current.disease?.key || current.diseaseKey,
+            affectedAreaRatio: current.affectedAreaRatio || 0.0,
           });
         }
       }
@@ -50,6 +52,7 @@ export function DetectionResultsView({
             confidence: confidencePercent,
             color: "#FB8C00",
             diseaseKey: null,
+            affectedAreaRatio: 0.0,
           },
         ];
 
@@ -122,6 +125,26 @@ export function DetectionResultsView({
                   {detPercent}%
                 </span>
               </div>
+
+              {det.affectedAreaRatio !== undefined && det.affectedAreaRatio > 0 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-[12px] font-[500] text-[#5C5C5C]">
+                    Diện tích nhiễm:
+                  </span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
+                    <div
+                      className="h-full border-r border-black/10 transition-all duration-500 ease-out"
+                      style={{
+                        width: `${Math.min(100, Math.round(det.affectedAreaRatio * 100))}%`,
+                        backgroundColor: det.affectedAreaRatio > 0.35 ? "#C62828" : "#FB8C00",
+                      }}
+                    />
+                  </div>
+                  <span className={`text-[13px] font-[700] ${det.affectedAreaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}>
+                    {(det.affectedAreaRatio * 100).toFixed(1)}% {det.affectedAreaRatio > 0.35 && "(Nguy cấp)"}
+                  </span>
+                </div>
+              )}
               
               {isAdjusted && (
                 <div className="text-[11px] text-[#5C5C5C] flex justify-between px-1">

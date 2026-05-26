@@ -4,9 +4,9 @@ interface LegacyRagRecommendationProps {
   recommendation: {
     immediate_actions?: string[];
     treatment_protocol?: {
-      chemical?: string;
-      biological?: string;
-      cultural?: string;
+      chemical?: any;
+      biological?: any;
+      cultural?: any;
     };
     npk_adjustment?: string;
     prevention_measures?: string[];
@@ -16,6 +16,48 @@ interface LegacyRagRecommendationProps {
 export function LegacyRagRecommendation({
   recommendation,
 }: LegacyRagRecommendationProps) {
+  const renderProtocolValue = (val: any) => {
+    if (!val) return null;
+    if (typeof val === "string") {
+      if (val === "Không có dữ liệu trong tài liệu tham khảo") return null;
+      return <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">{val}</p>;
+    }
+    if (Array.isArray(val)) {
+      if (val.length === 0) return null;
+      if (typeof val[0] === "string") {
+        return (
+          <ul className="list-disc pl-4.5 space-y-1 mt-1">
+            {val.map((item: string, idx: number) => (
+              <li key={idx} className="text-[14px] leading-[1.5] text-[#5C5C5C]">
+                {item}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      // Array of objects (TreatmentStep: { disease_name: string, steps: string[] })
+      return (
+        <div className="space-y-3 mt-2">
+          {val.map((item: any, idx: number) => (
+            <div key={idx} className="space-y-1">
+              <span className="text-[13.5px] font-[600] text-[#1B1B1B] block">
+                {item.disease_name}
+              </span>
+              <ul className="list-disc pl-4.5 space-y-1">
+                {item.steps?.map((step: string, sIdx: number) => (
+                  <li key={sIdx} className="text-[13.5px] leading-[1.5] text-[#5C5C5C]">
+                    {step}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="space-y-4">
       {/* Immediate Actions */}
@@ -49,42 +91,30 @@ export function LegacyRagRecommendation({
             <Droplets className="h-4 w-4 text-[#2F9E44]" /> Phác đồ điều trị
           </h4>
           <div className="space-y-3 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-3">
-            {recommendation.treatment_protocol.chemical &&
-              recommendation.treatment_protocol.chemical !==
-                "Không có dữ liệu trong tài liệu tham khảo" && (
-                <div>
-                  <strong className="text-[13px] text-[#1B1B1B]">
-                    Hóa học:
-                  </strong>
-                  <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">
-                    {recommendation.treatment_protocol.chemical}
-                  </p>
-                </div>
-              )}
-            {recommendation.treatment_protocol.biological &&
-              recommendation.treatment_protocol.biological !==
-                "Không có dữ liệu trong tài liệu tham khảo" && (
-                <div>
-                  <strong className="text-[13px] text-[#1B1B1B]">
-                    Sinh học:
-                  </strong>
-                  <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">
-                    {recommendation.treatment_protocol.biological}
-                  </p>
-                </div>
-              )}
-            {recommendation.treatment_protocol.cultural &&
-              recommendation.treatment_protocol.cultural !==
-                "Không có dữ liệu trong tài liệu tham khảo" && (
-                <div>
-                  <strong className="text-[13px] text-[#1B1B1B]">
-                    Canh tác:
-                  </strong>
-                  <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">
-                    {recommendation.treatment_protocol.cultural}
-                  </p>
-                </div>
-              )}
+            {recommendation.treatment_protocol.chemical && (
+              <div>
+                <strong className="text-[13px] text-[#1B1B1B]">
+                  Hóa học:
+                </strong>
+                {renderProtocolValue(recommendation.treatment_protocol.chemical)}
+              </div>
+            )}
+            {recommendation.treatment_protocol.biological && (
+              <div>
+                <strong className="text-[13px] text-[#1B1B1B]">
+                  Sinh học:
+                </strong>
+                {renderProtocolValue(recommendation.treatment_protocol.biological)}
+              </div>
+            )}
+            {recommendation.treatment_protocol.cultural && (
+              <div>
+                <strong className="text-[13px] text-[#1B1B1B]">
+                  Canh tác:
+                </strong>
+                {renderProtocolValue(recommendation.treatment_protocol.cultural)}
+              </div>
+            )}
           </div>
         </div>
       )}

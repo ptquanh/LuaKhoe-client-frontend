@@ -1,5 +1,6 @@
 "use client";
 
+import { message } from "antd";
 import { Info } from "lucide-react";
 import { useState } from "react";
 
@@ -31,7 +32,6 @@ export default function DiagnosePage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Environment and Field condition parameters
-  const [province, setProvince] = useState<string>("");
   const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
   const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
 
@@ -49,10 +49,15 @@ export default function DiagnosePage() {
 
   const handlePredict = () => {
     if (file) {
+      if (gpsLat === undefined || gpsLng === undefined) {
+        message.warning(
+          "Chưa lấy được tọa độ. Đang sử dụng dữ liệu thời tiết mặc định.",
+          5,
+        );
+      }
       predict({
         image: file.raw,
         envDescription: description || undefined,
-        province: province || undefined,
         gpsLat,
         gpsLng,
         fieldParams: fieldParams,
@@ -85,30 +90,32 @@ export default function DiagnosePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <DiagnoseUploadSection
-          file={file}
-          onFileSelect={handleFileSelect}
-          result={result}
-          isLoading={isLoading}
-          description={description}
-          setDescription={setDescription}
-          selectedTags={selectedTags}
-          setSelectedTags={setSelectedTags}
-          suggestedTags={suggestedTags}
-          province={province}
-          setProvince={setProvince}
-          fieldParams={fieldParams}
-          setFieldParams={setFieldParams}
-          gpsLat={gpsLat}
-          setGpsLat={setGpsLat}
-          gpsLng={gpsLng}
-          setGpsLng={setGpsLng}
-          handleReset={handleReset}
-          handlePredict={handlePredict}
-        />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 items-start">
+        <div className="md:sticky md:top-6 h-fit max-h-[calc(100vh-3rem)] overflow-y-auto pr-1">
+          <DiagnoseUploadSection
+            file={file}
+            onFileSelect={handleFileSelect}
+            result={result}
+            isLoading={isLoading}
+            description={description}
+            setDescription={setDescription}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+            suggestedTags={suggestedTags}
+            fieldParams={fieldParams}
+            setFieldParams={setFieldParams}
+            gpsLat={gpsLat}
+            setGpsLat={setGpsLat}
+            gpsLng={gpsLng}
+            setGpsLng={setGpsLng}
+            handleReset={handleReset}
+            handlePredict={handlePredict}
+          />
+        </div>
 
-        <DiagnoseResultSection result={result} />
+        <div>
+          <DiagnoseResultSection result={result} />
+        </div>
       </div>
     </div>
   );

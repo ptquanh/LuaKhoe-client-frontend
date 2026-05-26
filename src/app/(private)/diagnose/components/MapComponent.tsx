@@ -17,42 +17,12 @@ interface MapComponentProps {
   gpsLng: number | undefined;
   setGpsLat: (val: number | undefined) => void;
   setGpsLng: (val: number | undefined) => void;
-  setProvince: (val: string) => void;
 }
 
-export default function MapComponent({ gpsLat, gpsLng, setGpsLat, setGpsLng, setProvince }: MapComponentProps) {
+export default function MapComponent({ gpsLat, gpsLng, setGpsLat, setGpsLng }: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const marker = useRef<L.Marker | null>(null);
-
-  // Use a stable reference to fetchProvince to avoid stale closures in Leaflet events
-  const fetchProvinceRef = useRef(async (lat: number, lng: number) => {
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`);
-      const data = await response.json();
-      if (data && data.address) {
-        const prov = data.address.city || data.address.province || data.address.state || "Không xác định";
-        setProvince(prov);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  });
-
-  useEffect(() => {
-    fetchProvinceRef.current = async (lat: number, lng: number) => {
-      try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`);
-        const data = await response.json();
-        if (data && data.address) {
-          const prov = data.address.city || data.address.province || data.address.state || "Không xác định";
-          setProvince(prov);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-  }, [setProvince]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -114,9 +84,6 @@ export default function MapComponent({ gpsLat, gpsLng, setGpsLat, setGpsLng, set
           easeLinearity: 0.25
         });
       }
-
-      // Fetch province whenever coordinates change
-      fetchProvinceRef.current(gpsLat, gpsLng);
     }
   }, [gpsLat, gpsLng, setGpsLat, setGpsLng]);
 

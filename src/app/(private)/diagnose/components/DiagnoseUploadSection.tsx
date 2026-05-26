@@ -1,5 +1,6 @@
 import { WATER_OPTIONS, GROWTH_OPTIONS, DENSITY_OPTIONS } from "@/constants/diagnose";
 import { FieldParams } from "@/types/diagnose.type";
+import { message } from "antd";
 import { ChevronDown, Loader2, MapPin, Search, Upload, X } from "lucide-react";
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
@@ -15,8 +16,6 @@ interface DiagnoseUploadSectionProps {
   selectedTags: string[];
   setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>;
   suggestedTags: string[];
-  province: string;
-  setProvince: (val: string) => void;
   fieldParams: FieldParams;
   setFieldParams: React.Dispatch<React.SetStateAction<FieldParams>>;
   gpsLat?: number;
@@ -37,8 +36,6 @@ export function DiagnoseUploadSection({
   selectedTags,
   setSelectedTags,
   suggestedTags,
-  province,
-  setProvince,
   fieldParams,
   setFieldParams,
   gpsLat,
@@ -102,8 +99,9 @@ export function DiagnoseUploadSection({
       },
       (err) => {
         console.error(err);
-        alert(
-          "Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền truy cập.",
+        message.warning(
+          "Chưa lấy được tọa độ. Đang sử dụng dữ liệu thời tiết mặc định.",
+          5,
         );
         setIsGettingLocation(false);
       },
@@ -285,7 +283,6 @@ export function DiagnoseUploadSection({
                     gpsLng={gpsLng}
                     setGpsLat={setGpsLat}
                     setGpsLng={setGpsLng}
-                    setProvince={setProvince}
                   />
                 </Suspense>
               </div>
@@ -300,29 +297,25 @@ export function DiagnoseUploadSection({
                 </button>
               )}
 
-              {/* Display selected coordinates & province */}
-              {(gpsLat !== undefined || province) && (
+              {/* Display selected coordinates */}
+              {gpsLat !== undefined && gpsLng !== undefined && (
                 <div className="animate-in fade-in slide-in-from-top-2 mb-2 flex flex-col gap-1.5 rounded-xl border border-[#E6F4EA] bg-[#E6F4EA]/30 p-3 shadow-sm">
-                  {province && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2F9E44] text-white">
-                        <MapPin className="h-3 w-3" />
-                      </div>
-                      <p className="text-[13px] font-[600] text-[#1B1B1B]">
-                        {province}
-                      </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2F9E44] text-white">
+                      <MapPin className="h-3 w-3" />
                     </div>
-                  )}
-                  {gpsLat !== undefined && gpsLng !== undefined && (
-                    <div className="flex items-center gap-2 pl-7">
-                      <p className="text-[11px] font-[500] text-[#5C5C5C]">
-                        Tọa độ:{" "}
-                        <span className="text-[#1B1B1B]">
-                          {gpsLat.toFixed(6)}, {gpsLng.toFixed(6)}
-                        </span>
-                      </p>
-                    </div>
-                  )}
+                    <p className="text-[13px] font-[600] text-[#1B1B1B]">
+                      Đã ghim vị trí ruộng
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pl-7">
+                    <p className="text-[11px] font-[500] text-[#5C5C5C]">
+                      Tọa độ:{" "}
+                      <span className="text-[#1B1B1B]">
+                        {gpsLat.toFixed(6)}, {gpsLng.toFixed(6)}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               )}
 
