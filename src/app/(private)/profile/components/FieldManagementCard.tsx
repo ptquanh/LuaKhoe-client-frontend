@@ -1,13 +1,24 @@
 "use client";
 
 import { Alert, Card, Form, Input, message, Modal, Switch } from "antd";
-import { Check, Compass, Edit2, Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react";
+import {
+  Check,
+  Compass,
+  Edit2,
+  Loader2,
+  MapPin,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 import { useUserFields } from "@/hooks/useUserFields";
 import { UserField } from "@/types/auth.type";
 
-const LazyMapComponent = lazy(() => import("../../diagnose/components/MapComponent"));
+const LazyMapComponent = lazy(
+  () => import("../../diagnose/components/MapComponent"),
+);
 
 export function FieldManagementCard() {
   const {
@@ -81,7 +92,9 @@ export function FieldManagementCard() {
         setAddress(data[0].display_name);
         message.success("Tìm thấy địa chỉ ruộng thành công!");
       } else {
-        message.warning("Không tìm thấy địa chỉ này. Vui lòng ghim thủ công trên bản đồ.");
+        message.warning(
+          "Không tìm thấy địa chỉ này. Vui lòng ghim thủ công trên bản đồ.",
+        );
       }
     } catch (err) {
       console.error(err);
@@ -108,7 +121,9 @@ export function FieldManagementCard() {
       },
       (err) => {
         console.error(err);
-        message.warning("Không thể lấy vị trí. Vui lòng ghim trực tiếp trên bản đồ.");
+        message.warning(
+          "Không thể lấy vị trí. Vui lòng ghim trực tiếp trên bản đồ.",
+        );
         setIsGettingLocation(false);
       },
     );
@@ -178,7 +193,7 @@ export function FieldManagementCard() {
 
   return (
     <Card
-      className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md font-[Inter,sans-serif]"
+      className="rounded-2xl border-gray-100 font-[Inter,sans-serif] shadow-sm transition-all duration-200 hover:shadow-md"
       title={
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-gray-800">
@@ -187,7 +202,7 @@ export function FieldManagementCard() {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 rounded-xl bg-[#22c55e] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-green-600 hover:scale-[1.02]"
+            className="flex items-center gap-1.5 rounded-xl bg-[#22c55e] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-all hover:scale-[1.02] hover:bg-green-600"
           >
             <Plus className="h-3.5 w-3.5" />
             Thêm ruộng mới
@@ -196,8 +211,10 @@ export function FieldManagementCard() {
       }
     >
       <div className="mb-6">
-        <p className="text-[13.5px] text-gray-500 leading-relaxed">
-          Đăng ký các ruộng canh tác của bạn để nhận thông tin thời tiết chính xác từng khu vực, hỗ trợ tối đa cho việc khoanh vùng dịch tễ và chẩn đoán bệnh lúa.
+        <p className="text-[13.5px] leading-relaxed text-gray-500">
+          Đăng ký các ruộng canh tác của bạn để nhận thông tin thời tiết chính
+          xác từng khu vực, hỗ trợ tối đa cho việc khoanh vùng dịch tễ và chẩn
+          đoán bệnh lúa.
         </p>
       </div>
 
@@ -226,11 +243,11 @@ export function FieldManagementCard() {
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <h4 className="text-[14.5px] font-bold text-gray-800 line-clamp-1">
+                  <h4 className="line-clamp-1 text-[14.5px] font-bold text-gray-800">
                     {field.fieldName}
                   </h4>
                   {field.isDefault && (
-                    <span className="flex items-center gap-1 rounded-full bg-[#22c55e] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                    <span className="flex items-center gap-1 rounded-full bg-[#22c55e] px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
                       <Check className="h-2.5 w-2.5 stroke-[3]" />
                       Mặc định
                     </span>
@@ -244,8 +261,9 @@ export function FieldManagementCard() {
                       {field.address || "Chưa xác định địa chỉ"}
                     </span>
                   </div>
-                  <div className="font-mono text-[11px] text-gray-400 pl-5">
-                    Tọa độ: {Number(field.gpsLat).toFixed(5)}, {Number(field.gpsLng).toFixed(5)}
+                  <div className="pl-5 font-mono text-[11px] text-gray-400">
+                    Tọa độ: {Number(field.gpsLat).toFixed(5)},{" "}
+                    {Number(field.gpsLng).toFixed(5)}
                   </div>
                 </div>
               </div>
@@ -321,7 +339,7 @@ export function FieldManagementCard() {
                 placeholder="Ví dụ: Ruộng Thượng Điền 1"
                 value={fieldName}
                 onChange={(e) => setFieldName(e.target.value)}
-                className="rounded-xl h-10 border-gray-200"
+                className="h-10 rounded-xl border-gray-200"
               />
             </div>
             <div>
@@ -332,7 +350,7 @@ export function FieldManagementCard() {
                 placeholder="Tự động điền hoặc tự nhập..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="rounded-xl h-10 border-gray-200"
+                className="h-10 rounded-xl border-gray-200"
               />
             </div>
           </div>
@@ -365,13 +383,13 @@ export function FieldManagementCard() {
                     handleSearchAddress();
                   }
                 }}
-                className="rounded-xl h-10 border-gray-200 pr-12"
+                className="h-10 rounded-xl border-gray-200 pr-12"
               />
               <button
                 type="button"
                 onClick={handleSearchAddress}
                 disabled={isSearching}
-                className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#22c55e] text-white hover:bg-green-600 disabled:opacity-50 cursor-pointer"
+                className="absolute top-1 right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-[#22c55e] text-white hover:bg-green-600 disabled:opacity-50"
               >
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -402,26 +420,31 @@ export function FieldManagementCard() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-t border-gray-50">
+          <div className="flex items-center justify-between border-t border-gray-50 py-2">
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold text-gray-700">Ruộng mặc định</span>
+              <span className="text-xs font-semibold text-gray-700">
+                Ruộng mặc định
+              </span>
               <span className="text-[11px] text-gray-400">
                 Luôn tự động chọn ruộng này lúc chẩn đoán bệnh
               </span>
             </div>
             <Switch
               checked={isDefault}
-              disabled={fields.length === 0 || (editingField?.isDefault && fields.length > 1)} // Don't allow toggling off if it's the only default field
+              disabled={
+                fields.length === 0 ||
+                (editingField?.isDefault && fields.length > 1)
+              } // Don't allow toggling off if it's the only default field
               onChange={(checked) => setIsDefault(checked)}
               className={isDefault ? "bg-[#22c55e]" : ""}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+          <div className="flex justify-end gap-3 border-t border-gray-50 pt-3">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="rounded-xl border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition-all cursor-pointer"
+              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 transition-all hover:bg-gray-50"
             >
               Hủy
             </button>
@@ -429,7 +452,7 @@ export function FieldManagementCard() {
               type="button"
               onClick={handleSaveField}
               disabled={isSaving}
-              className="flex items-center gap-1.5 rounded-xl bg-[#22c55e] px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 disabled:opacity-50 cursor-pointer"
+              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#22c55e] px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 disabled:opacity-50"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               {editingField ? "Lưu thay đổi" : "Lưu ruộng mới"}

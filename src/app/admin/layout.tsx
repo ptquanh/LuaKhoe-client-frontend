@@ -25,7 +25,11 @@ const menuItems = [
   { label: "Dashboard", href: ROUTES.ADMIN_DASHBOARD, icon: LayoutDashboard },
   { label: "Người dùng", href: ROUTES.ADMIN_USERS, icon: Users },
   { label: "Bệnh lúa", href: ROUTES.ADMIN_DISEASES, icon: Bug },
-  { label: "Tài liệu RAG", href: ROUTES.ADMIN_DOCUMENTS, icon: FileText },
+  {
+    label: "Cơ sở tri thức dinh dưỡng",
+    href: ROUTES.ADMIN_DOCUMENTS,
+    icon: FileText,
+  },
   { label: "Mô hình", href: ROUTES.ADMIN_MODELS, icon: Brain },
   { label: "Phản hồi AI", href: ROUTES.ADMIN_FEEDBACK, icon: MessageSquare },
   { label: "Cấu hình", href: ROUTES.ADMIN_CONFIGS, icon: Settings },

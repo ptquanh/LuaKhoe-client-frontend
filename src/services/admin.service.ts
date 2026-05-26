@@ -5,32 +5,40 @@ import {
   SystemConfig,
 } from "@/types/admin.type";
 import { IngestionRequest, IngestionResponse } from "@/types/advisory.type";
+import { BaseResponse } from "@/types/common.type";
 
 export const adminService = {
   getConfigs: async (): Promise<SystemConfig[]> => {
-    const response = await axiosClient.get<SystemConfig[]>("/admin/configs/");
-    return response.data;
+    const response =
+      await axiosClient.get<BaseResponse<SystemConfig[]>>("/admin/configs/");
+    return response.data.data || [];
   },
 
   addConfig: async (
     payload: ConfigCreatePayload,
   ): Promise<{ status: string; message: string }> => {
-    const response = await axiosClient.post<{
-      status: string;
-      message: string;
-    }>("/admin/configs/", payload);
-    return response.data;
+    const response = await axiosClient.post<BaseResponse<any>>(
+      "/admin/configs/",
+      payload,
+    );
+    return {
+      status: response.data.success ? "success" : "error",
+      message: response.data.message || "Operation completed",
+    };
   },
 
   updateConfig: async (
     key: string,
     payload: ConfigUpdatePayload,
   ): Promise<{ status: string; message: string }> => {
-    const response = await axiosClient.put<{
-      status: string;
-      message: string;
-    }>(`/admin/configs/${key}`, payload);
-    return response.data;
+    const response = await axiosClient.put<BaseResponse<any>>(
+      `/admin/configs/${key}`,
+      payload,
+    );
+    return {
+      status: response.data.success ? "success" : "error",
+      message: response.data.message || "Operation completed",
+    };
   },
 
   ingestText: async (payload: IngestionRequest): Promise<IngestionResponse> => {

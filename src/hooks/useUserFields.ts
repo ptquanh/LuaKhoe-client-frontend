@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { userFieldService } from "@/services/user-field.service";
-import { CreateUserFieldPayload, UpdateUserFieldPayload } from "@/types/auth.type";
+import {
+  CreateUserFieldPayload,
+  UpdateUserFieldPayload,
+} from "@/types/auth.type";
 
 const getErrorMessage = (err: any): string => {
   const data = err.response?.data;
@@ -42,7 +45,13 @@ export function useUserFields() {
   });
 
   const updateFieldMutation = useMutation({
-    mutationFn: async ({ id, payload }: { id: string; payload: UpdateUserFieldPayload }) => {
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdateUserFieldPayload;
+    }) => {
       setError(null);
       const res = await userFieldService.updateUserField(id, payload);
       if (!res.success) {
@@ -76,7 +85,10 @@ export function useUserFields() {
     },
   });
 
-  const createField = async (payload: CreateUserFieldPayload, onSuccess?: () => void) => {
+  const createField = async (
+    payload: CreateUserFieldPayload,
+    onSuccess?: () => void,
+  ) => {
     try {
       await createFieldMutation.mutateAsync(payload);
       onSuccess?.();
@@ -85,7 +97,11 @@ export function useUserFields() {
     }
   };
 
-  const updateField = async (id: string, payload: UpdateUserFieldPayload, onSuccess?: () => void) => {
+  const updateField = async (
+    id: string,
+    payload: UpdateUserFieldPayload,
+    onSuccess?: () => void,
+  ) => {
     try {
       await updateFieldMutation.mutateAsync({ id, payload });
       onSuccess?.();

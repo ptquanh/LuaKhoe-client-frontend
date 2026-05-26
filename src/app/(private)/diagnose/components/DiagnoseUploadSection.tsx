@@ -71,9 +71,9 @@ export function DiagnoseUploadSection({
 
   // Default Location UX states
   const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
-  const [locationMode, setLocationMode] = useState<"default" | "saved" | "custom">(
-    "default",
-  );
+  const [locationMode, setLocationMode] = useState<
+    "default" | "saved" | "custom"
+  >("default");
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [currentProvince, setCurrentProvince] = useState("");
   const [geocoding, setGeocoding] = useState(false);
@@ -196,15 +196,18 @@ export function DiagnoseUploadSection({
       gpsLat !== undefined &&
       gpsLng !== undefined
     ) {
-      createField({
-        fieldName: `Ruộng chẩn đoán (${currentProvince || "Mới"})`,
-        address: addressQuery || undefined,
-        gpsLat,
-        gpsLng,
-        isDefault: fields.length === 0 || saveAsDefault,
-      }, () => {
-        message.success("Đã lưu ruộng mới vào danh sách!");
-      });
+      createField(
+        {
+          fieldName: `Ruộng chẩn đoán (${currentProvince || "Mới"})`,
+          address: addressQuery || undefined,
+          gpsLat,
+          gpsLng,
+          isDefault: fields.length === 0 || saveAsDefault,
+        },
+        () => {
+          message.success("Đã lưu ruộng mới vào danh sách!");
+        },
+      );
     }
     handlePredict();
   };
@@ -341,14 +344,18 @@ export function DiagnoseUploadSection({
                           Sử dụng ruộng mặc định ({defaultField.fieldName})
                         </span>
                         <p className="text-[11px] text-[#5C5C5C]">
-                          Địa chỉ: {defaultField.address || "Chưa xác định"} | Tọa độ: {Number(defaultField.gpsLat).toFixed(5)}, {Number(defaultField.gpsLng).toFixed(5)}
+                          Địa chỉ: {defaultField.address || "Chưa xác định"} |
+                          Tọa độ: {Number(defaultField.gpsLat).toFixed(5)},{" "}
+                          {Number(defaultField.gpsLng).toFixed(5)}
                         </p>
                       </div>
                     </label>
                   )}
 
                   {/* Option 2: Select from Saved Fields */}
-                  <div className={`flex flex-col gap-2 ${defaultField ? "border-t border-gray-100 pt-3" : ""}`}>
+                  <div
+                    className={`flex flex-col gap-2 ${defaultField ? "border-t border-gray-100 pt-3" : ""}`}
+                  >
                     <label className="flex cursor-pointer items-start gap-2.5">
                       <input
                         type="radio"
@@ -372,7 +379,7 @@ export function DiagnoseUploadSection({
                           Chọn từ danh sách ruộng đã lưu
                         </span>
                         {locationMode === "saved" && (
-                          <div className="mt-2 animate-in fade-in slide-in-from-top-1">
+                          <div className="animate-in fade-in slide-in-from-top-1 mt-2">
                             <select
                               value={fieldId}
                               onChange={(e) => {
@@ -388,7 +395,10 @@ export function DiagnoseUploadSection({
                             >
                               {fields.map((f) => (
                                 <option key={f.id} value={f.id}>
-                                  {f.fieldName} ({f.address || `${Number(f.gpsLat).toFixed(4)}, ${Number(f.gpsLng).toFixed(4)}`})
+                                  {f.fieldName} (
+                                  {f.address ||
+                                    `${Number(f.gpsLat).toFixed(4)}, ${Number(f.gpsLng).toFixed(4)}`}
+                                  )
                                 </option>
                               ))}
                             </select>
@@ -416,7 +426,8 @@ export function DiagnoseUploadSection({
                         Chẩn đoán tại vị trí mới (Chưa lưu)
                       </span>
                       <p className="text-[11px] text-[#5C5C5C]">
-                        Chọn vị trí mới trên bản đồ hoặc định vị trực tiếp ngoài ruộng
+                        Chọn vị trí mới trên bản đồ hoặc định vị trực tiếp ngoài
+                        ruộng
                       </p>
                     </div>
                   </label>
@@ -426,7 +437,8 @@ export function DiagnoseUploadSection({
                   <div className="flex gap-2">
                     <span className="text-base">📍</span>
                     <span className="text-[12px] font-[500]">
-                      Bạn chưa lưu vị trí ruộng nào. Vui lòng ghim vị trí ruộng trên bản đồ hoặc định vị GPS để chẩn đoán.
+                      Bạn chưa lưu vị trí ruộng nào. Vui lòng ghim vị trí ruộng
+                      trên bản đồ hoặc định vị GPS để chẩn đoán.
                     </span>
                   </div>
                 </div>

@@ -1,10 +1,15 @@
 import axiosClient from "@/lib/axiosClient";
-import { CreateUserFieldPayload, UpdateUserFieldPayload, UserField } from "@/types/auth.type";
+import {
+  CreateUserFieldPayload,
+  UpdateUserFieldPayload,
+  UserField,
+} from "@/types/auth.type";
 import { BaseResponse } from "@/types/common.type";
 
 export const userFieldService = {
   getUserFields: async (): Promise<BaseResponse<UserField[]>> => {
-    const response = await axiosClient.get<BaseResponse<UserField[]>>("/users/fields");
+    const response =
+      await axiosClient.get<BaseResponse<UserField[]>>("/users/fields");
     return response.data;
   },
 
