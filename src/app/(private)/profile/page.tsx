@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { ChangePasswordPayload, UpdateProfilePayload } from "@/types/auth.type";
 
 import { BasicInfoCard } from "./components/BasicInfoCard";
+import { FieldManagementCard } from "./components/FieldManagementCard";
 import { ProfileHeaderCard } from "./components/ProfileHeaderCard";
 import { SecurityCard } from "./components/SecurityCard";
 
@@ -107,6 +108,8 @@ export default function ProfilePage() {
           </button>
         </div>
       </Form>
+
+      <FieldManagementCard />
 
       <SecurityCard
         formPassword={formPassword}

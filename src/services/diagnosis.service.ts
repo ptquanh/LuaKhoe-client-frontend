@@ -29,6 +29,9 @@ export const diagnosisService = {
     if (payload.fieldParams) {
       formData.append("fieldParams", JSON.stringify(payload.fieldParams));
     }
+    if (payload.fieldId) {
+      formData.append("fieldId", payload.fieldId);
+    }
 
     const response = await axiosClient.post<BaseResponse<DiagnosisResponse>>(
       "/diagnosis/predict",

@@ -8,6 +8,7 @@ export const ROUTES = {
   HISTORY: "/history",
   PROFILE: "/profile",
   RESULT: "/result",
+  ONBOARDING_LOCATION: "/onboarding/location",
   ADMIN_DASHBOARD: "/admin",
   ADMIN_USERS: "/admin/users",
   ADMIN_DISEASES: "/admin/diseases",

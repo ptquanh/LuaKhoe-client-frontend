@@ -1,59 +1,19 @@
 "use client";
 
-import { Check, Edit2, Plus, Search, Trash2, X } from "lucide-react";
-import { useState } from "react";
-
-interface Disease {
-  id: number;
-  name: string;
-  nameEn: string;
-  symptoms: string;
-  severity: string;
-  treatment: string;
-}
-
-const mockDiseases: Disease[] = [
-  {
-    id: 1,
-    name: "Bệnh đạo ôn",
-    nameEn: "Rice Blast",
-    symptoms: "Đốm hình mắt, viền nâu, tâm xám",
-    severity: "high",
-    treatment: "Tricyclazole 75WP, Isoprothiolane",
-  },
-  {
-    id: 2,
-    name: "Bệnh bạc lá",
-    nameEn: "Bacterial Leaf Blight",
-    symptoms: "Lá héo từ mép, vàng dần",
-    severity: "high",
-    treatment: "Bismerthiazol, Copper Hydroxide",
-  },
-  {
-    id: 3,
-    name: "Bệnh khô vằn",
-    nameEn: "Sheath Blight",
-    symptoms: "Vết bệnh hình bầu dục trên bẹ lá",
-    severity: "medium",
-    treatment: "Validamycin, Hexaconazole",
-  },
-  {
-    id: 4,
-    name: "Bệnh đốm nâu",
-    nameEn: "Brown Spot",
-    symptoms: "Đốm tròn nâu trên lá",
-    severity: "low",
-    treatment: "Mancozeb, Propiconazole",
-  },
-  {
-    id: 5,
-    name: "Bệnh vàng lùn",
-    nameEn: "Rice Grassy Stunt",
-    symptoms: "Cây lùn, lá vàng nhạt",
-    severity: "high",
-    treatment: "Diệt rầy nâu, giống kháng",
-  },
-];
+import {
+  Check,
+  Edit2,
+  Plus,
+  Search,
+  Trash2,
+  X,
+  Loader2,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { diseaseService, DiseaseItem } from "@/services/disease.service";
 
 const severityMap: Record<string, { label: string; bg: string; text: string }> =
   {
@@ -62,59 +22,154 @@ const severityMap: Record<string, { label: string; bg: string; text: string }> =
     low: { label: "Nhẹ", bg: "bg-[#E6F4EA]", text: "text-[#2E7D32]" },
   };
 
+const PAGE_SIZE = 10;
+
 export default function AdminDiseasesPage() {
-  const [diseases, setDiseases] = useState(mockDiseases);
+  const [diseases, setDiseases] = useState<DiseaseItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Modal & Form states
   const [showModal, setShowModal] = useState(false);
-  const [editing, setEditing] = useState<Disease | null>(null);
+  const [editing, setEditing] = useState<DiseaseItem | null>(null);
   const [form, setForm] = useState({
     name: "",
-    nameEn: "",
-    symptoms: "",
+    scientificName: "",
+    signs: "",
     severity: "medium",
     treatment: "",
+    imageUrl: "",
   });
 
-  const filtered = diseases.filter(
-    (d) =>
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.nameEn.toLowerCase().includes(search.toLowerCase()),
-  );
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
-  const handleEdit = (d: Disease) => {
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const fetchDiseases = async () => {
+    setLoading(true);
+    try {
+      const res = await diseaseService.getDiseasesForAdmin({
+        keyword: debouncedSearch || undefined,
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
+      });
+      if (res.success && res.data) {
+        setDiseases(res.data.rows);
+        setTotal(res.data.total);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách bệnh:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDiseases();
+  }, [debouncedSearch, page]);
+
+  const handleEdit = (d: DiseaseItem) => {
     setEditing(d);
     setForm({
       name: d.name,
-      nameEn: d.nameEn,
-      symptoms: d.symptoms,
-      severity: d.severity,
-      treatment: d.treatment,
+      scientificName: d.scientificName || "",
+      signs: d.signs || "",
+      severity: d.severity || "medium",
+      treatment: d.treatment || "",
+      imageUrl: d.imageUrl || "",
     });
     setShowModal(true);
   };
+
   const handleAdd = () => {
     setEditing(null);
     setForm({
       name: "",
-      nameEn: "",
-      symptoms: "",
+      scientificName: "",
+      signs: "",
       severity: "medium",
       treatment: "",
+      imageUrl: "",
     });
     setShowModal(true);
   };
-  const handleSave = () => {
-    if (editing) {
-      setDiseases((prev) =>
-        prev.map((d) => (d.id === editing.id ? { ...d, ...form } : d)),
-      );
-    } else {
-      setDiseases((prev) => [...prev, { id: Date.now(), ...form }]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      const res = await diseaseService.uploadImage(file);
+      if (res.success && res.data) {
+        setForm((prev) => ({ ...prev, imageUrl: res.data!.imageUrl }));
+      } else {
+        alert(res.message || "Tải ảnh lên thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải ảnh lên:", error);
+      alert("Tải ảnh thất bại do lỗi kết nối.");
+    } finally {
+      setUploadingImage(false);
     }
-    setShowModal(false);
   };
-  const handleDelete = (id: number) =>
-    setDiseases((prev) => prev.filter((d) => d.id !== id));
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      alert("Vui lòng nhập tên bệnh!");
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      let res;
+      if (editing) {
+        res = await diseaseService.updateDisease(editing.id, form);
+      } else {
+        res = await diseaseService.createDisease(form);
+      }
+
+      if (res.success) {
+        setShowModal(false);
+        fetchDiseases();
+      } else {
+        alert(res.message || "Lưu thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi lưu thông tin bệnh:", error);
+      alert("Đã xảy ra lỗi khi lưu thông tin bệnh.");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa bệnh này không?")) return;
+
+    try {
+      const res = await diseaseService.deleteDisease(id);
+      if (res.success) {
+        fetchDiseases();
+      } else {
+        alert(res.message || "Xóa thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi xóa bệnh:", error);
+    }
+  };
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -124,7 +179,7 @@ export default function AdminDiseasesPage() {
             Quản lý Bệnh lúa
           </h1>
           <p className="mt-1 text-[14px] text-[#5C5C5C]">
-            {diseases.length} loại bệnh
+            {loading ? "Đang tải..." : `${total} loại bệnh`}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -140,7 +195,7 @@ export default function AdminDiseasesPage() {
           </div>
           <button
             onClick={handleAdd}
-            className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white hover:bg-[#1F6F2E]"
+            className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white transition-colors hover:bg-[#1F6F2E]"
           >
             <Plus className="h-4 w-4" /> Thêm bệnh
           </button>
@@ -152,10 +207,13 @@ export default function AdminDiseasesPage() {
           <thead>
             <tr className="bg-[#F0F2F5]">
               <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
+                Hình ảnh
+              </th>
+              <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
                 Tên bệnh
               </th>
               <th className="hidden h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B] md:table-cell">
-                Tên tiếng Anh
+                Tên tiếng Anh / Khoa học
               </th>
               <th className="h-12 w-28 px-4 text-center text-[13px] font-[600] text-[#1B1B1B]">
                 Mức độ
@@ -169,55 +227,121 @@ export default function AdminDiseasesPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((d, i) => {
-              const sev = severityMap[d.severity];
-              return (
-                <tr
-                  key={d.id}
-                  className={`h-12 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="h-40 text-center text-[#5C5C5C]">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
+                  <p className="mt-2 text-[14px]">Đang tải danh sách...</p>
+                </td>
+              </tr>
+            ) : diseases.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="h-40 text-center text-[14px] text-[#5C5C5C]"
                 >
-                  <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
-                    {d.name}
-                  </td>
-                  <td className="hidden px-4 text-[14px] text-[#5C5C5C] md:table-cell">
-                    {d.nameEn}
-                  </td>
-                  <td className="px-4 text-center">
-                    <span
-                      className={`inline-block h-5 rounded px-2 text-[11px] leading-[20px] font-[500] ${sev.bg} ${sev.text}`}
-                    >
-                      {sev.label}
-                    </span>
-                  </td>
-                  <td className="hidden max-w-[250px] truncate px-4 text-[13px] text-[#5C5C5C] lg:table-cell">
-                    {d.symptoms}
-                  </td>
-                  <td className="px-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => handleEdit(d)}
-                        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#2F9E44] hover:bg-[#E6F4EA]"
+                  Không tìm thấy dữ liệu bệnh lúa nào.
+                </td>
+              </tr>
+            ) : (
+              diseases.map((d, i) => {
+                const sev =
+                  severityMap[d.severity || "medium"] || severityMap.medium;
+                return (
+                  <tr
+                    key={d.id}
+                    className={`h-16 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
+                  >
+                    <td className="px-4">
+                      {d.imageUrl ? (
+                        <img
+                          src={d.imageUrl}
+                          alt={d.name}
+                          className="h-10 w-14 rounded border border-[#E0E0E0] object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-14 items-center justify-center rounded border border-[#E0E0E0] bg-[#F9FAFB] text-[10px] text-[#8C8C8C]">
+                          Không ảnh
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
+                      {d.name}
+                    </td>
+                    <td className="hidden px-4 text-[14px] text-[#5C5C5C] md:table-cell">
+                      {d.scientificName || "N/A"}
+                    </td>
+                    <td className="px-4 text-center">
+                      <span
+                        className={`inline-block h-5 rounded px-2 text-[11px] leading-[20px] font-[500] ${sev.bg} ${sev.text}`}
                       >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(d.id)}
-                        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#E53935] hover:bg-[#FFEBEE]"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                        {sev.label}
+                      </span>
+                    </td>
+                    <td className="hidden max-w-[250px] truncate px-4 text-[13px] text-[#5C5C5C] lg:table-cell">
+                      {d.signs || "N/A"}
+                    </td>
+                    <td className="px-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => handleEdit(d)}
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#2F9E44] hover:bg-[#E6F4EA]"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(d.id)}
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#E53935] hover:bg-[#FFEBEE]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
+      {!loading && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-[12px] text-[#5C5C5C]">
+            Hiển thị {(page - 1) * PAGE_SIZE + 1}–
+            {Math.min(page * PAGE_SIZE, total)} / {total}
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`h-8 w-8 cursor-pointer rounded-md text-[14px] font-[500] ${p === page ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-[520px] rounded-xl bg-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-6">
+          <div className="my-auto w-full max-w-[560px] rounded-xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#E0E0E0] px-6 py-4">
               <h3 className="text-[18px] font-[700] text-[#1B1B1B]">
                 {editing ? "Sửa bệnh" : "Thêm bệnh mới"}
@@ -229,32 +353,39 @@ export default function AdminDiseasesPage() {
                 <X className="h-5 w-5 text-[#5C5C5C]" />
               </button>
             </div>
-            <div className="space-y-4 px-6 py-5">
-              <div>
-                <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
-                  Tên bệnh (Tiếng Việt)
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
-                />
+            <div className="max-h-[70vh] space-y-4 overflow-y-auto px-6 py-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                    Tên bệnh (Tiếng Việt) *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                    placeholder="Ví dụ: Bệnh đạo ôn"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                    Tên tiếng Anh / Khoa học
+                  </label>
+                  <input
+                    type="text"
+                    value={form.scientificName}
+                    onChange={(e) =>
+                      setForm({ ...form, scientificName: e.target.value })
+                    }
+                    className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                    placeholder="Ví dụ: Rice Blast"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
-                  Tên tiếng Anh
-                </label>
-                <input
-                  type="text"
-                  value={form.nameEn}
-                  onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
-                  Mức độ
+                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Mức độ nghiêm trọng
                 </label>
                 <select
                   value={form.severity}
@@ -263,50 +394,105 @@ export default function AdminDiseasesPage() {
                   }
                   className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
                 >
-                  <option value="low">Nhẹ</option>
-                  <option value="medium">Trung bình</option>
-                  <option value="high">Nghiêm trọng</option>
+                  <option value="low">Nhẹ (Low)</option>
+                  <option value="medium">Trung bình (Medium)</option>
+                  <option value="high">Nghiêm trọng (High)</option>
                 </select>
               </div>
+
               <div>
-                <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
-                  Triệu chứng
+                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Triệu chứng / Dấu hiệu
                 </label>
                 <textarea
-                  value={form.symptoms}
-                  onChange={(e) =>
-                    setForm({ ...form, symptoms: e.target.value })
-                  }
-                  rows={2}
+                  value={form.signs}
+                  onChange={(e) => setForm({ ...form, signs: e.target.value })}
+                  rows={3}
                   className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                  placeholder="Mô tả các triệu chứng của bệnh..."
                 />
               </div>
+
               <div>
-                <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
-                  Điều trị
+                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Phác đồ điều trị
                 </label>
                 <textarea
                   value={form.treatment}
                   onChange={(e) =>
                     setForm({ ...form, treatment: e.target.value })
                   }
-                  rows={2}
+                  rows={3}
                   className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                  placeholder="Cách xử lý, phun thuốc hóa học, chế phẩm sinh học..."
                 />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Hình ảnh minh họa
+                </label>
+                <div className="mt-1 flex items-center gap-4">
+                  {form.imageUrl ? (
+                    <div className="relative h-20 w-28 overflow-hidden rounded-lg border border-[#E0E0E0]">
+                      <img
+                        src={form.imageUrl}
+                        alt="Preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((prev) => ({ ...prev, imageUrl: "" }))
+                        }
+                        className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex h-20 w-28 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E0E0E0] bg-[#F9FAFB] transition-colors hover:bg-[#F0F2F5]">
+                      <Upload className="h-5 w-5 text-[#8C8C8C]" />
+                      <span className="mt-1 text-[11px] text-[#8C8C8C]">
+                        Chọn ảnh
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+
+                  {uploadingImage && (
+                    <div className="flex items-center gap-1.5 text-[13px] text-[#5C5C5C]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#2F9E44]" />
+                      <span>Đang tải ảnh lên...</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-3 border-t border-[#E0E0E0] px-6 py-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+                disabled={saveLoading}
+                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:opacity-50"
               >
                 Hủy
               </button>
               <button
                 onClick={handleSave}
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white hover:bg-[#1F6F2E]"
+                disabled={saveLoading || uploadingImage}
+                className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white transition-colors hover:bg-[#1F6F2E] disabled:opacity-50"
               >
-                <Check className="h-4 w-4" /> Lưu
+                {saveLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+                Lưu
               </button>
             </div>
           </div>

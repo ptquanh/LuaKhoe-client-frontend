@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/hooks/useAuth";
+import { ROLE } from "@/types/auth.type";
 
 const menuItems = [
   { label: "Dashboard", href: ROUTES.ADMIN_DASHBOARD, icon: LayoutDashboard },
@@ -37,9 +39,20 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, isLoading, logout } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.push(ROUTES.LOGIN);
+      } else if (user.role !== ROLE.ADMIN) {
+        router.push(ROUTES.DIAGNOSE);
+      }
+    }
+  }, [user, isLoading, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
+    logout();
     router.push(ROUTES.LOGIN);
   };
 
@@ -84,6 +97,20 @@ export default function AdminLayout({
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F7F7F7] font-[Inter,sans-serif]">
+        <div className="animate-pulse text-[15px] font-[500] text-[#5C5C5C]">
+          Đang xác thực quyền truy cập...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== ROLE.ADMIN) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F7F7F7] font-[Inter,sans-serif]">
       {/* Desktop Sidebar */}
@@ -119,13 +146,25 @@ export default function AdminLayout({
           >
             <Menu className="h-5 w-5 text-[#5C5C5C]" />
           </button>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E6F4EA]">
-              <span className="text-[12px] font-[600] text-[#2F9E44]">A</span>
+          <div className="ml-auto flex items-center gap-4">
+            <Link
+              href={ROUTES.DIAGNOSE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-[#E0E0E0] bg-white px-3 py-1.5 text-[13px] font-[600] text-[#2F9E44] shadow-xs transition-colors hover:bg-[#E6F4EA]/50 hover:text-[#1F6F2E]"
+            >
+              <span>👀 Xem giao diện Nông dân</span>
+            </Link>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E6F4EA]">
+                <span className="text-[12px] font-[600] text-[#2F9E44]">
+                  {(user?.username || "A").charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="hidden text-[14px] font-[500] text-[#1B1B1B] sm:block">
+                {user?.username || "Admin"}
+              </span>
             </div>
-            <span className="hidden text-[14px] font-[500] text-[#1B1B1B] sm:block">
-              Admin
-            </span>
           </div>
         </header>
         <main className="flex-1 p-6">{children}</main>

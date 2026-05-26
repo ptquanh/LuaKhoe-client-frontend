@@ -1,8 +1,21 @@
-import { WATER_OPTIONS, GROWTH_OPTIONS, DENSITY_OPTIONS } from "@/constants/diagnose";
+import {
+  WATER_OPTIONS,
+  GROWTH_OPTIONS,
+  DENSITY_OPTIONS,
+} from "@/constants/diagnose";
 import { FieldParams } from "@/types/diagnose.type";
 import { message } from "antd";
-import { ChevronDown, Loader2, MapPin, Search, Upload, X } from "lucide-react";
+import {
+  ChevronDown,
+  Loader2,
+  MapPin,
+  Search,
+  Upload,
+  X,
+  Compass,
+} from "lucide-react";
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { useUserFields } from "@/hooks/useUserFields";
 
 const LazyMapComponent = lazy(() => import("./MapComponent"));
 
@@ -22,6 +35,8 @@ interface DiagnoseUploadSectionProps {
   setGpsLat: (val: number | undefined) => void;
   gpsLng?: number;
   setGpsLng: (val: number | undefined) => void;
+  fieldId?: string;
+  setFieldId: (val: string | undefined) => void;
   handleReset: () => void;
   handlePredict: () => void;
 }
@@ -40,8 +55,10 @@ export function DiagnoseUploadSection({
   setFieldParams,
   gpsLat,
   setGpsLat,
-  gpsLng,
   setGpsLng,
+  gpsLng,
+  fieldId,
+  setFieldId,
   handleReset,
   handlePredict,
 }: DiagnoseUploadSectionProps) {
@@ -51,16 +68,80 @@ export function DiagnoseUploadSection({
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [addressQuery, setAddressQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+
+  // Default Location UX states
+  const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
+  const [locationMode, setLocationMode] = useState<"default" | "saved" | "custom">(
+    "default",
+  );
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
+  const [currentProvince, setCurrentProvince] = useState("");
+  const [geocoding, setGeocoding] = useState(false);
+
+  const defaultField = fields.find((f) => f.isDefault);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Sync mode with fields load
+  useEffect(() => {
+    if (fields.length > 0) {
+      if (defaultField) {
+        setLocationMode("default");
+        setFieldId(defaultField.id);
+        setGpsLat(Number(defaultField.gpsLat));
+        setGpsLng(Number(defaultField.gpsLng));
+      } else {
+        setLocationMode("saved");
+        setFieldId(fields[0].id);
+        setGpsLat(Number(fields[0].gpsLat));
+        setGpsLng(Number(fields[0].gpsLng));
+      }
+    } else {
+      setLocationMode("custom");
+      setFieldId(undefined);
+    }
+  }, [fields, defaultField, setFieldId, setGpsLat, setGpsLng]);
+
+  // Track coordinates reverse geocoding to resolve province
+  useEffect(() => {
+    if (gpsLat === undefined || gpsLng === undefined) return;
+
+    const resolveProvince = async () => {
+      setGeocoding(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${gpsLat}&lon=${gpsLng}&accept-language=vi`,
+        );
+        const data = await response.json();
+        if (data && data.address) {
+          const resolvedProv =
+            data.address.city ||
+            data.address.state ||
+            data.address.province ||
+            data.address.town ||
+            "";
+          const cleanProv = resolvedProv
+            .replace(/(Tỉnh|Thành phố|Thành\sphố\s|Tỉnh\s)/gi, "")
+            .trim();
+          setCurrentProvince(cleanProv || "Không xác định");
+        }
+      } catch (err) {
+        console.error(err);
+        setCurrentProvince("Không xác định");
+      } finally {
+        setGeocoding(false);
+      }
+    };
+
+    const timer = setTimeout(resolveProvince, 800);
+    return () => clearTimeout(timer);
+  }, [gpsLat, gpsLng]);
+
   const handleSearchAddress = useCallback(async () => {
     if (!addressQuery.trim()) return;
     setIsSearching(true);
-    setShowMap(true);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}&countrycodes=vn&limit=1&accept-language=vi`,
@@ -71,13 +152,13 @@ export function DiagnoseUploadSection({
         const lng = parseFloat(data[0].lon);
         setGpsLat(lat);
         setGpsLng(lng);
-        // MapComponent will handle reverse geocoding and province updates
+        message.success("Định vị địa chỉ thành công!");
       } else {
-        alert("Không tìm thấy địa chỉ. Vui lòng thử lại với từ khóa khác.");
+        message.warning("Không tìm thấy địa chỉ. Vui lòng thử lại.");
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi tìm kiếm địa chỉ.");
+      message.error("Lỗi khi tìm kiếm địa chỉ.");
     } finally {
       setIsSearching(false);
     }
@@ -85,17 +166,17 @@ export function DiagnoseUploadSection({
 
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Trình duyệt của bạn không hỗ trợ định vị.");
+      message.error("Trình duyệt của bạn không hỗ trợ định vị.");
       return;
     }
 
     setIsGettingLocation(true);
-    setShowMap(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGpsLat(pos.coords.latitude);
         setGpsLng(pos.coords.longitude);
         setIsGettingLocation(false);
+        message.success("Đã định vị vị trí ruộng hiện tại!");
       },
       (err) => {
         console.error(err);
@@ -108,7 +189,25 @@ export function DiagnoseUploadSection({
     );
   };
 
-
+  const handlePredictWrapper = () => {
+    if (
+      locationMode === "custom" &&
+      saveAsDefault &&
+      gpsLat !== undefined &&
+      gpsLng !== undefined
+    ) {
+      createField({
+        fieldName: `Ruộng chẩn đoán (${currentProvince || "Mới"})`,
+        address: addressQuery || undefined,
+        gpsLat,
+        gpsLng,
+        isDefault: fields.length === 0 || saveAsDefault,
+      }, () => {
+        message.success("Đã lưu ruộng mới vào danh sách!");
+      });
+    }
+    handlePredict();
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -144,7 +243,7 @@ export function DiagnoseUploadSection({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 font-[Inter,sans-serif]">
       {!isMounted ? (
         <div className="min-h-[320px] animate-pulse rounded-xl bg-black/5" />
       ) : !file ? (
@@ -180,7 +279,7 @@ export function DiagnoseUploadSection({
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
+        <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white shadow-xs">
           <div className="relative flex aspect-video w-full items-center justify-center bg-black/5 p-2">
             <div className="absolute top-2 left-2 z-10 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
               <span className="text-[11px] font-[600] tracking-wide text-white uppercase">
@@ -211,51 +310,170 @@ export function DiagnoseUploadSection({
           <div className="border-t border-[#E0E0E0] bg-[#FAFAFA] p-4">
             {/* Location Section */}
             <div className="mb-4">
-              <div className="mb-1.5 flex items-center justify-between text-[13px] font-[600] text-[#1B1B1B]">
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-[#2F9E44]" /> Vị trí ruộng
-                </div>
-                <button
-                  onClick={handleGetCurrentLocation}
-                  type="button"
-                  disabled={isGettingLocation}
-                  className="flex cursor-pointer items-center gap-1 text-[11px] font-[500] text-[#2F9E44] hover:underline"
-                >
-                  {isGettingLocation ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <MapPin className="h-3 w-3" />
-                  )}
-                  Lấy vị trí hiện tại
-                </button>
-              </div>
+              <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+                Vị trí ruộng chẩn đoán
+              </label>
 
-              {/* Address search */}
-              <div className="relative mb-3">
-                <div className="group relative">
-                  <input
-                    type="text"
-                    placeholder="Tìm địa chỉ: VD 'Cần Thơ', 'Phong Điền', ..."
-                    value={addressQuery}
-                    onChange={(e) => setAddressQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSearchAddress();
-                    }}
-                    className="w-full rounded-xl border border-[#E0E0E0] bg-white py-2.5 pr-20 pl-4 text-[13px] transition-all focus:border-[#2F9E44] focus:ring-2 focus:ring-[#2F9E44]/10 focus:outline-none"
-                  />
-                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
-                    {addressQuery && (
-                      <button
-                        onClick={() => setAddressQuery("")}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-[#5C5C5C] hover:bg-[#F0F2F5] hover:text-[#1B1B1B]"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    )}
+              {isFieldsLoading ? (
+                <div className="flex h-16 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white">
+                  <Loader2 className="h-5 w-5 animate-spin text-[#2F9E44]" />
+                </div>
+              ) : fields.length > 0 ? (
+                <div className="flex flex-col gap-3.5 rounded-xl border border-[#E0E0E0] bg-white p-3.5 shadow-xs">
+                  {/* Option 1: Default Location */}
+                  {defaultField && (
+                    <label className="flex cursor-pointer items-start gap-2.5">
+                      <input
+                        type="radio"
+                        name="locationMode"
+                        value="default"
+                        checked={locationMode === "default"}
+                        onChange={() => {
+                          setLocationMode("default");
+                          setFieldId(defaultField.id);
+                          setGpsLat(Number(defaultField.gpsLat));
+                          setGpsLng(Number(defaultField.gpsLng));
+                        }}
+                        className="mt-1 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                      />
+                      <div>
+                        <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                          Sử dụng ruộng mặc định ({defaultField.fieldName})
+                        </span>
+                        <p className="text-[11px] text-[#5C5C5C]">
+                          Địa chỉ: {defaultField.address || "Chưa xác định"} | Tọa độ: {Number(defaultField.gpsLat).toFixed(5)}, {Number(defaultField.gpsLng).toFixed(5)}
+                        </p>
+                      </div>
+                    </label>
+                  )}
+
+                  {/* Option 2: Select from Saved Fields */}
+                  <div className={`flex flex-col gap-2 ${defaultField ? "border-t border-gray-100 pt-3" : ""}`}>
+                    <label className="flex cursor-pointer items-start gap-2.5">
+                      <input
+                        type="radio"
+                        name="locationMode"
+                        value="saved"
+                        checked={locationMode === "saved"}
+                        onChange={() => {
+                          setLocationMode("saved");
+                          // Find first field to select
+                          const selected = fields[0];
+                          if (selected) {
+                            setFieldId(selected.id);
+                            setGpsLat(Number(selected.gpsLat));
+                            setGpsLng(Number(selected.gpsLng));
+                          }
+                        }}
+                        className="mt-1.5 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                      />
+                      <div className="flex-1">
+                        <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                          Chọn từ danh sách ruộng đã lưu
+                        </span>
+                        {locationMode === "saved" && (
+                          <div className="mt-2 animate-in fade-in slide-in-from-top-1">
+                            <select
+                              value={fieldId}
+                              onChange={(e) => {
+                                const id = e.target.value;
+                                setFieldId(id);
+                                const match = fields.find((f) => f.id === id);
+                                if (match) {
+                                  setGpsLat(Number(match.gpsLat));
+                                  setGpsLng(Number(match.gpsLng));
+                                }
+                              }}
+                              className="w-full rounded-lg border border-[#E0E0E0] bg-white px-2.5 py-1.5 text-[12.5px] font-[500] text-gray-700 focus:border-[#2F9E44] focus:outline-none"
+                            >
+                              {fields.map((f) => (
+                                <option key={f.id} value={f.id}>
+                                  {f.fieldName} ({f.address || `${Number(f.gpsLat).toFixed(4)}, ${Number(f.gpsLng).toFixed(4)}`})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Option 3: Pin New Location */}
+                  <label className="flex cursor-pointer items-start gap-2.5 border-t border-gray-100 pt-3">
+                    <input
+                      type="radio"
+                      name="locationMode"
+                      value="custom"
+                      checked={locationMode === "custom"}
+                      onChange={() => {
+                        setLocationMode("custom");
+                        setFieldId(undefined);
+                      }}
+                      className="mt-1 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                    />
+                    <div>
+                      <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                        Chẩn đoán tại vị trí mới (Chưa lưu)
+                      </span>
+                      <p className="text-[11px] text-[#5C5C5C]">
+                        Chọn vị trí mới trên bản đồ hoặc định vị trực tiếp ngoài ruộng
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 text-amber-800">
+                  <div className="flex gap-2">
+                    <span className="text-base">📍</span>
+                    <span className="text-[12px] font-[500]">
+                      Bạn chưa lưu vị trí ruộng nào. Vui lòng ghim vị trí ruộng trên bản đồ hoặc định vị GPS để chẩn đoán.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Collapsible custom map container using smooth Tailwind transitions */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  locationMode === "custom"
+                    ? "max-h-[580px] opacity-100"
+                    : "pointer-events-none max-h-0 opacity-0"
+                }`}
+              >
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between text-[12px] font-[500] text-[#5C5C5C]">
+                    <span>Tìm hoặc chọn trên bản đồ:</span>
+                    <button
+                      onClick={handleGetCurrentLocation}
+                      type="button"
+                      disabled={isGettingLocation}
+                      className="flex cursor-pointer items-center gap-1 font-[600] text-[#2F9E44] hover:underline"
+                    >
+                      {isGettingLocation ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Compass className="h-3.5 w-3.5" />
+                      )}
+                      Lấy GPS thiết bị
+                    </button>
+                  </div>
+
+                  {/* Address search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Nhập địa chỉ để định vị nhanh..."
+                      value={addressQuery}
+                      onChange={(e) => setAddressQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSearchAddress();
+                      }}
+                      className="w-full rounded-xl border border-[#E0E0E0] bg-white py-2 pr-12 pl-3.5 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                    />
                     <button
                       onClick={handleSearchAddress}
                       disabled={isSearching}
-                      className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2F9E44] text-white transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+                      className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F9E44] text-white hover:bg-[#1F6F2E] disabled:opacity-50"
                     >
                       {isSearching ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -264,65 +482,55 @@ export function DiagnoseUploadSection({
                       )}
                     </button>
                   </div>
+
+                  {/* Map container */}
+                  <div className="overflow-hidden rounded-xl border border-[#E0E0E0] shadow-sm">
+                    <Suspense
+                      fallback={
+                        <div className="flex h-[280px] w-full items-center justify-center bg-gray-50">
+                          <Loader2 className="h-6 w-6 animate-spin text-[#2F9E44]" />
+                        </div>
+                      }
+                    >
+                      <LazyMapComponent
+                        gpsLat={gpsLat}
+                        gpsLng={gpsLng}
+                        setGpsLat={setGpsLat}
+                        setGpsLng={setGpsLng}
+                      />
+                    </Suspense>
+                  </div>
+
+                  {/* Geolocation status / coordinates display */}
+                  {gpsLat !== undefined && gpsLng !== undefined && (
+                    <div className="animate-in fade-in slide-in-from-top-2 space-y-3">
+                      <div className="rounded-lg border border-[#E6F4EA] bg-[#E6F4EA]/30 p-3 text-[12.5px] text-[#2E7D32]">
+                        <span className="font-[600]">
+                          📍 Đã ghim vị trí ruộng:{" "}
+                        </span>
+                        {gpsLat.toFixed(6)}, {gpsLng.toFixed(6)}{" "}
+                        <span className="mt-0.5 block font-semibold text-[#1B1B1B]">
+                          Khu vực:{" "}
+                          {geocoding ? "Đang xác định..." : currentProvince}
+                        </span>
+                      </div>
+
+                      {/* Save Location Checkbox */}
+                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white p-3 transition-colors hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={saveAsDefault}
+                          onChange={(e) => setSaveAsDefault(e.target.checked)}
+                          className="h-4 w-4 cursor-pointer rounded accent-[#2F9E44]"
+                        />
+                        <span className="text-[12.5px] font-[500] text-[#1B1B1B]">
+                          Lưu vị trí này làm ruộng mặc định của tôi
+                        </span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Map */}
-              <div
-                className={`overflow-hidden transition-all duration-300 ${showMap ? "mb-3 opacity-100" : "h-0 opacity-0"}`}
-              >
-                <Suspense
-                  fallback={
-                    <div className="flex h-[350px] items-center justify-center rounded-xl border border-[#E0E0E0] bg-[#F8F9FA]">
-                      <Loader2 className="h-6 w-6 animate-spin text-[#2F9E44]" />
-                    </div>
-                  }
-                >
-                  <LazyMapComponent
-                    gpsLat={gpsLat}
-                    gpsLng={gpsLng}
-                    setGpsLat={setGpsLat}
-                    setGpsLng={setGpsLng}
-                  />
-                </Suspense>
-              </div>
-
-              {!showMap && (
-                <button
-                  onClick={() => setShowMap(true)}
-                  className="mb-3 w-full cursor-pointer rounded-xl border border-dashed border-[#E0E0E0] bg-white py-4 text-[13px] font-[500] text-[#5C5C5C] transition-all hover:border-[#2F9E44] hover:bg-[#E6F4EA]/20 hover:text-[#2F9E44]"
-                >
-                  <MapPin className="mr-2 inline h-4 w-4" /> Mở bản đồ để chọn
-                  vị trí chính xác
-                </button>
-              )}
-
-              {/* Display selected coordinates */}
-              {gpsLat !== undefined && gpsLng !== undefined && (
-                <div className="animate-in fade-in slide-in-from-top-2 mb-2 flex flex-col gap-1.5 rounded-xl border border-[#E6F4EA] bg-[#E6F4EA]/30 p-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2F9E44] text-white">
-                      <MapPin className="h-3 w-3" />
-                    </div>
-                    <p className="text-[13px] font-[600] text-[#1B1B1B]">
-                      Đã ghim vị trí ruộng
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 pl-7">
-                    <p className="text-[11px] font-[500] text-[#5C5C5C]">
-                      Tọa độ:{" "}
-                      <span className="text-[#1B1B1B]">
-                        {gpsLat.toFixed(6)}, {gpsLng.toFixed(6)}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <p className="mt-2 text-[11px] leading-relaxed text-[#5C5C5C]">
-                * Nhấn trực tiếp vào bản đồ hoặc kéo ghim để cập nhật vị trí. Hệ
-                thống sẽ tự động đồng bộ hóa dữ liệu vùng miền.
-              </p>
             </div>
 
             <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
@@ -469,7 +677,7 @@ export function DiagnoseUploadSection({
               </button>
               {!result && (
                 <button
-                  onClick={handlePredict}
+                  onClick={handlePredictWrapper}
                   disabled={isLoading}
                   className="h-11 flex-1 cursor-pointer rounded-lg bg-[#2F9E44] text-[15px] font-[500] text-white transition-colors hover:bg-[#1F6F2E] disabled:opacity-50"
                 >

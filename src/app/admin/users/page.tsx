@@ -6,113 +6,104 @@ import {
   Search,
   Shield,
   ShieldOff,
+  X,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { userService } from "@/services/user.service";
 
 interface UserItem {
-  id: number;
+  id: string;
   name: string;
-  phone: string;
-  province: string;
+  email: string;
+  username: string;
+  role: string;
+  status: string;
+  createdAt: string;
   uploads: number;
-  joinDate: string;
-  banned: boolean;
+  province: string;
+  metadata?: Record<string, any>;
 }
 
-const mockUsers: UserItem[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    phone: "0901234567",
-    province: "An Giang",
-    uploads: 45,
-    joinDate: "01/01/2026",
-    banned: false,
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    phone: "0912345678",
-    province: "Đồng Tháp",
-    uploads: 32,
-    joinDate: "15/01/2026",
-    banned: false,
-  },
-  {
-    id: 3,
-    name: "Lê Văn C",
-    phone: "0923456789",
-    province: "Cần Thơ",
-    uploads: 28,
-    joinDate: "01/02/2026",
-    banned: false,
-  },
-  {
-    id: 4,
-    name: "Phạm Thị D",
-    phone: "0934567890",
-    province: "Kiên Giang",
-    uploads: 21,
-    joinDate: "10/02/2026",
-    banned: true,
-  },
-  {
-    id: 5,
-    name: "Hoàng Văn E",
-    phone: "0945678901",
-    province: "Long An",
-    uploads: 19,
-    joinDate: "15/02/2026",
-    banned: false,
-  },
-  {
-    id: 6,
-    name: "Vũ Thị F",
-    phone: "0956789012",
-    province: "Tiền Giang",
-    uploads: 15,
-    joinDate: "20/02/2026",
-    banned: false,
-  },
-  {
-    id: 7,
-    name: "Đặng Văn G",
-    phone: "0967890123",
-    province: "Bến Tre",
-    uploads: 12,
-    joinDate: "25/02/2026",
-    banned: false,
-  },
-  {
-    id: 8,
-    name: "Bùi Thị H",
-    phone: "0978901234",
-    province: "Sóc Trăng",
-    uploads: 9,
-    joinDate: "01/03/2026",
-    banned: false,
-  },
-];
-
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.phone.includes(search),
-  );
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  // Ban/Unban Modal states
+  const [showBanModal, setShowBanModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
+  const [banReason, setBanReason] = useState("");
+  const [modalAction, setModalAction] = useState<"ban" | "unban">("ban");
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const toggleBan = (id: number) =>
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, banned: !u.banned } : u)),
-    );
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await userService.getUsersForAdmin({
+        keyword: debouncedSearch || undefined,
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE,
+      });
+      if (res.success && res.data) {
+        setUsers(res.data.rows);
+        setTotal(res.data.total);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách người dùng:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [debouncedSearch, page]);
+
+  const openActionModal = (user: UserItem, action: "ban" | "unban") => {
+    setSelectedUser(user);
+    setModalAction(action);
+    setBanReason("");
+    setShowBanModal(true);
+  };
+
+  const handleStatusChange = async () => {
+    if (!selectedUser) return;
+    setActionLoading(true);
+    const newStatus = modalAction === "ban" ? "suspended" : "active";
+    try {
+      const res = await userService.updateUserStatusForAdmin(selectedUser.id, {
+        status: newStatus,
+        reason: banReason.trim() || undefined,
+      });
+      if (res.success) {
+        setShowBanModal(false);
+        fetchUsers();
+      } else {
+        alert(res.message || "Thao tác thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái người dùng:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -122,7 +113,7 @@ export default function AdminUsersPage() {
             Quản lý Người dùng
           </h1>
           <p className="mt-1 text-[14px] text-[#5C5C5C]">
-            {filtered.length} người dùng
+            {loading ? "Đang tải..." : `${total} người dùng`}
           </p>
         </div>
         <div className="relative">
@@ -130,12 +121,9 @@ export default function AdminUsersPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Tìm tên hoặc SĐT..."
-            className="h-10 w-[240px] rounded-lg border border-[#E0E0E0] pr-4 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Tìm tên, email hoặc username..."
+            className="h-10 w-[280px] rounded-lg border border-[#E0E0E0] pr-4 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
           />
         </div>
       </div>
@@ -148,7 +136,7 @@ export default function AdminUsersPage() {
                 Họ tên
               </th>
               <th className="hidden h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B] md:table-cell">
-                SĐT
+                Username / Email
               </th>
               <th className="hidden h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B] lg:table-cell">
                 Tỉnh/TP
@@ -168,83 +156,181 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {paged.map((u, i) => (
-              <tr
-                key={u.id}
-                className={`h-12 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
-              >
-                <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
-                  {u.name}
-                </td>
-                <td className="hidden px-4 text-[14px] text-[#5C5C5C] md:table-cell">
-                  {u.phone}
-                </td>
-                <td className="hidden px-4 text-[14px] text-[#5C5C5C] lg:table-cell">
-                  {u.province}
-                </td>
-                <td className="px-4 text-center text-[14px] text-[#1B1B1B]">
-                  {u.uploads}
-                </td>
-                <td className="hidden px-4 text-center text-[14px] text-[#5C5C5C] md:table-cell">
-                  {u.joinDate}
-                </td>
-                <td className="px-4 text-center">
-                  <span
-                    className={`inline-block h-5 rounded px-2 text-[11px] leading-[20px] font-[500] ${u.banned ? "bg-[#FFEBEE] text-[#C62828]" : "bg-[#E6F4EA] text-[#2E7D32]"}`}
-                  >
-                    {u.banned ? "Bị khóa" : "Hoạt động"}
-                  </span>
-                </td>
-                <td className="px-4 text-center">
-                  <button
-                    onClick={() => toggleBan(u.id)}
-                    className={`mx-auto flex h-8 cursor-pointer items-center gap-1 rounded-md px-2.5 text-[12px] font-[500] transition-colors ${u.banned ? "text-[#2E7D32] hover:bg-[#E6F4EA]" : "text-[#E53935] hover:bg-[#FFEBEE]"}`}
-                  >
-                    {u.banned ? (
-                      <Shield className="h-3.5 w-3.5" />
-                    ) : (
-                      <ShieldOff className="h-3.5 w-3.5" />
-                    )}
-                    {u.banned ? "Mở" : "Khóa"}
-                  </button>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="h-40 text-center text-[#5C5C5C]">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
+                  <p className="mt-2 text-[14px]">Đang tải danh sách...</p>
                 </td>
               </tr>
-            ))}
+            ) : users.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="h-40 text-center text-[14px] text-[#5C5C5C]"
+                >
+                  Không tìm thấy người dùng nào.
+                </td>
+              </tr>
+            ) : (
+              users.map((u, i) => {
+                const isBanned = u.status === "suspended";
+                return (
+                  <tr
+                    key={u.id}
+                    className={`h-12 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
+                  >
+                    <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
+                      {u.name}
+                      {u.role === "ADMIN" && (
+                        <span className="ml-1.5 rounded-full bg-[#E8F5E9] px-2 py-0.5 text-[10px] font-[600] text-[#2E7D32]">
+                          Admin
+                        </span>
+                      )}
+                    </td>
+                    <td className="hidden px-4 text-[13px] text-[#5C5C5C] md:table-cell">
+                      <div className="font-mono text-[#1B1B1B]">
+                        {u.username}
+                      </div>
+                      <div className="text-[11px] text-[#8C8C8C]">
+                        {u.email}
+                      </div>
+                    </td>
+                    <td className="hidden px-4 text-[14px] text-[#5C5C5C] lg:table-cell">
+                      {u.province || "Chưa quét"}
+                    </td>
+                    <td className="px-4 text-center text-[14px] text-[#1B1B1B]">
+                      {u.uploads}
+                    </td>
+                    <td className="hidden px-4 text-center text-[14px] text-[#5C5C5C] md:table-cell">
+                      {new Date(u.createdAt).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="px-4 text-center">
+                      <span
+                        title={u.metadata?.statusReason || ""}
+                        className={`inline-block h-5 rounded px-2 text-[11px] leading-[20px] font-[500] ${isBanned ? "bg-[#FFEBEE] text-[#C62828]" : u.status === "active" ? "bg-[#E6F4EA] text-[#2E7D32]" : "bg-[#F0F2F5] text-[#5C5C5C]"}`}
+                      >
+                        {isBanned
+                          ? "Bị khóa"
+                          : u.status === "active"
+                            ? "Hoạt động"
+                            : "Chưa kích hoạt"}
+                      </span>
+                    </td>
+                    <td className="px-4 text-center">
+                      {u.role !== "ADMIN" && (
+                        <button
+                          onClick={() =>
+                            openActionModal(u, isBanned ? "unban" : "ban")
+                          }
+                          className={`mx-auto flex h-8 cursor-pointer items-center gap-1 rounded-md px-2.5 text-[12px] font-[500] transition-colors ${isBanned ? "text-[#2E7D32] hover:bg-[#E6F4EA]" : "text-[#E53935] hover:bg-[#FFEBEE]"}`}
+                        >
+                          {isBanned ? (
+                            <Shield className="h-3.5 w-3.5" />
+                          ) : (
+                            <ShieldOff className="h-3.5 w-3.5" />
+                          )}
+                          {isBanned ? "Mở" : "Khóa"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <p className="text-[12px] text-[#5C5C5C]">
-          Hiển thị {(page - 1) * PAGE_SIZE + 1}–
-          {Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length}
-        </p>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+      {!loading && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-[12px] text-[#5C5C5C]">
+            Hiển thị {(page - 1) * PAGE_SIZE + 1}–
+            {Math.min(page * PAGE_SIZE, total)} / {total}
+          </p>
+          <div className="flex items-center gap-1">
             <button
-              key={p}
-              onClick={() => setPage(p)}
-              className={`h-8 w-8 cursor-pointer rounded-md text-[14px] font-[500] ${p === page ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {p}
+              <ChevronLeft className="h-4 w-4" />
             </button>
-          ))}
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`h-8 w-8 cursor-pointer rounded-md text-[14px] font-[500] ${p === page ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {showBanModal && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-[480px] rounded-xl bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E0E0E0] px-6 py-4">
+              <h3 className="text-[16px] font-[700] text-[#1B1B1B]">
+                {modalAction === "ban"
+                  ? `Khóa tài khoản ${selectedUser.name}`
+                  : `Mở khóa tài khoản ${selectedUser.name}`}
+              </h3>
+              <button
+                onClick={() => setShowBanModal(false)}
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-[#F0F2F5]"
+              >
+                <X className="h-5 w-5 text-[#5C5C5C]" />
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <label className="mb-2 block text-[14px] font-[500] text-[#5C5C5C]">
+                Lý do thay đổi trạng thái (tùy chọn)
+              </label>
+              <textarea
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                placeholder={
+                  modalAction === "ban"
+                    ? "Nhập lý do khóa (Ví dụ: Đăng tải ảnh không hợp lệ)..."
+                    : "Nhập lý do mở khóa..."
+                }
+                rows={3}
+                className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+              />
+              <p className="mt-1.5 text-[12px] text-[#8C8C8C]">
+                Nếu bỏ trống, hệ thống sẽ sử dụng lý do mặc định.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-[#E0E0E0] px-6 py-4">
+              <button
+                onClick={() => setShowBanModal(false)}
+                disabled={actionLoading}
+                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleStatusChange}
+                disabled={actionLoading}
+                className={`flex h-10 cursor-pointer items-center gap-1.5 rounded-lg px-4 text-[14px] font-[500] text-white hover:opacity-90 disabled:opacity-50 ${modalAction === "ban" ? "bg-[#E53935]" : "bg-[#2F9E44]"}`}
+              >
+                {actionLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -37,9 +37,13 @@ export default function AdminFeedbackPage() {
 
   // Reply Modal States
   const [replyModalOpen, setReplyModalOpen] = useState(false);
-  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null);
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(
+    null,
+  );
   const [replyText, setReplyText] = useState("");
-  const [processStatus, setProcessStatus] = useState<"ACCEPTED" | "REJECTED" | null>(null);
+  const [processStatus, setProcessStatus] = useState<
+    "ACCEPTED" | "REJECTED" | null
+  >(null);
 
   const fetchFeedbacks = async () => {
     try {
@@ -64,7 +68,9 @@ export default function AdminFeedbackPage() {
             date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
             flagged: (item.status || "").toUpperCase() === "PENDING",
             status: (item.status || "PENDING").toUpperCase() as any,
-            actualDiseases: item.actualDiseases?.map(ad => ad.disease?.name).join(', ') || 'Không báo thêm bệnh',
+            actualDiseases:
+              item.actualDiseases?.map((ad) => ad.disease?.name).join(", ") ||
+              "Không báo thêm bệnh",
             adminResponse: item.adminResponse || undefined,
           };
         });
@@ -91,7 +97,12 @@ export default function AdminFeedbackPage() {
       setFeedbacks((prev) =>
         prev.map((f) =>
           f.id === selectedFeedbackId
-            ? { ...f, status: processStatus, adminResponse: replyText, flagged: false }
+            ? {
+                ...f,
+                status: processStatus,
+                adminResponse: replyText,
+                flagged: false,
+              }
             : f,
         ),
       );
@@ -105,7 +116,12 @@ export default function AdminFeedbackPage() {
       setFeedbacks((prev) =>
         prev.map((f) =>
           f.id === selectedFeedbackId
-            ? { ...f, status: processStatus, adminResponse: replyText, flagged: false }
+            ? {
+                ...f,
+                status: processStatus,
+                adminResponse: replyText,
+                flagged: false,
+              }
             : f,
         ),
       );
@@ -206,18 +222,22 @@ export default function AdminFeedbackPage() {
             key={f.id}
             onClick={(e) => {
               // Ignore clicks on buttons
-              if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("a")) {
+              if (
+                (e.target as HTMLElement).closest("button") ||
+                (e.target as HTMLElement).closest("a")
+              ) {
                 return;
               }
               setSelectedFeedbackId(f.id);
-              const targetStatus = f.status === "PENDING" ? "ACCEPTED" : f.status;
+              const targetStatus =
+                f.status === "PENDING" ? "ACCEPTED" : f.status;
               if (targetStatus === "ACCEPTED" || targetStatus === "REJECTED") {
                 setProcessStatus(targetStatus);
               }
               setReplyText(f.adminResponse || "");
               setReplyModalOpen(true);
             }}
-            className={`rounded-xl border bg-white p-4 transition-all duration-200 cursor-pointer hover:border-[#2F9E44] hover:shadow-md ${f.flagged ? "border-[#FB8C00] bg-[#FFF8E1]" : "border-[#E0E0E0]"}`}
+            className={`cursor-pointer rounded-xl border bg-white p-4 transition-all duration-200 hover:border-[#2F9E44] hover:shadow-md ${f.flagged ? "border-[#FB8C00] bg-[#FFF8E1]" : "border-[#E0E0E0]"}`}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
@@ -232,7 +252,8 @@ export default function AdminFeedbackPage() {
                   </span>
                   <span className="text-[12px] text-[#9E9E9E]">·</span>
                   <span className="text-[13px] font-[500] text-[#5C5C5C]">
-                    Chẩn đoán AI: <strong className="text-[#2E7D32]">{f.disease}</strong>
+                    Chẩn đoán AI:{" "}
+                    <strong className="text-[#2E7D32]">{f.disease}</strong>
                   </span>
                   <span className="text-[12px] text-[#9E9E9E]">·</span>
                   <span className="text-[12px] text-[#9E9E9E]">{f.date}</span>
@@ -252,14 +273,16 @@ export default function AdminFeedbackPage() {
                         : "Chờ xử lý"}
                   </span>
                 </div>
-                
-                <p className="text-[14px] leading-[1.6] text-[#333333] mb-2 font-medium">
+
+                <p className="mb-2 text-[14px] leading-[1.6] font-medium text-[#333333]">
                   "{f.comment}"
                 </p>
 
                 {/* Farmer reported actual diseases */}
                 <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[12px]">
-                  <span className="font-[600] text-[#757575]">Thực tế ruộng:</span>
+                  <span className="font-[600] text-[#757575]">
+                    Thực tế ruộng:
+                  </span>
                   <span className="rounded bg-[#FFE0B2] px-2.5 py-0.5 font-[600] text-[#E65100]">
                     {f.actualDiseases}
                   </span>
@@ -267,8 +290,10 @@ export default function AdminFeedbackPage() {
 
                 {/* Admin response reply */}
                 {f.adminResponse && (
-                  <div className="mt-3 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-3 text-[13px] hover:bg-[#F0F2F5] transition-colors border-dashed hover:border-[#2F9E44]">
-                    <p className="font-[700] text-[#5C5C5C] mb-1">Cán bộ chuyên môn phản hồi (Nhấn để chỉnh sửa):</p>
+                  <div className="mt-3 rounded-lg border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-3 text-[13px] transition-colors hover:border-[#2F9E44] hover:bg-[#F0F2F5]">
+                    <p className="mb-1 font-[700] text-[#5C5C5C]">
+                      Cán bộ chuyên môn phản hồi (Nhấn để chỉnh sửa):
+                    </p>
                     <p className="text-[#333333] italic">"{f.adminResponse}"</p>
                   </div>
                 )}
@@ -336,27 +361,30 @@ export default function AdminFeedbackPage() {
       {/* Reply Modal */}
       {replyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-[500px] rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="animate-in fade-in zoom-in-95 w-full max-w-[500px] rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-2xl duration-200">
             <h3 className="mb-2 text-[18px] font-[700] text-[#1B1B1B]">
               Phản hồi & Xử lý ý kiến nông dân
             </h3>
             <p className="mb-4 text-[13px] text-[#5C5C5C]">
-              Cập nhật nội dung tư vấn kỹ thuật hoặc thay đổi trạng thái duyệt cho phản hồi này.
+              Cập nhật nội dung tư vấn kỹ thuật hoặc thay đổi trạng thái duyệt
+              cho phản hồi này.
             </p>
-            
+
             <div className="mb-4 flex items-center gap-3">
-              <span className="text-[13px] font-[600] text-[#5C5C5C]">Trạng thái xử lý:</span>
+              <span className="text-[13px] font-[600] text-[#5C5C5C]">
+                Trạng thái xử lý:
+              </span>
               <button
                 type="button"
                 onClick={() => setProcessStatus("ACCEPTED")}
-                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "ACCEPTED" ? "bg-[#E6F4EA] text-[#1F6F2E] border border-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "ACCEPTED" ? "border border-[#1F6F2E] bg-[#E6F4EA] text-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
               >
                 Duyệt
               </button>
               <button
                 type="button"
                 onClick={() => setProcessStatus("REJECTED")}
-                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "REJECTED" ? "bg-[#FFEBEE] text-[#C62828] border border-[#C62828] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "REJECTED" ? "border border-[#C62828] bg-[#FFEBEE] text-[#C62828] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
               >
                 Từ chối
               </button>

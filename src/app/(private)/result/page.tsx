@@ -183,43 +183,57 @@ function ResultPageContent() {
 
         {/* All Detections detailed list for multiple diseases */}
         {!isHealthy && data.results && data.results.length > 0 && (
-          <div className="rounded-2xl border border-[#E0E0E0] bg-white p-5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-            <h3 className="mb-4 text-[16px] font-[700] text-[#1B1B1B] flex items-center gap-2 border-b border-[#F0F0F0] pb-2">
-              <span className="text-[#FB8C00]">🔍</span> Chi tiết vùng bệnh chẩn đoán ({data.results.length})
+          <div className="animate-in fade-in slide-in-from-top-2 rounded-2xl border border-[#E0E0E0] bg-white p-5 shadow-sm duration-300">
+            <h3 className="mb-4 flex items-center gap-2 border-b border-[#F0F0F0] pb-2 text-[16px] font-[700] text-[#1B1B1B]">
+              <span className="text-[#FB8C00]">🔍</span> Chi tiết vùng bệnh chẩn
+              đoán ({data.results.length})
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {data.results.map((res: any, idx: number) => {
                 const name = res.disease?.name || "Bệnh lúa";
                 const color = res.color || "#FB8C00";
                 const rawConf = res.confidence ?? 0;
-                const confPercent = rawConf <= 1 ? Math.round(rawConf * 100) : Math.round(rawConf);
+                const confPercent =
+                  rawConf <= 1
+                    ? Math.round(rawConf * 100)
+                    : Math.round(rawConf);
                 const areaRatio = res.affectedAreaRatio ?? 0;
 
                 return (
-                  <div key={res.id || idx} className="rounded-xl border border-[#F0F2F5] bg-[#FAFAFA] p-4 flex flex-col gap-2 shadow-sm hover:border-[#FB8C00]/30 transition-colors">
+                  <div
+                    key={res.id || idx}
+                    className="flex flex-col gap-2 rounded-xl border border-[#F0F2F5] bg-[#FAFAFA] p-4 shadow-sm transition-colors hover:border-[#FB8C00]/30"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div
-                          className="w-3.5 h-3.5 rounded-sm border border-black/10 shadow-sm"
+                          className="h-3.5 w-3.5 rounded-sm border border-black/10 shadow-sm"
                           style={{ backgroundColor: color }}
                         />
-                        <span className="text-[15px] font-[700] text-[#1B1B1B]">{name}</span>
+                        <span className="text-[15px] font-[700] text-[#1B1B1B]">
+                          {name}
+                        </span>
                       </div>
                       <span className="text-[12px] font-[600] text-[#757575]">
                         Phát hiện #{idx + 1}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[13px] text-[#5C5C5C] mt-1">
+                    <div className="mt-1 flex items-center justify-between text-[13px] text-[#5C5C5C]">
                       <span>Độ tin cậy AI:</span>
-                      <span className="font-[700] text-[#1B1B1B]">{confPercent}%</span>
+                      <span className="font-[700] text-[#1B1B1B]">
+                        {confPercent}%
+                      </span>
                     </div>
 
                     {areaRatio > 0 && (
                       <div className="flex items-center justify-between text-[13px] text-[#5C5C5C]">
                         <span>Diện tích nhiễm:</span>
-                        <span className={`font-[700] ${areaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}>
-                          {(areaRatio * 100).toFixed(1)}% {areaRatio > 0.35 && "(Nguy cấp)"}
+                        <span
+                          className={`font-[700] ${areaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}
+                        >
+                          {(areaRatio * 100).toFixed(1)}%{" "}
+                          {areaRatio > 0.35 && "(Nguy cấp)"}
                         </span>
                       </div>
                     )}

@@ -32,6 +32,9 @@ export interface UserProfile {
   userId: string;
   firstName?: string;
   lastName?: string;
+  defaultGpsLat?: number;
+  defaultGpsLng?: number;
+  defaultProvince?: string;
 }
 
 export interface UserWithProfile extends User {
@@ -83,4 +86,35 @@ export interface ChangePasswordPayload {
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
+  defaultGpsLat?: number;
+  defaultGpsLng?: number;
+  defaultProvince?: string;
+}
+
+export interface UserField {
+  id: string;
+  userId: string;
+  fieldName: string;
+  address?: string;
+  gpsLat: number;
+  gpsLng: number;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface CreateUserFieldPayload {
+  fieldName: string;
+  address?: string;
+  gpsLat: number;
+  gpsLng: number;
+  isDefault?: boolean;
+}
+
+export interface UpdateUserFieldPayload {
+  fieldName?: string;
+  address?: string;
+  gpsLat?: number;
+  gpsLng?: number;
+  isDefault?: boolean;
 }

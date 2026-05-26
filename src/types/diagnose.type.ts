@@ -162,6 +162,7 @@ export interface CreateDiagnosisPayload {
   gpsLat?: number;
   gpsLng?: number;
   fieldParams?: FieldParams;
+  fieldId?: string;
 }
 
 export interface GetHistoryParams {

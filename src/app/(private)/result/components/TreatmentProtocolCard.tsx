@@ -26,28 +26,27 @@ export function TreatmentProtocolCard({
   biologicalSteps,
   cultivationSteps,
 }: TreatmentProtocolCardProps) {
-  
   const formatMarkdownText = (text: any): string => {
     if (typeof text !== "string") return "";
-    
+
     // 1. Replace literal escaped "\n" characters with actual newlines
     let formatted = text.replace(/\\n/g, "\n");
-    
+
     // 2. Force newlines before headings if they are squashed mid-line
     formatted = formatted.replace(/([^\n])\s*(###\s+)/g, "$1\n\n$2");
-    
+
     // 3. Force newlines before warning/advisory headings
     formatted = formatted.replace(/([^\n])\s*(###\s*⚠️)/g, "$1\n\n$2");
-    
+
     // 4. Force newlines before list bullets (- or * or •)
     formatted = formatted.replace(/([^\n])\s*([\-\*•]\s+)/g, "$1\n$2");
-    
+
     // 5. Ensure headings have a blank line after them to format correctly
     formatted = formatted.replace(/(###\s+[^\n]+)\n([^\n])/g, "$1\n\n$2");
-    
+
     // 6. Clean up excessive duplicate newlines
     formatted = formatted.replace(/\n{3,}/g, "\n\n");
-    
+
     return formatted.trim();
   };
 
@@ -80,7 +79,12 @@ export function TreatmentProtocolCard({
 
   const isMarkdownFormat = (val: any): boolean => {
     const text = getRawText(val);
-    return text.includes("###") || text.includes("**") || text.includes("- ") || text.includes("⚠️");
+    return (
+      text.includes("###") ||
+      text.includes("**") ||
+      text.includes("- ") ||
+      text.includes("⚠️")
+    );
   };
 
   const chemList = parseSteps(chemicalSteps);
@@ -107,7 +111,9 @@ export function TreatmentProtocolCard({
             >
               {i + 1}
             </span>
-            <span className="flex-1 font-[500] text-[#1B1B1B]">{renderBoldText(step)}</span>
+            <span className="flex-1 font-[500] text-[#1B1B1B]">
+              {renderBoldText(step)}
+            </span>
           </li>
         ))}
       </ul>
@@ -118,7 +124,11 @@ export function TreatmentProtocolCard({
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
       if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={index} className="font-[700] text-[#1B1B1B]">{part.slice(2, -2)}</strong>;
+        return (
+          <strong key={index} className="font-[700] text-[#1B1B1B]">
+            {part.slice(2, -2)}
+          </strong>
+        );
       }
       return part;
     });
@@ -126,10 +136,10 @@ export function TreatmentProtocolCard({
 
   const renderMarkdown = (text: string) => {
     const cleanText = formatMarkdownText(text);
-    const lines = cleanText.split('\n');
-    
+    const lines = cleanText.split("\n");
+
     return (
-      <div className="px-6 pt-2 pb-5 text-[15px] leading-[1.7] text-[#4B5563] space-y-3.5">
+      <div className="space-y-3.5 px-6 pt-2 pb-5 text-[15px] leading-[1.7] text-[#4B5563]">
         {lines.map((line, i) => {
           const trimmed = line.trim();
           if (!trimmed) return null;
@@ -137,27 +147,40 @@ export function TreatmentProtocolCard({
           // Headings
           if (trimmed.startsWith("###")) {
             const content = trimmed.replace(/^###\s*/, "");
-            const isWarning = content.includes("⚠️") || content.includes("Khuyến nghị") || content.includes("Cảnh báo");
+            const isWarning =
+              content.includes("⚠️") ||
+              content.includes("Khuyến nghị") ||
+              content.includes("Cảnh báo");
             if (isWarning) {
               return (
-                <div key={i} className="mt-6 mb-3 text-[15px] font-[700] text-[#B45309] flex items-start gap-2.5 bg-[#FFFBEB] border border-[#FDE68A] p-4 rounded-2xl shadow-sm w-full">
+                <div
+                  key={i}
+                  className="mt-6 mb-3 flex w-full items-start gap-2.5 rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-4 text-[15px] font-[700] text-[#B45309] shadow-sm"
+                >
                   {renderBoldText(content)}
                 </div>
               );
             }
             return (
-              <h3 key={i} className="mt-6 mb-3 text-[16px] font-[700] text-[#1B1B1B] flex items-center gap-2.5 border-l-4 border-[#2F9E44] pl-3 w-full">
+              <h3
+                key={i}
+                className="mt-6 mb-3 flex w-full items-center gap-2.5 border-l-4 border-[#2F9E44] pl-3 text-[16px] font-[700] text-[#1B1B1B]"
+              >
                 {renderBoldText(content)}
               </h3>
             );
           }
 
           // Bullet lists
-          if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ")) {
+          if (
+            trimmed.startsWith("- ") ||
+            trimmed.startsWith("* ") ||
+            trimmed.startsWith("• ")
+          ) {
             const content = trimmed.replace(/^[\-*•]\s*/, "");
             return (
-              <ul key={i} className="list-disc pl-5.5 space-y-1">
-                <li className="text-[14.5px] leading-[1.6] text-[#4B5563] font-[500] marker:text-[#2F9E44]">
+              <ul key={i} className="list-disc space-y-1 pl-5.5">
+                <li className="text-[14.5px] leading-[1.6] font-[500] text-[#4B5563] marker:text-[#2F9E44]">
                   {renderBoldText(content)}
                 </li>
               </ul>
@@ -168,8 +191,8 @@ export function TreatmentProtocolCard({
           if (/^\d+\.\s+/.test(trimmed)) {
             const content = trimmed.replace(/^\d+\.\s*/, "");
             return (
-              <ol key={i} className="list-decimal pl-5.5 space-y-1">
-                <li className="text-[14.5px] leading-[1.6] text-[#4B5563] font-[500]">
+              <ol key={i} className="list-decimal space-y-1 pl-5.5">
+                <li className="text-[14.5px] leading-[1.6] font-[500] text-[#4B5563]">
                   {renderBoldText(content)}
                 </li>
               </ol>
@@ -178,7 +201,10 @@ export function TreatmentProtocolCard({
 
           // Standard paragraph
           return (
-            <p key={i} className="text-[14.5px] leading-[1.6] text-[#4B5563] font-[500]">
+            <p
+              key={i}
+              className="text-[14.5px] leading-[1.6] font-[500] text-[#4B5563]"
+            >
               {renderBoldText(trimmed)}
             </p>
           );
@@ -187,7 +213,11 @@ export function TreatmentProtocolCard({
     );
   };
 
-  const renderStructuredProtocol = (stepsData: any, badgeBg: string, badgeText: string) => {
+  const renderStructuredProtocol = (
+    stepsData: any,
+    badgeBg: string,
+    badgeText: string,
+  ) => {
     if (!stepsData) {
       return (
         <div className="px-6 py-4 text-[14px] text-[#757575] italic">
@@ -195,14 +225,14 @@ export function TreatmentProtocolCard({
         </div>
       );
     }
-    
+
     // If it's a string, use markdown or list rendering
     if (typeof stepsData === "string") {
       return isMarkdownFormat(stepsData)
         ? renderMarkdown(stepsData)
         : renderList(parseSteps(stepsData), badgeBg, badgeText);
     }
-    
+
     if (Array.isArray(stepsData)) {
       if (stepsData.length === 0) {
         return (
@@ -211,29 +241,32 @@ export function TreatmentProtocolCard({
           </div>
         );
       }
-      
+
       // If it's a simple list of strings (like cultivation steps)
       if (typeof stepsData[0] === "string") {
         return renderList(stepsData, badgeBg, badgeText);
       }
-      
+
       // If it's an array of TreatmentStep objects
       return (
-        <div className="px-6 pt-2 pb-5 space-y-5">
+        <div className="space-y-5 px-6 pt-2 pb-5">
           {stepsData.map((item: TreatmentStep, i: number) => {
             const diseaseName = item.disease_name || "";
             const steps = item.steps || [];
-            
+
             if (steps.length === 0) return null;
-            
-            const isWarning = diseaseName.includes("⚠️") || diseaseName.includes("Khuyến nghị") || diseaseName.includes("Cảnh báo");
-            
+
+            const isWarning =
+              diseaseName.includes("⚠️") ||
+              diseaseName.includes("Khuyến nghị") ||
+              diseaseName.includes("Cảnh báo");
+
             return (
               <div key={i} className="space-y-3">
                 {isWarning ? (
-                  <div className="text-[14.5px] font-[700] text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] p-4 rounded-2xl shadow-sm w-full">
-                    <div className="font-[700] mb-2">{diseaseName}</div>
-                    <ul className="list-disc pl-5 space-y-1.5 font-[500] text-[#4B5563]">
+                  <div className="w-full rounded-2xl border border-[#FDE68A] bg-[#FFFBEB] p-4 text-[14.5px] font-[700] text-[#B45309] shadow-sm">
+                    <div className="mb-2 font-[700]">{diseaseName}</div>
+                    <ul className="list-disc space-y-1.5 pl-5 font-[500] text-[#4B5563]">
                       {steps.map((step: string, sIdx: number) => (
                         <li key={sIdx} className="leading-[1.6]">
                           {renderBoldText(step)}
@@ -243,21 +276,23 @@ export function TreatmentProtocolCard({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <h4 className="text-[15.5px] font-[700] text-[#1B1B1B] flex items-center gap-2.5 border-l-4 border-[#2F9E44] pl-3 w-full">
+                    <h4 className="flex w-full items-center gap-2.5 border-l-4 border-[#2F9E44] pl-3 text-[15.5px] font-[700] text-[#1B1B1B]">
                       {diseaseName}
                     </h4>
                     <ul className="space-y-2.5 pl-3">
                       {steps.map((step: string, sIdx: number) => (
                         <li
                           key={sIdx}
-                          className="flex items-start gap-3 text-[14.5px] leading-[1.6] text-[#4B5563] font-[500]"
+                          className="flex items-start gap-3 text-[14.5px] leading-[1.6] font-[500] text-[#4B5563]"
                         >
                           <span
                             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-[700] shadow-sm ${badgeBg} ${badgeText}`}
                           >
                             {sIdx + 1}
                           </span>
-                          <span className="flex-1 font-[500] text-[#1B1B1B]">{renderBoldText(step)}</span>
+                          <span className="flex-1 font-[500] text-[#1B1B1B]">
+                            {renderBoldText(step)}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -269,7 +304,7 @@ export function TreatmentProtocolCard({
         </div>
       );
     }
-    
+
     return null;
   };
 
@@ -307,7 +342,11 @@ export function TreatmentProtocolCard({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            {renderStructuredProtocol(chemicalSteps, "bg-[#FFF3E0]", "text-[#E65100]")}
+            {renderStructuredProtocol(
+              chemicalSteps,
+              "bg-[#FFF3E0]",
+              "text-[#E65100]",
+            )}
           </AccordionContent>
         </AccordionItem>
 
@@ -327,7 +366,11 @@ export function TreatmentProtocolCard({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            {renderStructuredProtocol(biologicalSteps, "bg-[#E6F4EA]", "text-[#2F9E44]")}
+            {renderStructuredProtocol(
+              biologicalSteps,
+              "bg-[#E6F4EA]",
+              "text-[#2F9E44]",
+            )}
           </AccordionContent>
         </AccordionItem>
 
@@ -347,7 +390,11 @@ export function TreatmentProtocolCard({
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            {renderStructuredProtocol(cultivationSteps, "bg-[#E3F2FD]", "text-[#1976D2]")}
+            {renderStructuredProtocol(
+              cultivationSteps,
+              "bg-[#E3F2FD]",
+              "text-[#1976D2]",
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

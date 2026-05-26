@@ -152,15 +152,19 @@ export function DiagnosisFeedbackCard({
                     : "Chờ xử lý"}
               </span>
             </div>
-            <p className="text-[14px] leading-[1.6] text-[#5C5C5C] italic mb-1">
+            <p className="mb-1 text-[14px] leading-[1.6] text-[#5C5C5C] italic">
               &quot;{feedbackText || "Đánh giá chất lượng chẩn đoán AI"}&quot;
             </p>
 
             {/* Admin Response reply display */}
             {existingFeedback.adminResponse && (
-              <div className="mt-3 rounded-lg border border-[#2F9E44]/20 bg-[#E6F4EA]/40 p-3.5 text-[13px] border-dashed">
-                <p className="font-[700] text-[#1F6F2E] mb-1">Cán bộ chuyên môn phản hồi:</p>
-                <p className="text-[#2E7D32] italic">"{existingFeedback.adminResponse}"</p>
+              <div className="mt-3 rounded-lg border border-dashed border-[#2F9E44]/20 bg-[#E6F4EA]/40 p-3.5 text-[13px]">
+                <p className="mb-1 font-[700] text-[#1F6F2E]">
+                  Cán bộ chuyên môn phản hồi:
+                </p>
+                <p className="text-[#2E7D32] italic">
+                  "{existingFeedback.adminResponse}"
+                </p>
               </div>
             )}
           </div>

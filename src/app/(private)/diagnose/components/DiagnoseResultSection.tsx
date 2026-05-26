@@ -88,8 +88,12 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {province && (
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] font-[500] text-[#5C5C5C] uppercase tracking-wider">Vùng miền</span>
-                      <span className="text-[13px] font-[600] text-[#1B1B1B]">{province}</span>
+                      <span className="text-[11px] font-[500] tracking-wider text-[#5C5C5C] uppercase">
+                        Vùng miền
+                      </span>
+                      <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                        {province}
+                      </span>
                       {gpsLat && gpsLng && (
                         <span className="text-[10px] text-[#5C5C5C]">
                           ({gpsLat.toFixed(4)}, {gpsLng.toFixed(4)})
@@ -99,21 +103,23 @@ export function DiagnoseResultSection({ result }: DiagnoseResultSectionProps) {
                   )}
                   {fieldParams && (
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] font-[500] text-[#5C5C5C] uppercase tracking-wider">Tình trạng ruộng</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        <span className="rounded-md bg-white border border-[#E0E0E0] px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                      <span className="text-[11px] font-[500] tracking-wider text-[#5C5C5C] uppercase">
+                        Tình trạng ruộng
+                      </span>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        <span className="rounded-md border border-[#E0E0E0] bg-white px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
                           {fieldParams.growth}
                         </span>
-                        <span className="rounded-md bg-white border border-[#E0E0E0] px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                        <span className="rounded-md border border-[#E0E0E0] bg-white px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
                           Nước: {fieldParams.water}
                         </span>
                         {fieldParams.leafhopper && (
-                          <span className="rounded-md bg-[#FFF3E0] border border-[#FFE0B2] px-2 py-0.5 text-[11px] font-[600] text-[#E65100]">
+                          <span className="rounded-md border border-[#FFE0B2] bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[600] text-[#E65100]">
                             Có rầy nâu
                           </span>
                         )}
                         {fieldParams.fog && (
-                          <span className="rounded-md bg-[#E3F2FD] border border-[#BBDEFB] px-2 py-0.5 text-[11px] font-[600] text-[#1565C0]">
+                          <span className="rounded-md border border-[#BBDEFB] bg-[#E3F2FD] px-2 py-0.5 text-[11px] font-[600] text-[#1565C0]">
                             Sương mù
                           </span>
                         )}

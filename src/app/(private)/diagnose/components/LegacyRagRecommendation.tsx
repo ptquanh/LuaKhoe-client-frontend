@@ -20,15 +20,20 @@ export function LegacyRagRecommendation({
     if (!val) return null;
     if (typeof val === "string") {
       if (val === "Không có dữ liệu trong tài liệu tham khảo") return null;
-      return <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">{val}</p>;
+      return (
+        <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C]">{val}</p>
+      );
     }
     if (Array.isArray(val)) {
       if (val.length === 0) return null;
       if (typeof val[0] === "string") {
         return (
-          <ul className="list-disc pl-4.5 space-y-1 mt-1">
+          <ul className="mt-1 list-disc space-y-1 pl-4.5">
             {val.map((item: string, idx: number) => (
-              <li key={idx} className="text-[14px] leading-[1.5] text-[#5C5C5C]">
+              <li
+                key={idx}
+                className="text-[14px] leading-[1.5] text-[#5C5C5C]"
+              >
                 {item}
               </li>
             ))}
@@ -37,15 +42,18 @@ export function LegacyRagRecommendation({
       }
       // Array of objects (TreatmentStep: { disease_name: string, steps: string[] })
       return (
-        <div className="space-y-3 mt-2">
+        <div className="mt-2 space-y-3">
           {val.map((item: any, idx: number) => (
             <div key={idx} className="space-y-1">
-              <span className="text-[13.5px] font-[600] text-[#1B1B1B] block">
+              <span className="block text-[13.5px] font-[600] text-[#1B1B1B]">
                 {item.disease_name}
               </span>
-              <ul className="list-disc pl-4.5 space-y-1">
+              <ul className="list-disc space-y-1 pl-4.5">
                 {item.steps?.map((step: string, sIdx: number) => (
-                  <li key={sIdx} className="text-[13.5px] leading-[1.5] text-[#5C5C5C]">
+                  <li
+                    key={sIdx}
+                    className="text-[13.5px] leading-[1.5] text-[#5C5C5C]"
+                  >
                     {step}
                   </li>
                 ))}
@@ -93,10 +101,10 @@ export function LegacyRagRecommendation({
           <div className="space-y-3 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-3">
             {recommendation.treatment_protocol.chemical && (
               <div>
-                <strong className="text-[13px] text-[#1B1B1B]">
-                  Hóa học:
-                </strong>
-                {renderProtocolValue(recommendation.treatment_protocol.chemical)}
+                <strong className="text-[13px] text-[#1B1B1B]">Hóa học:</strong>
+                {renderProtocolValue(
+                  recommendation.treatment_protocol.chemical,
+                )}
               </div>
             )}
             {recommendation.treatment_protocol.biological && (
@@ -104,7 +112,9 @@ export function LegacyRagRecommendation({
                 <strong className="text-[13px] text-[#1B1B1B]">
                   Sinh học:
                 </strong>
-                {renderProtocolValue(recommendation.treatment_protocol.biological)}
+                {renderProtocolValue(
+                  recommendation.treatment_protocol.biological,
+                )}
               </div>
             )}
             {recommendation.treatment_protocol.cultural && (
@@ -112,7 +122,9 @@ export function LegacyRagRecommendation({
                 <strong className="text-[13px] text-[#1B1B1B]">
                   Canh tác:
                 </strong>
-                {renderProtocolValue(recommendation.treatment_protocol.cultural)}
+                {renderProtocolValue(
+                  recommendation.treatment_protocol.cultural,
+                )}
               </div>
             )}
           </div>

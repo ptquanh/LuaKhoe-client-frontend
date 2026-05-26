@@ -51,7 +51,7 @@ export function HistoryCard({ item }: HistoryCardProps) {
 
   const feedback = item.feedbacks?.[0];
   const rawStatus = feedback?.status?.toLowerCase();
-  
+
   let fbStatusText = "Chưa gửi phản hồi";
   let fbBadgeClass = "bg-[#F3F4F6] text-[#6B7280]";
 

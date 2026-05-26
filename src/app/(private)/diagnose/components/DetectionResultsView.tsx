@@ -27,7 +27,8 @@ export function DetectionResultsView({
           existing.confidence = current.confidence;
           existing.color = current.color || existing.color;
           existing.diseaseKey = current.disease?.key || current.diseaseKey;
-          existing.affectedAreaRatio = current.affectedAreaRatio || existing.affectedAreaRatio;
+          existing.affectedAreaRatio =
+            current.affectedAreaRatio || existing.affectedAreaRatio;
         } else {
           acc.push({
             name,
@@ -62,11 +63,16 @@ export function DetectionResultsView({
         const detPercent = getConfidencePercent(det.confidence);
         const detName = det.name;
         const color = det.color || "#FB8C00";
-        
+
         // Find if this specific detection has an original score in envAdjustment
         const originalScore = envAdjustment?.original_scores?.[det.diseaseKey];
-        const isAdjusted = originalScore !== undefined && Math.abs(originalScore - det.confidence) > 0.001;
-        const originalPercent = originalScore !== undefined ? getConfidencePercent(originalScore) : null;
+        const isAdjusted =
+          originalScore !== undefined &&
+          Math.abs(originalScore - det.confidence) > 0.001;
+        const originalPercent =
+          originalScore !== undefined
+            ? getConfidencePercent(originalScore)
+            : null;
 
         return (
           <div
@@ -91,11 +97,16 @@ export function DetectionResultsView({
               </div>
               <div className="flex items-center gap-1.5 text-[12px] font-[600] text-[#FB8C00]">
                 {isAdjusted ? (
-                  <div className="flex items-center gap-1 text-[#2F9E44] bg-[#E6F4EA] px-2 py-0.5 rounded-full text-[10px]" title={`Đã điều chỉnh từ ${originalPercent}%`}>
+                  <div
+                    className="flex items-center gap-1 rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[10px] text-[#2F9E44]"
+                    title={`Đã điều chỉnh từ ${originalPercent}%`}
+                  >
                     <TrendingUp className="h-3 w-3" /> Đã điều chỉnh
                   </div>
                 ) : (
-                  <><Info className="h-3.5 w-3.5" /> AI Phân tích</>
+                  <>
+                    <Info className="h-3.5 w-3.5" /> AI Phân tích
+                  </>
                 )}
               </div>
             </div>
@@ -126,30 +137,40 @@ export function DetectionResultsView({
                 </span>
               </div>
 
-              {det.affectedAreaRatio !== undefined && det.affectedAreaRatio > 0 && (
-                <div className="flex items-center gap-3">
-                  <span className="text-[12px] font-[500] text-[#5C5C5C]">
-                    Diện tích nhiễm:
-                  </span>
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
-                    <div
-                      className="h-full border-r border-black/10 transition-all duration-500 ease-out"
-                      style={{
-                        width: `${Math.min(100, Math.round(det.affectedAreaRatio * 100))}%`,
-                        backgroundColor: det.affectedAreaRatio > 0.35 ? "#C62828" : "#FB8C00",
-                      }}
-                    />
+              {det.affectedAreaRatio !== undefined &&
+                det.affectedAreaRatio > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-[12px] font-[500] text-[#5C5C5C]">
+                      Diện tích nhiễm:
+                    </span>
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
+                      <div
+                        className="h-full border-r border-black/10 transition-all duration-500 ease-out"
+                        style={{
+                          width: `${Math.min(100, Math.round(det.affectedAreaRatio * 100))}%`,
+                          backgroundColor:
+                            det.affectedAreaRatio > 0.35
+                              ? "#C62828"
+                              : "#FB8C00",
+                        }}
+                      />
+                    </div>
+                    <span
+                      className={`text-[13px] font-[700] ${det.affectedAreaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}
+                    >
+                      {(det.affectedAreaRatio * 100).toFixed(1)}%{" "}
+                      {det.affectedAreaRatio > 0.35 && "(Nguy cấp)"}
+                    </span>
                   </div>
-                  <span className={`text-[13px] font-[700] ${det.affectedAreaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}>
-                    {(det.affectedAreaRatio * 100).toFixed(1)}% {det.affectedAreaRatio > 0.35 && "(Nguy cấp)"}
-                  </span>
-                </div>
-              )}
-              
+                )}
+
               {isAdjusted && (
-                <div className="text-[11px] text-[#5C5C5C] flex justify-between px-1">
+                <div className="flex justify-between px-1 text-[11px] text-[#5C5C5C]">
                   <span>Gốc: {originalPercent}%</span>
-                  <span className="text-[#2F9E44] font-[600]">+{detPercent - (originalPercent || 0)}% (tối ưu theo môi trường)</span>
+                  <span className="font-[600] text-[#2F9E44]">
+                    +{detPercent - (originalPercent || 0)}% (tối ưu theo môi
+                    trường)
+                  </span>
                 </div>
               )}
             </div>

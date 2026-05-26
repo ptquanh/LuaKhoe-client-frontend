@@ -1,10 +1,13 @@
 "use client";
 
 import { Bell, History, Leaf, Search, Stethoscope, User } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
+import { ROLE } from "@/types/auth.type";
 
 export default function PrivateLayout({
   children,
@@ -13,7 +16,7 @@ export default function PrivateLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navItems = [
@@ -52,7 +55,7 @@ export default function PrivateLayout({
           </span>
         </div>
 
-        <nav className="ml-8 flex items-center gap-1">
+        <nav className="ml-8 flex items-center gap-2">
           {navItems.map((item) => (
             <button
               key={item.path}
@@ -67,6 +70,14 @@ export default function PrivateLayout({
               {item.label}
             </button>
           ))}
+          {user?.role === ROLE.ADMIN && (
+            <Link
+              href={ROUTES.ADMIN_DASHBOARD}
+              className="flex h-10 items-center gap-2 rounded-lg bg-[#FFF3E0] px-4 text-[14px] font-[600] text-[#E65100] transition-colors hover:bg-[#FFE0B2]"
+            >
+              <span>⚙️ Quay lại Dashboard</span>
+            </Link>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-3">

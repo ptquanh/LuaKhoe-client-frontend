@@ -1,6 +1,6 @@
 import axiosClient from "@/lib/axiosClient";
 import { UpdateProfilePayload, UserWithProfile } from "@/types/auth.type";
-import { BaseResponse } from "@/types/common.type";
+import { BaseResponse, PaginatedResponse } from "@/types/common.type";
 
 export const userService = {
   getProfile: async (): Promise<BaseResponse<UserWithProfile>> => {
@@ -14,6 +14,28 @@ export const userService = {
   ): Promise<BaseResponse<UserWithProfile>> => {
     const response = await axiosClient.put<BaseResponse<UserWithProfile>>(
       "/users/profile",
+      payload,
+    );
+    return response.data;
+  },
+
+  getUsersForAdmin: async (params?: {
+    keyword?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<BaseResponse<PaginatedResponse<any>>> => {
+    const response = await axiosClient.get<
+      BaseResponse<PaginatedResponse<any>>
+    >("/users", { params });
+    return response.data;
+  },
+
+  updateUserStatusForAdmin: async (
+    id: string,
+    payload: { status: string; reason?: string },
+  ): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.put<BaseResponse<any>>(
+      `/users/${id}/status`,
       payload,
     );
     return response.data;

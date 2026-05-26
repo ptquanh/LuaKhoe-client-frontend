@@ -116,7 +116,9 @@ export default function RegisterPage() {
 
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Nhập lại mật khẩu</span>
+              <span className="font-medium text-gray-700">
+                Nhập lại mật khẩu
+              </span>
             }
             name="confirmPassword"
             dependencies={["password"]}

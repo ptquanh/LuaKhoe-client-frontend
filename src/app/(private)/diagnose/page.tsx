@@ -2,10 +2,12 @@
 
 import { message } from "antd";
 import { Info } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import { FIELD_PARAM_DEFAULTS } from "@/constants/diagnose";
 import { useDiagnose } from "@/hooks/useDiagnose";
+import { useProfile } from "@/hooks/useProfile";
 import { FieldParams } from "@/types/diagnose.type";
 
 import { DiagnoseGuidelines } from "./components/DiagnoseGuidelines";
@@ -24,7 +26,9 @@ const suggestedTags = [
 ];
 
 export default function DiagnosePage() {
+  const router = useRouter();
   const { predict, isLoading, result, error, reset } = useDiagnose();
+  const { profile } = useProfile();
 
   const [file, setFile] = useState<{ raw: File; url: string } | null>(null);
   const [showExamples, setShowExamples] = useState(false);
@@ -34,8 +38,41 @@ export default function DiagnosePage() {
   // Environment and Field condition parameters
   const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
   const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
+  const [fieldId, setFieldId] = useState<string | undefined>(undefined);
 
-  const [fieldParams, setFieldParams] = useState<FieldParams>(FIELD_PARAM_DEFAULTS);
+  const [fieldParams, setFieldParams] =
+    useState<FieldParams>(FIELD_PARAM_DEFAULTS);
+
+  // Load default location if available
+  useEffect(() => {
+    if (
+      profile?.profile?.defaultGpsLat !== undefined &&
+      profile?.profile?.defaultGpsLat !== null &&
+      profile?.profile?.defaultGpsLng !== undefined &&
+      profile?.profile?.defaultGpsLng !== null
+    ) {
+      setGpsLat(Number(profile.profile.defaultGpsLat));
+      setGpsLng(Number(profile.profile.defaultGpsLng));
+    }
+  }, [profile]);
+
+  // Redirect to onboarding if default location is missing and not skipped
+  useEffect(() => {
+    if (profile) {
+      const hasDefaultLoc =
+        profile.profile?.defaultGpsLat !== null &&
+        profile.profile?.defaultGpsLat !== undefined &&
+        profile.profile?.defaultGpsLng !== null &&
+        profile.profile?.defaultGpsLng !== undefined;
+      const onboardingSkipped =
+        typeof window !== "undefined" &&
+        localStorage.getItem("onboarding_skipped") === "true";
+
+      if (!hasDefaultLoc && !onboardingSkipped) {
+        router.push("/onboarding/location");
+      }
+    }
+  }, [profile, router]);
 
   const handleFileSelect = (f: File) => {
     setFile({ raw: f, url: URL.createObjectURL(f) });
@@ -49,7 +86,7 @@ export default function DiagnosePage() {
 
   const handlePredict = () => {
     if (file) {
-      if (gpsLat === undefined || gpsLng === undefined) {
+      if (!fieldId && (gpsLat === undefined || gpsLng === undefined)) {
         message.warning(
           "Chưa lấy được tọa độ. Đang sử dụng dữ liệu thời tiết mặc định.",
           5,
@@ -61,6 +98,7 @@ export default function DiagnosePage() {
         gpsLat,
         gpsLng,
         fieldParams: fieldParams,
+        fieldId,
       });
     }
   };
@@ -90,8 +128,8 @@ export default function DiagnosePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 items-start">
-        <div className="md:sticky md:top-6 h-fit max-h-[calc(100vh-3rem)] overflow-y-auto pr-1">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+        <div className="h-fit max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 md:sticky md:top-6">
           <DiagnoseUploadSection
             file={file}
             onFileSelect={handleFileSelect}
@@ -108,6 +146,8 @@ export default function DiagnosePage() {
             setGpsLat={setGpsLat}
             gpsLng={gpsLng}
             setGpsLng={setGpsLng}
+            fieldId={fieldId}
+            setFieldId={setFieldId}
             handleReset={handleReset}
             handlePredict={handlePredict}
           />
