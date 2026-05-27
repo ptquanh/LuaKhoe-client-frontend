@@ -21,6 +21,8 @@ export const nutritionService = {
     limit?: number;
     offset?: number;
     keyword?: string;
+    source?: string;
+    format?: string;
     sort?: string;
   }): Promise<BaseResponse<PaginatedResponse<NutritionChunk>>> => {
     const response = await axiosClient.get<

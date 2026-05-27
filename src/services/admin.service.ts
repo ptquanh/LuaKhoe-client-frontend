@@ -41,6 +41,13 @@ export const adminService = {
     };
   },
 
+  getDashboardStats: async (): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.get<BaseResponse<any>>(
+      "/admin/dashboard/stats",
+    );
+    return response.data;
+  },
+
   ingestText: async (payload: IngestionRequest): Promise<IngestionResponse> => {
     const response = await axiosClient.post<IngestionResponse>(
       "/ingest",

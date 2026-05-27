@@ -16,6 +16,10 @@ import { useNutritionChunks } from "@/hooks/useNutritionChunks";
 export default function AdminDocumentsPage() {
   const [keyword, setKeyword] = useState("");
   const [searchVal, setSearchVal] = useState("");
+  const [source, setSource] = useState("");
+  const [searchSource, setSearchSource] = useState("");
+  const [format, setFormat] = useState("");
+  const [searchFormat, setSearchFormat] = useState("");
   const [limit] = useState(10);
   const [offset, setOffset] = useState(0);
 
@@ -42,6 +46,8 @@ export default function AdminDocumentsPage() {
     limit,
     offset,
     keyword: searchVal || undefined,
+    source: searchSource || undefined,
+    format: searchFormat || undefined,
   });
 
   const isSavingOrUploading = isCreating || isUploading;
@@ -58,11 +64,17 @@ export default function AdminDocumentsPage() {
     }
     setOffset(0);
     setSearchVal(trimmed);
+    setSearchSource(source.trim());
+    setSearchFormat(format);
   };
 
   const handleClearSearch = () => {
     setKeyword("");
     setSearchVal("");
+    setSource("");
+    setSearchSource("");
+    setFormat("");
+    setSearchFormat("");
     setOffset(0);
   };
 
@@ -178,28 +190,73 @@ export default function AdminDocumentsPage() {
         </button>
       </div>
 
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-xs">
         <form
           onSubmit={handleSearch}
-          className="relative flex max-w-[400px] flex-1"
+          className="flex flex-wrap items-end gap-4"
         >
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#5C5C5C]" />
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Tìm kiếm nội dung, nguồn..."
-            className="h-10 w-full rounded-lg border border-[#E0E0E0] pr-10 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
-          />
-          {keyword && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-[#9E9E9E] hover:text-[#5C5C5C]"
+          <div className="min-w-[200px] flex-1">
+            <label className="mb-1.5 block text-[13px] font-[600] text-[#5C5C5C]">
+              Tìm nội dung
+            </label>
+            <div className="relative">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#9E9E9E]" />
+              <input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Nhập từ khóa tìm kiếm..."
+                className="h-10 w-full rounded-lg border border-[#E0E0E0] pr-3 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="min-w-[180px] flex-1">
+            <label className="mb-1.5 block text-[13px] font-[600] text-[#5C5C5C]">
+              Nguồn tài liệu
+            </label>
+            <input
+              type="text"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Nhập tên nguồn..."
+              className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+            />
+          </div>
+
+          <div className="w-[160px]">
+            <label className="mb-1.5 block text-[13px] font-[600] text-[#5C5C5C]">
+              Định dạng
+            </label>
+            <select
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              className="h-10 w-full cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
             >
-              <X className="h-4 w-4" />
+              <option value="">Tất cả định dạng</option>
+              <option value=".pdf">PDF (.pdf)</option>
+              <option value=".txt">Text (.txt)</option>
+              <option value=".md">Markdown (.md)</option>
+            </select>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="h-10 cursor-pointer rounded-lg bg-[#2F9E44] px-5 text-[14px] font-[600] text-white hover:bg-[#1F6F2E]"
+            >
+              Tìm kiếm
             </button>
-          )}
+            {(keyword || source || format) && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="flex h-10 cursor-pointer items-center justify-center rounded-lg border border-[#E0E0E0] bg-white px-4 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+              >
+                Xóa lọc
+              </button>
+            )}
+          </div>
         </form>
       </div>
 

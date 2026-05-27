@@ -1,84 +1,94 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
-  Brain,
   FileText,
   Image,
+  Loader2,
   TrendingUp,
   Users,
 } from "lucide-react";
 
-const stats = [
-  {
-    label: "Nông dân",
-    value: "2,847",
-    change: "+12%",
-    icon: Users,
-    color: "#2F9E44",
-  },
-  {
-    label: "Ảnh phân tích",
-    value: "15,231",
-    change: "+8%",
-    icon: Image,
-    color: "#1976D2",
-  },
-  {
-    label: "Độ chính xác AI",
-    value: "94.2%",
-    change: "+1.2%",
-    icon: Brain,
-    color: "#FB8C00",
-  },
-  {
-    label: "Tài liệu RAG",
-    value: "791",
-    change: "+45",
-    icon: FileText,
-    color: "#E53935",
-  },
-];
-
-const recentDiagnoses = [
-  {
-    id: 1,
-    farmer: "Nguyễn Văn A",
-    disease: "Bệnh đạo ôn",
-    confidence: 96.5,
-    time: "5 phút trước",
-  },
-  {
-    id: 2,
-    farmer: "Trần Thị B",
-    disease: "Bệnh bạc lá",
-    confidence: 91.2,
-    time: "12 phút trước",
-  },
-  {
-    id: 3,
-    farmer: "Lê Văn C",
-    disease: "Bệnh khô vằn",
-    confidence: 88.7,
-    time: "25 phút trước",
-  },
-  {
-    id: 4,
-    farmer: "Phạm Thị D",
-    disease: "Bệnh đốm nâu",
-    confidence: 93.1,
-    time: "1 giờ trước",
-  },
-  {
-    id: 5,
-    farmer: "Hoàng Văn E",
-    disease: "Bệnh đạo ôn",
-    confidence: 97.3,
-    time: "2 giờ trước",
-  },
-];
+import { adminService } from "@/services/admin.service";
 
 export default function AdminDashboardPage() {
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ["adminDashboardStats"],
+    queryFn: () => adminService.getDashboardStats(),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
+          <p className="mt-2 text-[14px] text-[#5C5C5C]">
+            Đang tải dữ liệu dashboard...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const statsResponse = dashboardData?.data || {};
+  const totalFarmers = statsResponse.totalFarmers || 0;
+  const totalDiagnoses = statsResponse.totalDiagnoses || 0;
+  const diagnosesThisWeek = statsResponse.diagnosesThisWeek || 0;
+  const totalRagChunks = statsResponse.totalRagChunks || 0;
+  const recentDiagnoses = statsResponse.recentDiagnoses || [];
+
+  const statsList = [
+    {
+      label: "Nông dân tham gia",
+      value: totalFarmers.toLocaleString(),
+      change: "Hoạt động",
+      icon: Users,
+      color: "#2F9E44",
+    },
+    {
+      label: "Tổng lượt quét ảnh",
+      value: totalDiagnoses.toLocaleString(),
+      change: "Tích lũy",
+      icon: Image,
+      color: "#1976D2",
+    },
+    {
+      label: "Quét ảnh tuần này",
+      value: diagnosesThisWeek.toLocaleString(),
+      change:
+        totalDiagnoses > 0
+          ? `+${((diagnosesThisWeek / totalDiagnoses) * 100).toFixed(1)}%`
+          : "0%",
+      icon: TrendingUp,
+      color: "#FB8C00",
+    },
+    {
+      label: "Mảnh tri thức RAG",
+      value: totalRagChunks.toLocaleString(),
+      change: "Đã nạp",
+      icon: FileText,
+      color: "#E53935",
+    },
+  ];
+
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return "—";
+    try {
+      const date = new Date(timeStr);
+      return (
+        date.toLocaleDateString("vi-VN") +
+        " " +
+        date.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    } catch {
+      return timeStr;
+    }
+  };
+
   return (
     <div className="mx-auto max-w-[1200px]">
       <div className="mb-6">
@@ -90,7 +100,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
+        {statsList.map((s) => {
           const Icon = s.icon;
           return (
             <div
@@ -125,9 +135,9 @@ export default function AdminDashboardPage() {
           <div className="space-y-3">
             {[
               { label: "API Server", status: "Online" },
-              { label: "AI Model (ONNX)", status: "Active" },
+              { label: "AI Model (YOLOv8)", status: "Active" },
               { label: "RAG Pipeline", status: "Active" },
-              { label: "MongoDB", status: "Connected" },
+              { label: "PostgreSQL Database", status: "Connected" },
             ].map((item) => (
               <div
                 key={item.label}
@@ -164,7 +174,7 @@ export default function AdminDashboardPage() {
                     Bệnh phát hiện
                   </th>
                   <th className="py-3 text-center text-[13px] font-[600] text-[#5C5C5C]">
-                    Confidence
+                    Độ tin cậy
                   </th>
                   <th className="py-3 text-right text-[13px] font-[600] text-[#5C5C5C]">
                     Thời gian
@@ -172,29 +182,49 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentDiagnoses.map((d) => (
-                  <tr
-                    key={d.id}
-                    className="border-b border-[#F0F2F5] last:border-0 hover:bg-[#F7F7F7]"
-                  >
-                    <td className="py-3 text-[14px] font-[500] text-[#1B1B1B]">
-                      {d.farmer}
-                    </td>
-                    <td className="py-3 text-[14px] text-[#5C5C5C]">
-                      {d.disease}
-                    </td>
-                    <td className="py-3 text-center">
-                      <span
-                        className={`text-[13px] font-[500] ${d.confidence >= 95 ? "text-[#2E7D32]" : d.confidence >= 90 ? "text-[#FB8C00]" : "text-[#E53935]"}`}
-                      >
-                        {d.confidence}%
-                      </span>
-                    </td>
-                    <td className="py-3 text-right text-[13px] text-[#9E9E9E]">
-                      {d.time}
+                {recentDiagnoses.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-6 text-center text-[14px] text-[#9E9E9E]"
+                    >
+                      Chưa có lượt chẩn đoán nào được thực hiện.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentDiagnoses.map((d: any) => (
+                    <tr
+                      key={d.id}
+                      className="border-b border-[#F0F2F5] last:border-0 hover:bg-[#F7F7F7]"
+                    >
+                      <td className="py-3 text-[14px] font-[500] text-[#1B1B1B]">
+                        {d.farmer}
+                      </td>
+                      <td className="py-3 text-[14px] text-[#5C5C5C]">
+                        {d.disease}
+                      </td>
+                      <td className="py-3 text-center">
+                        <span
+                          className={`text-[13px] font-[500] ${
+                            d.confidence >= 0.95 || d.confidence >= 95
+                              ? "text-[#2E7D32]"
+                              : d.confidence >= 0.9 || d.confidence >= 90
+                                ? "text-[#FB8C00]"
+                                : "text-[#E53935]"
+                          }`}
+                        >
+                          {d.confidence < 1
+                            ? (d.confidence * 100).toFixed(1)
+                            : Number(d.confidence).toFixed(1)}
+                          %
+                        </span>
+                      </td>
+                      <td className="py-3 text-right text-[13px] text-[#9E9E9E]">
+                        {formatTime(d.time)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

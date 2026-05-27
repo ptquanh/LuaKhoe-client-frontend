@@ -9,6 +9,8 @@ export function useNutritionChunks(params: {
   limit: number;
   offset: number;
   keyword?: string;
+  source?: string;
+  format?: string;
 }) {
   const queryClient = useQueryClient();
 
