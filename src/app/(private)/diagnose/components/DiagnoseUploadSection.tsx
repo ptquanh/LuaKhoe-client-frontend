@@ -1,21 +1,22 @@
 import {
-  WATER_OPTIONS,
-  GROWTH_OPTIONS,
   DENSITY_OPTIONS,
+  GROWTH_OPTIONS,
+  WATER_OPTIONS,
 } from "@/constants/diagnose";
+import { useActiveAiModels } from "@/hooks/useActiveAiModels";
+import { useUserFields } from "@/hooks/useUserFields";
 import { FieldParams } from "@/types/diagnose.type";
 import { message } from "antd";
 import {
+  Brain,
   ChevronDown,
+  Compass,
   Loader2,
-  MapPin,
   Search,
   Upload,
   X,
-  Compass,
 } from "lucide-react";
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { useUserFields } from "@/hooks/useUserFields";
 
 const LazyMapComponent = lazy(() => import("./MapComponent"));
 
@@ -39,6 +40,8 @@ interface DiagnoseUploadSectionProps {
   setGpsLng: (val: number | undefined) => void;
   fieldId?: string;
   setFieldId: (val: string | undefined) => void;
+  modelVersionId?: string;
+  setModelVersionId: (val: string | undefined) => void;
   handleReset: () => void;
   handlePredict: () => void;
 }
@@ -63,6 +66,8 @@ export function DiagnoseUploadSection({
   gpsLng,
   fieldId,
   setFieldId,
+  modelVersionId,
+  setModelVersionId,
   handleReset,
   handlePredict,
 }: DiagnoseUploadSectionProps) {
@@ -75,9 +80,18 @@ export function DiagnoseUploadSection({
 
   // Default Location UX states
   const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
+  const { data: activeModels = [], isLoading: isModelsLoading } =
+    useActiveAiModels();
+
   const [locationMode, setLocationMode] = useState<
     "default" | "saved" | "custom"
   >("default");
+
+  useEffect(() => {
+    if (activeModels.length > 0 && !modelVersionId) {
+      setModelVersionId(activeModels[0].id);
+    }
+  }, [activeModels, modelVersionId, setModelVersionId]);
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [currentProvince, setCurrentProvince] = useState("");
   const [geocoding, setGeocoding] = useState(false);
@@ -547,6 +561,36 @@ export function DiagnoseUploadSection({
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* AI Model Selection */}
+            <div className="mb-4">
+              <label className="mb-2 flex items-center gap-1.5 text-[13px] font-[600] text-[#1B1B1B]">
+                <Brain className="h-4 w-4 text-[#2F9E44]" />
+                Phiên bản mô hình AI chẩn đoán
+              </label>
+              {isModelsLoading ? (
+                <div className="flex h-10 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#2F9E44]" />
+                </div>
+              ) : activeModels.length > 0 ? (
+                <select
+                  value={modelVersionId}
+                  onChange={(e) => setModelVersionId(e.target.value)}
+                  className="w-full cursor-pointer rounded-xl border border-[#E0E0E0] bg-white px-3.5 py-2.5 text-[13px] font-[500] text-gray-700 shadow-xs transition-colors focus:border-[#2F9E44] focus:outline-none"
+                >
+                  {activeModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.versionName}{" "}
+                      {model.releaseNotes ? `(${model.releaseNotes})` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 text-[12px] font-[500] text-amber-800">
+                  Không tìm thấy mô hình AI hoạt động nào trong hệ thống.
+                </div>
+              )}
             </div>
 
             <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">

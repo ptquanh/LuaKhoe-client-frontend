@@ -35,6 +35,9 @@ export const diagnosisService = {
     if (payload.fieldId) {
       formData.append("fieldId", payload.fieldId);
     }
+    if (payload.modelVersionId) {
+      formData.append("modelVersionId", payload.modelVersionId);
+    }
 
     const response = await axiosClient.post<BaseResponse<DiagnosisResponse>>(
       "/diagnosis/predict",

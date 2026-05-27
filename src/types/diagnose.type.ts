@@ -165,6 +165,7 @@ export interface CreateDiagnosisPayload {
   gpsLng?: number;
   fieldParams?: FieldParams;
   fieldId?: string;
+  modelVersionId?: string;
 }
 
 export interface GetHistoryParams {

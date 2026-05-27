@@ -14,9 +14,9 @@ export const aiModelService = {
     return response.data;
   },
 
-  getActiveModel: async (): Promise<BaseResponse<AiModel>> => {
+  getActiveModels: async (): Promise<BaseResponse<AiModel[]>> => {
     const response =
-      await axiosClient.get<BaseResponse<AiModel>>("/ai-models/active");
+      await axiosClient.get<BaseResponse<AiModel[]>>("/ai-models/active");
     return response.data;
   },
 

@@ -38,8 +38,6 @@ export default function AdminModelsPage() {
   }, [fetchModels]);
 
   const toggleActive = async (id: string, currentlyActive: boolean) => {
-    if (currentlyActive) return;
-
     try {
       const res = await aiModelService.setActiveModel(id);
       if (res.success) {

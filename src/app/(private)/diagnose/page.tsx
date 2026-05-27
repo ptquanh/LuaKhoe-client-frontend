@@ -42,6 +42,9 @@ export default function DiagnosePage() {
   const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
   const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
   const [fieldId, setFieldId] = useState<string | undefined>(undefined);
+  const [modelVersionId, setModelVersionId] = useState<string | undefined>(
+    undefined,
+  );
 
   const [fieldParams, setFieldParams] =
     useState<FieldParams>(FIELD_PARAM_DEFAULTS);
@@ -113,6 +116,7 @@ export default function DiagnosePage() {
         gpsLng,
         fieldParams: fieldParams,
         fieldId,
+        modelVersionId,
       });
     }
   };
@@ -164,6 +168,8 @@ export default function DiagnosePage() {
             setGpsLng={setGpsLng}
             fieldId={fieldId}
             setFieldId={setFieldId}
+            modelVersionId={modelVersionId}
+            setModelVersionId={setModelVersionId}
             handleReset={handleReset}
             handlePredict={handlePredict}
           />
