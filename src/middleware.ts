@@ -18,6 +18,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+
+
   // Note: We can't easily check 'is_admin' from the JWT payload without a library like jose
   // or decoding it manually in the middleware. For now, we'll let the client-side handle
   // the specific role redirection or use a simplified approach.

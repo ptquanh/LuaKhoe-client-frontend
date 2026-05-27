@@ -6,6 +6,7 @@ export const ROUTES = {
   VERIFY_OTP: "/verify-otp",
   DIAGNOSE: "/diagnose",
   HISTORY: "/history",
+  FORUM: "/forum",
   PROFILE: "/profile",
   RESULT: "/result",
   ONBOARDING_LOCATION: "/onboarding/location",
