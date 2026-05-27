@@ -26,6 +26,8 @@ interface DiagnoseUploadSectionProps {
   isLoading: boolean;
   description: string;
   setDescription: (val: string) => void;
+  fieldDescription: string;
+  setFieldDescription: (val: string) => void;
   selectedTags: string[];
   setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>;
   suggestedTags: string[];
@@ -48,6 +50,8 @@ export function DiagnoseUploadSection({
   isLoading,
   description,
   setDescription,
+  fieldDescription,
+  setFieldDescription,
   selectedTags,
   setSelectedTags,
   suggestedTags,
@@ -545,8 +549,35 @@ export function DiagnoseUploadSection({
               </div>
             </div>
 
+            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Thông số môi trường (Tùy chọn)
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Ví dụ: Nóng ẩm, nắng gắt, có sương mù nhẹ buổi sáng..."
+                  rows={2}
+                  className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+                  Mô tả triệu chứng & Thực địa (Tùy chọn)
+                </label>
+                <textarea
+                  value={fieldDescription}
+                  onChange={(e) => setFieldDescription(e.target.value)}
+                  placeholder="Ví dụ: Mép lá xuất hiện vết héo màu xanh xám, lan nhanh..."
+                  rows={2}
+                  className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                />
+              </div>
+            </div>
+
             <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
-              Mô tả triệu chứng (Tùy chọn)
+              Nhãn triệu chứng nhanh
             </label>
             <div className="mb-3 flex flex-wrap gap-2">
               {suggestedTags.map((tag) => (
@@ -563,13 +594,6 @@ export function DiagnoseUploadSection({
                 </button>
               ))}
             </div>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ví dụ: Lá bị đốm nâu ở rìa, lan dần vào trong..."
-              rows={2}
-              className="mb-4 w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[13px] focus:border-[#2F9E44] focus:outline-none"
-            />
 
             {/* Field Params Accordion */}
             <div className="mb-6 overflow-hidden rounded-lg border border-[#E0E0E0] bg-white">

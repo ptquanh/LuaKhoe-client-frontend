@@ -21,8 +21,10 @@ import {
 } from "@/types/auth.type";
 
 export const getErrorMessage = (err: any): string => {
-  const data = err.response?.data;
-  if (!data) return "Kết nối máy chủ thất bại.";
+  if (!err) return "Đã có lỗi xảy ra. Vui lòng thử lại.";
+
+  // Handle both Axios error (contains response data) and custom NestJS response object
+  const data = err.response?.data || err;
 
   const code = data.code?.toLowerCase();
   if (code && ERROR_CODE_MAP[code]) {
@@ -82,9 +84,7 @@ export function useAuth() {
         await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         onSuccess?.();
       } else {
-        setError(
-          res.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
-        );
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -101,7 +101,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.message || "Đăng ký thất bại. Vui lòng thử lại.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -121,7 +121,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.message || "Mã xác thực không đúng hoặc đã hết hạn.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -141,7 +141,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.message || "Không thể gửi lại email. Vui lòng thử lại.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -161,9 +161,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(
-          res.message || "Gửi yêu cầu khôi phục thất bại. Vui lòng thử lại.",
-        );
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -183,7 +181,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.message || "Đặt lại mật khẩu thất bại. Vui lòng thử lại.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -203,7 +201,7 @@ export function useAuth() {
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.message || "Đổi mật khẩu thất bại.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));
@@ -220,7 +218,7 @@ export function useAuth() {
       if (res.success && res.data?.url) {
         window.location.href = res.data.url;
       } else {
-        setError(res.message || "Không thể lấy liên kết đăng nhập Google.");
+        setError(getErrorMessage(res));
       }
     } catch (err: any) {
       setError(getErrorMessage(err));

@@ -35,10 +35,16 @@ export default function ProfilePage() {
   const [formPassword] = Form.useForm();
 
   useEffect(() => {
-    if (profile && profile.profile) {
+    if (profile) {
+      const activeProfile =
+        profile.role === "ADMIN" ? profile.adminProfile : profile.farmerProfile;
       formProfile.setFieldsValue({
-        firstName: profile.profile.firstName || "",
-        lastName: profile.profile.lastName || "",
+        firstName: activeProfile?.firstName || "",
+        lastName: activeProfile?.lastName || "",
+        phone: activeProfile?.phone || "",
+        defaultGpsLat: (activeProfile as any)?.defaultGpsLat || "",
+        defaultGpsLng: (activeProfile as any)?.defaultGpsLng || "",
+        defaultProvince: (activeProfile as any)?.defaultProvince || "",
       });
     }
   }, [profile, formProfile]);
@@ -48,7 +54,18 @@ export default function ProfilePage() {
     const payload: UpdateProfilePayload = {
       firstName: values.firstName,
       lastName: values.lastName,
+      phone: values.phone,
     };
+
+    if (user?.role === "FARMER") {
+      payload.defaultGpsLat = values.defaultGpsLat
+        ? Number(values.defaultGpsLat)
+        : undefined;
+      payload.defaultGpsLng = values.defaultGpsLng
+        ? Number(values.defaultGpsLng)
+        : undefined;
+      payload.defaultProvince = values.defaultProvince;
+    }
 
     await updateProfile(payload, () => {
       message.success("Cập nhật thông tin cá nhân thành công!");

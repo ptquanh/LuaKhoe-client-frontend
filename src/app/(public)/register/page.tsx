@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert, Button, Checkbox, Form, Input, Typography } from "antd";
+import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -10,10 +11,50 @@ import { RegisterPayload } from "@/types/auth.type";
 
 const { Title, Text } = Typography;
 
+function PasswordRequirements({ password }: { password?: string }) {
+  const val = password || "";
+  const requirements = [
+    { label: "Tối thiểu 8 ký tự", valid: val.length >= 8 },
+    { label: "Ít nhất 1 chữ in hoa (A-Z)", valid: /[A-Z]/.test(val) },
+    { label: "Ít nhất 1 chữ viết thường (a-z)", valid: /[a-z]/.test(val) },
+    {
+      label: "Ít nhất 1 ký tự đặc biệt (ví dụ: @, $, !, %, *, ?, &)",
+      valid: /[\W_]/.test(val),
+    },
+  ];
+
+  return (
+    <div className="mt-1 mb-4 space-y-1 text-[13px]">
+      {requirements.map((req, idx) => (
+        <div
+          key={idx}
+          className={`flex items-center gap-1.5 font-[500] ${
+            req.valid
+              ? "text-green-600"
+              : val
+                ? "text-red-500"
+                : "text-gray-400"
+          }`}
+        >
+          {req.valid ? (
+            <Check className="h-4 w-4 shrink-0 text-green-600" />
+          ) : (
+            <X
+              className={`h-4 w-4 shrink-0 ${val ? "text-red-500" : "text-gray-400"}`}
+            />
+          )}
+          <span>{req.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, error } = useAuth();
   const [form] = Form.useForm();
+  const passwordValue = Form.useWatch("password", form);
 
   const onFinish = async (values: any) => {
     const payload: RegisterPayload = {
@@ -104,15 +145,31 @@ export default function RegisterPage() {
             name="password"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
-              { min: 8, message: "Mật khẩu tối thiểu 8 ký tự" },
+              {
+                validator(_, value) {
+                  const val = value || "";
+                  const isLength = val.length >= 8;
+                  const isUpper = /[A-Z]/.test(val);
+                  const isLower = /[a-z]/.test(val);
+                  const isSpecial = /[\W_]/.test(val);
+                  if (isLength && isUpper && isLower && isSpecial) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error("Mật khẩu chưa đáp ứng yêu cầu bảo mật"),
+                  );
+                },
+              },
             ]}
-            className="mb-4"
+            className="mb-2"
           >
             <Input.Password
               placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
               className="h-11 rounded-lg"
             />
           </Form.Item>
+          {/* Password requirements panel */}
+          <PasswordRequirements password={passwordValue} />
 
           <Form.Item
             label={
@@ -122,6 +179,7 @@ export default function RegisterPage() {
             }
             name="confirmPassword"
             dependencies={["password"]}
+            hasFeedback
             rules={[
               { required: true, message: "Vui lòng nhập lại mật khẩu" },
               ({ getFieldValue }) => ({

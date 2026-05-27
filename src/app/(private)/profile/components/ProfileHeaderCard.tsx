@@ -10,10 +10,12 @@ interface ProfileHeaderCardProps {
 }
 
 export function ProfileHeaderCard({ user, profile }: ProfileHeaderCardProps) {
+  const activeProfile =
+    profile?.role === "ADMIN" ? profile?.adminProfile : profile?.farmerProfile;
   const displayName =
-    profile?.profile?.firstName || profile?.profile?.lastName
-      ? `${profile.profile.lastName || ""} ${profile.profile.firstName || ""}`.trim()
-      : user?.username || "Nông dân";
+    activeProfile?.firstName || activeProfile?.lastName
+      ? `${activeProfile.lastName || ""} ${activeProfile.firstName || ""}`.trim()
+      : user?.username || "Người dùng";
 
   const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : "Farmer";
 

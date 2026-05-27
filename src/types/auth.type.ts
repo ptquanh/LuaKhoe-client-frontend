@@ -27,18 +27,30 @@ export interface User {
   hasPassword: boolean;
 }
 
-export interface UserProfile {
+export interface FarmerProfile {
   id: string;
   userId: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
   defaultGpsLat?: number;
   defaultGpsLng?: number;
   defaultProvince?: string;
 }
 
+export interface AdminProfile {
+  id: string;
+  userId: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+}
+
+export type UserProfile = FarmerProfile | AdminProfile;
+
 export interface UserWithProfile extends User {
-  profile?: UserProfile;
+  farmerProfile?: FarmerProfile | null;
+  adminProfile?: AdminProfile | null;
 }
 
 export interface LoginPayload {
@@ -79,13 +91,14 @@ export interface ResetPasswordPayload {
 }
 
 export interface ChangePasswordPayload {
-  oldPassword: string;
+  oldPassword?: string;
   newPassword: string;
 }
 
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
+  phone?: string;
   defaultGpsLat?: number;
   defaultGpsLng?: number;
   defaultProvince?: string;

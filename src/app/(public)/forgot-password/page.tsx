@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert, Button, Form, Input, message, Steps, Typography } from "antd";
+import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,6 +10,45 @@ import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 
 const { Title, Text } = Typography;
+
+function PasswordRequirements({ password }: { password?: string }) {
+  const val = password || "";
+  const requirements = [
+    { label: "Tối thiểu 8 ký tự", valid: val.length >= 8 },
+    { label: "Ít nhất 1 chữ in hoa (A-Z)", valid: /[A-Z]/.test(val) },
+    { label: "Ít nhất 1 chữ viết thường (a-z)", valid: /[a-z]/.test(val) },
+    {
+      label: "Ít nhất 1 ký tự đặc biệt (ví dụ: @, $, !, %, *, ?, &)",
+      valid: /[\W_]/.test(val),
+    },
+  ];
+
+  return (
+    <div className="mt-1 mb-4 space-y-1 text-[13px]">
+      {requirements.map((req, idx) => (
+        <div
+          key={idx}
+          className={`flex items-center gap-1.5 font-[500] ${
+            req.valid
+              ? "text-green-600"
+              : val
+                ? "text-red-500"
+                : "text-gray-400"
+          }`}
+        >
+          {req.valid ? (
+            <Check className="h-4 w-4 shrink-0 text-green-600" />
+          ) : (
+            <X
+              className={`h-4 w-4 shrink-0 ${val ? "text-red-500" : "text-gray-400"}`}
+            />
+          )}
+          <span>{req.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -19,6 +59,7 @@ export default function ForgotPasswordPage() {
 
   const [formEmail] = Form.useForm();
   const [formReset] = Form.useForm();
+  const newPasswordValue = Form.useWatch("newPassword", formReset);
 
   // Step 1: Submit email to request OTP
   const handleEmailSubmit = async (values: { email: string }) => {
@@ -161,21 +202,31 @@ export default function ForgotPasswordPage() {
               name="newPassword"
               rules={[
                 { required: true, message: "Vui lòng nhập mật khẩu mới" },
-                { min: 8, message: "Mật khẩu tối thiểu 8 ký tự" },
                 {
-                  pattern:
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-                  message:
-                    "Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt",
+                  validator(_, value) {
+                    const val = value || "";
+                    const isLength = val.length >= 8;
+                    const isUpper = /[A-Z]/.test(val);
+                    const isLower = /[a-z]/.test(val);
+                    const isSpecial = /[\W_]/.test(val);
+                    if (isLength && isUpper && isLower && isSpecial) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error("Mật khẩu chưa đáp ứng yêu cầu bảo mật"),
+                    );
+                  },
                 },
               ]}
-              className="mb-4"
+              className="mb-2"
             >
               <Input.Password
                 placeholder="Nhập mật khẩu mới"
                 className="h-11 rounded-lg"
               />
             </Form.Item>
+
+            <PasswordRequirements password={newPasswordValue} />
 
             <Form.Item
               label={
@@ -184,8 +235,20 @@ export default function ForgotPasswordPage() {
                 </span>
               }
               name="confirmNewPassword"
+              dependencies={["newPassword"]}
+              hasFeedback
               rules={[
                 { required: true, message: "Vui lòng xác nhận mật khẩu mới" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("newPassword") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      new Error("Mật khẩu nhập lại không khớp!"),
+                    );
+                  },
+                }),
               ]}
               className="mb-6"
             >

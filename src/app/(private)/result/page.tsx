@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { diagnosisService } from "@/services/diagnosis.service";
+import { DiseaseItem, diseaseService } from "@/services/disease.service";
 import { feedbackService } from "@/services/feedback.service";
 import { DiagnosisResponse } from "@/types/diagnose.type";
 import { FeedbackItem } from "@/types/feedback.type";
@@ -29,6 +30,7 @@ function ResultPageContent() {
   const [existingFeedback, setExistingFeedback] = useState<FeedbackItem | null>(
     null,
   );
+  const [diseases, setDiseases] = useState<DiseaseItem[]>([]);
 
   const [checkedActions, setCheckedActions] = useState<boolean[]>([]);
 
@@ -44,9 +46,10 @@ function ResultPageContent() {
         setLoading(true);
         setError(null);
 
-        const [res, fbRes] = await Promise.all([
+        const [res, fbRes, diseasesRes] = await Promise.all([
           diagnosisService.getById(id),
           feedbackService.getMyFeedbacks().catch(() => null),
+          diseaseService.getDiseases().catch(() => null),
         ]);
 
         if (res.success && res.data) {
@@ -64,6 +67,10 @@ function ResultPageContent() {
             setExistingFeedback(found);
           }
         }
+
+        if (diseasesRes?.success && diseasesRes.data) {
+          setDiseases(diseasesRes.data);
+        }
       } catch (err: any) {
         setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
       } finally {
@@ -80,22 +87,50 @@ function ResultPageContent() {
     );
   };
 
-  const handleFeedbackSubmit = async (rating: number, comment: string) => {
+  // Extract detected disease IDs from diagnosis results
+  const detectedDiseaseIds =
+    data?.results?.map((r) => r.diseaseId).filter(Boolean) || [];
+
+  const handleFeedbackSubmit = async (
+    rating: number,
+    comment: string,
+    actualDiseaseIds?: string[],
+  ) => {
     if (!id) return;
     try {
       const prefix = rating > 0 ? `[Đánh giá: ${rating}/5 sao] ` : "";
       const userMessage = `${prefix}${comment}`;
+
+      // Ground truth logic: if rating >= 4, auto submit with detected diseases
+      const finalActualDiseaseIds =
+        rating >= 4 ? detectedDiseaseIds : actualDiseaseIds || [];
+
       const res = await feedbackService.submit({
         diagnosisId: id,
         userMessage,
-        actualDiseaseIds: [],
+        actualDiseaseIds: finalActualDiseaseIds,
       });
+
+      // Re-map actualDiseases for local state update
+      const submittedActualDiseases = finalActualDiseaseIds.map((diseaseId) => {
+        const foundDisease = diseases.find((d) => d.id === diseaseId);
+        return {
+          id: Math.random().toString(),
+          feedbackId: res.data?.id || "temp",
+          diseaseId,
+          disease: {
+            id: diseaseId,
+            name: foundDisease?.name || "Bệnh đã chọn",
+          },
+        };
+      });
+
       setExistingFeedback({
         id: res.data?.id || Date.now().toString(),
         diagnosisId: id,
         userId: "current",
         userMessage,
-        actualDiseases: [],
+        actualDiseases: submittedActualDiseases,
         status: "PENDING",
         createdAt: new Date().toISOString(),
       });
@@ -284,6 +319,8 @@ function ResultPageContent() {
         <DiagnosisFeedbackCard
           onSubmitFeedback={handleFeedbackSubmit}
           existingFeedback={existingFeedback}
+          diseases={diseases}
+          detectedDiseaseIds={detectedDiseaseIds}
         />
 
         {/* Footer Sources */}

@@ -76,6 +76,65 @@ export function BasicInfoCard({ user, profileError }: BasicInfoCardProps) {
           </Form.Item>
         </Col>
       </Row>
+
+      <Row gutter={16}>
+        <Col xs={24} sm={12}>
+          <Form.Item
+            label={
+              <span className="font-medium text-gray-700">Số điện thoại</span>
+            }
+            name="phone"
+          >
+            <Input placeholder="0987654321" className="rounded-lg" />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      {user?.role === "FARMER" && (
+        <>
+          <div className="mt-4 mb-3 border-t border-gray-100 pt-4 text-sm font-semibold text-gray-800">
+            Cài đặt ruộng mặc định
+          </div>
+          <Row gutter={16}>
+            <Col xs={24} sm={8}>
+              <Form.Item
+                label={
+                  <span className="font-medium text-gray-700">
+                    Vĩ độ mặc định (Lat)
+                  </span>
+                }
+                name="defaultGpsLat"
+              >
+                <Input placeholder="10.123456" className="rounded-lg" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Form.Item
+                label={
+                  <span className="font-medium text-gray-700">
+                    Kinh độ mặc định (Lng)
+                  </span>
+                }
+                name="defaultGpsLng"
+              >
+                <Input placeholder="105.123456" className="rounded-lg" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Form.Item
+                label={
+                  <span className="font-medium text-gray-700">
+                    Tỉnh/Thành phố mặc định
+                  </span>
+                }
+                name="defaultProvince"
+              >
+                <Input placeholder="An Giang" className="rounded-lg" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </>
+      )}
     </Card>
   );
 }

@@ -9,6 +9,7 @@ export const ROUTES = {
   PROFILE: "/profile",
   RESULT: "/result",
   ONBOARDING_LOCATION: "/onboarding/location",
+  ONBOARDING_PASSWORD: "/onboarding/password",
   ADMIN_DASHBOARD: "/admin",
   ADMIN_USERS: "/admin/users",
   ADMIN_DISEASES: "/admin/diseases",

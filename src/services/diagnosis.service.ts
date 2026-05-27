@@ -17,6 +17,9 @@ export const diagnosisService = {
     if (payload.envDescription) {
       formData.append("envDescription", payload.envDescription);
     }
+    if (payload.fieldDescription) {
+      formData.append("fieldDescription", payload.fieldDescription);
+    }
     if (payload.province) {
       formData.append("province", payload.province);
     }

@@ -127,6 +127,7 @@ export interface DiagnosisResponse {
   gpsLng: number | null;
   province: string | null;
   envDescription: string | null;
+  fieldDescription: string | null;
   modelVersionId: string;
   createdAt: string;
   results: DiagnosisResultResponse[];
@@ -158,6 +159,7 @@ export interface FieldParams {
 export interface CreateDiagnosisPayload {
   image: File;
   envDescription?: string | null;
+  fieldDescription?: string | null;
   province?: string;
   gpsLat?: number;
   gpsLng?: number;

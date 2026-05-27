@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, lazy, Suspense } from "react";
+import { message } from "antd";
+import { ArrowRight, Check, Compass, Loader2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { lazy, Suspense, useEffect, useState } from "react";
+
+import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { MapPin, Loader2, Compass, Check, ArrowRight } from "lucide-react";
-import { message } from "antd";
-import { ROUTES } from "@/constants/routes";
 
 const LazyMapComponent = lazy(
   () => import("../../(private)/diagnose/components/MapComponent"),
@@ -23,10 +24,14 @@ export default function OnboardingLocationPage() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
 
-  // Redirect if not logged in
+  // Redirect if not logged in or doesn't have password
   useEffect(() => {
-    if (!isAuthLoading && !user) {
-      router.push(ROUTES.LOGIN);
+    if (!isAuthLoading) {
+      if (!user) {
+        router.push(ROUTES.LOGIN);
+      } else if (!user.hasPassword) {
+        router.push("/onboarding/password");
+      }
     }
   }, [user, isAuthLoading, router]);
 
@@ -102,18 +107,22 @@ export default function OnboardingLocationPage() {
       },
       () => {
         message.success("Lưu vị trí ruộng mặc định thành công!");
-        localStorage.setItem("onboarding_skipped", "true");
+        if (user) {
+          localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
+        }
         router.push(ROUTES.DIAGNOSE);
       },
     );
   };
 
   const handleSkip = () => {
-    localStorage.setItem("onboarding_skipped", "true");
+    if (user) {
+      localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
+    }
     router.push(ROUTES.DIAGNOSE);
   };
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading || !user || !user.hasPassword) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F7F7F7]">
         <div className="text-center">
@@ -136,7 +145,7 @@ export default function OnboardingLocationPage() {
             </span>
           </div>
           <span className="rounded-full bg-[#E6F4EA] px-2.5 py-0.5 text-[11px] font-[600] text-[#2F9E44]">
-            Bước cuối cùng
+            Bước 2 / 2
           </span>
         </div>
 

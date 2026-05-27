@@ -3,9 +3,10 @@
 import { message } from "antd";
 import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { FIELD_PARAM_DEFAULTS } from "@/constants/diagnose";
+import { useAuth } from "@/hooks/useAuth";
 import { useDiagnose } from "@/hooks/useDiagnose";
 import { useProfile } from "@/hooks/useProfile";
 import { FieldParams } from "@/types/diagnose.type";
@@ -29,10 +30,12 @@ export default function DiagnosePage() {
   const router = useRouter();
   const { predict, isLoading, result, error, reset } = useDiagnose();
   const { profile } = useProfile();
+  const { user } = useAuth();
 
   const [file, setFile] = useState<{ raw: File; url: string } | null>(null);
   const [showExamples, setShowExamples] = useState(false);
   const [description, setDescription] = useState("");
+  const [fieldDescription, setFieldDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Environment and Field condition parameters
@@ -45,34 +48,42 @@ export default function DiagnosePage() {
 
   // Load default location if available
   useEffect(() => {
-    if (
-      profile?.profile?.defaultGpsLat !== undefined &&
-      profile?.profile?.defaultGpsLat !== null &&
-      profile?.profile?.defaultGpsLng !== undefined &&
-      profile?.profile?.defaultGpsLng !== null
-    ) {
-      setGpsLat(Number(profile.profile.defaultGpsLat));
-      setGpsLng(Number(profile.profile.defaultGpsLng));
+    if (profile?.role === "FARMER" && profile.farmerProfile) {
+      const activeProfile = profile.farmerProfile;
+      if (
+        activeProfile.defaultGpsLat !== undefined &&
+        activeProfile.defaultGpsLat !== null &&
+        activeProfile.defaultGpsLng !== undefined &&
+        activeProfile.defaultGpsLng !== null
+      ) {
+        setGpsLat(Number(activeProfile.defaultGpsLat));
+        setGpsLng(Number(activeProfile.defaultGpsLng));
+      }
     }
   }, [profile]);
 
-  // Redirect to onboarding if default location is missing and not skipped
+  // Redirect to onboarding if default location is missing and not skipped (only for FARMERs)
   useEffect(() => {
-    if (profile) {
+    if (user && profile && user.role !== "ADMIN") {
+      const activeProfile = profile.farmerProfile;
       const hasDefaultLoc =
-        profile.profile?.defaultGpsLat !== null &&
-        profile.profile?.defaultGpsLat !== undefined &&
-        profile.profile?.defaultGpsLng !== null &&
-        profile.profile?.defaultGpsLng !== undefined;
+        activeProfile?.defaultGpsLat !== null &&
+        activeProfile?.defaultGpsLat !== undefined &&
+        activeProfile?.defaultGpsLng !== null &&
+        activeProfile?.defaultGpsLng !== undefined;
       const onboardingSkipped =
         typeof window !== "undefined" &&
-        localStorage.getItem("onboarding_skipped") === "true";
+        localStorage.getItem(`onboarding_skipped_${user.id}`) === "true";
 
-      if (!hasDefaultLoc && !onboardingSkipped) {
-        router.push("/onboarding/location");
+      if (!onboardingSkipped) {
+        if (!user.hasPassword) {
+          router.push("/onboarding/password");
+        } else if (!hasDefaultLoc) {
+          router.push("/onboarding/location");
+        }
       }
     }
-  }, [profile, router]);
+  }, [user, profile, router]);
 
   const handleFileSelect = (f: File) => {
     setFile({ raw: f, url: URL.createObjectURL(f) });
@@ -81,6 +92,8 @@ export default function DiagnosePage() {
 
   const handleReset = () => {
     setFile(null);
+    setDescription("");
+    setFieldDescription("");
     reset();
   };
 
@@ -95,6 +108,7 @@ export default function DiagnosePage() {
       predict({
         image: file.raw,
         envDescription: description || undefined,
+        fieldDescription: fieldDescription || undefined,
         gpsLat,
         gpsLng,
         fieldParams: fieldParams,
@@ -137,6 +151,8 @@ export default function DiagnosePage() {
             isLoading={isLoading}
             description={description}
             setDescription={setDescription}
+            fieldDescription={fieldDescription}
+            setFieldDescription={setFieldDescription}
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
             suggestedTags={suggestedTags}
