@@ -25,7 +25,11 @@ export function useProfile() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  const { data: profileResponse, isLoading: isProfileLoading, refetch } = useQuery({
+  const {
+    data: profileResponse,
+    isLoading: isProfileLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
       const res = await userService.getProfile();

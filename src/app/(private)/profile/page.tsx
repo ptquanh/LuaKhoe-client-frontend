@@ -42,9 +42,6 @@ export default function ProfilePage() {
         firstName: activeProfile?.firstName || "",
         lastName: activeProfile?.lastName || "",
         phone: activeProfile?.phone || "",
-        defaultGpsLat: (activeProfile as any)?.defaultGpsLat || "",
-        defaultGpsLng: (activeProfile as any)?.defaultGpsLng || "",
-        defaultProvince: (activeProfile as any)?.defaultProvince || "",
       });
     }
   }, [profile, formProfile]);
@@ -56,16 +53,6 @@ export default function ProfilePage() {
       lastName: values.lastName,
       phone: values.phone,
     };
-
-    if (user?.role === "FARMER") {
-      payload.defaultGpsLat = values.defaultGpsLat
-        ? Number(values.defaultGpsLat)
-        : undefined;
-      payload.defaultGpsLng = values.defaultGpsLng
-        ? Number(values.defaultGpsLng)
-        : undefined;
-      payload.defaultProvince = values.defaultProvince;
-    }
 
     await updateProfile(payload, () => {
       message.success("Cập nhật thông tin cá nhân thành công!");
