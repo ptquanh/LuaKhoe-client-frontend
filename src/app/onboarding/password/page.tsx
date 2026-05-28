@@ -100,6 +100,12 @@ export default function OnboardingPasswordPage() {
       const res = await authService.changePassword({ newPassword: password });
       if (res.success) {
         message.success("Thiết lập mật khẩu tài khoản thành công!");
+
+        // Set flag to indicate they came from the 2-step Google flow
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("completed_password_step", "true");
+        }
+
         // Update query data synchronously to prevent stale redirect loop
         queryClient.setQueryData(["auth-me"], (oldData: any) => {
           if (oldData) {
