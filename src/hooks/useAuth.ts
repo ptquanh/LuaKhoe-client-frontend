@@ -23,6 +23,16 @@ import {
 export const getErrorMessage = (err: any): string => {
   if (!err) return "Đã có lỗi xảy ra. Vui lòng thử lại.";
 
+  // Handle Network Error explicitly
+  if (
+    err.message === "Network Error" ||
+    err.code === "ERR_NETWORK" ||
+    (err.message && err.message.toLowerCase().includes("network error")) ||
+    (!err.response && err.request)
+  ) {
+    return "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet hoặc máy chủ.";
+  }
+
   // Handle both Axios error (contains response data) and custom NestJS response object
   const data = err.response?.data || err;
 
@@ -71,8 +81,6 @@ export function useAuth() {
     },
     retry: false,
   });
-
-
 
   const login = async (payload: LoginPayload, onSuccess?: () => void) => {
     setIsLoading(true);

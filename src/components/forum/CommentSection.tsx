@@ -12,6 +12,7 @@ interface CommentSectionProps {
 
 export default function CommentSection({ comments }: CommentSectionProps) {
   const [newComment, setNewComment] = useState("");
+  const [visibleCount, setVisibleCount] = useState(3);
 
   const handleSubmit = () => {
     if (!newComment.trim()) return;
@@ -20,12 +21,16 @@ export default function CommentSection({ comments }: CommentSectionProps) {
     setNewComment("");
   };
 
+  const visibleComments = comments.slice(0, visibleCount);
+
   return (
     <div className="mt-6 rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm md:p-6">
-      <h3 className="text-[18px] font-[600] text-[#1B1B1B] mb-6">Bình luận ({comments.length})</h3>
+      <h3 className="mb-6 text-[18px] font-[600] text-[#1B1B1B]">
+        Bình luận ({comments.length})
+      </h3>
 
       {/* Comment Input */}
-      <div className="flex gap-3 mb-8">
+      <div className="mb-8 flex gap-3">
         {MOCK_CURRENT_USER.avatarUrl ? (
           <img
             src={MOCK_CURRENT_USER.avatarUrl}
@@ -57,10 +62,32 @@ export default function CommentSection({ comments }: CommentSectionProps) {
 
       {/* Comments List */}
       <div className="flex flex-col gap-2">
-        {comments.map((comment) => (
+        {visibleComments.map((comment) => (
           <CommentItem key={comment.id} comment={comment} />
         ))}
       </div>
+
+      {/* Show More / Hide Buttons */}
+      {comments.length > 3 && (
+        <div className="mt-4 flex items-center gap-4 border-t border-[#F0F2F5] pt-3">
+          {comments.length > visibleCount && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 5)}
+              className="cursor-pointer text-[14px] font-[600] text-[#2F9E44] transition-colors hover:text-[#1F6F2E] hover:underline"
+            >
+              Hiển thị thêm bình luận ({comments.length - visibleCount})
+            </button>
+          )}
+          {visibleCount > 3 && (
+            <button
+              onClick={() => setVisibleCount(3)}
+              className="cursor-pointer text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#1B1B1B] hover:underline"
+            >
+              Thu gọn
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

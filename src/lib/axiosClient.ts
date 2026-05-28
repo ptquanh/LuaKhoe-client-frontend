@@ -35,6 +35,36 @@ axiosClient.interceptors.response.use(
       deleteCookie(ACCESS_TOKEN);
       window.location.href = "/login";
     }
+
+    // Translate standard connection/network errors to Vietnamese
+    if (
+      error.message === "Network Error" ||
+      error.code === "ERR_NETWORK" ||
+      (error.message && error.message.toLowerCase().includes("network error"))
+    ) {
+      try {
+        error.message =
+          "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet hoặc máy chủ.";
+      } catch {
+        Object.defineProperty(error, "message", {
+          value:
+            "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet hoặc máy chủ.",
+          writable: true,
+          configurable: true,
+        });
+      }
+    } else if (error.code === "ECONNABORTED") {
+      try {
+        error.message = "Kết nối quá hạn (Timeout). Vui lòng thử lại sau.";
+      } catch {
+        Object.defineProperty(error, "message", {
+          value: "Kết nối quá hạn (Timeout). Vui lòng thử lại sau.",
+          writable: true,
+          configurable: true,
+        });
+      }
+    }
+
     return Promise.reject(error);
   },
 );

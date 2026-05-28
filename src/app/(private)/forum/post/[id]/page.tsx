@@ -12,7 +12,7 @@ export default async function PostDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  
+
   // Find post in mock data
   const post = MOCK_POSTS.find((p) => p.id === id);
 
@@ -26,9 +26,9 @@ export default async function PostDetailPage({
   return (
     <div className="mx-auto flex max-w-[800px] flex-col gap-4 pb-20">
       {/* Back Button */}
-      <Link 
+      <Link
         href="/forum"
-        className="flex w-fit items-center gap-2 text-[14px] font-[500] text-[#5C5C5C] hover:text-[#2F9E44] transition-colors"
+        className="flex w-fit items-center gap-2 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#2F9E44]"
       >
         <ArrowLeft className="h-4 w-4" />
         <span>Quay lại diễn đàn</span>

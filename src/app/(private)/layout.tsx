@@ -1,6 +1,14 @@
 "use client";
 
-import { Bell, History, Leaf, Search, Stethoscope, User, Users } from "lucide-react";
+import {
+  Bell,
+  History,
+  Leaf,
+  Search,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";

@@ -9,12 +9,14 @@ export interface ForumUser {
 export interface ForumComment {
   id: string;
   postId: string;
+  parentId?: string | null;
   author: ForumUser;
   content: string;
   createdAt: string;
   upvotes: number;
   downvotes: number;
   replies?: ForumComment[];
+  userVote?: "up" | "down" | null;
 }
 
 export interface ForumPost {
@@ -27,4 +29,6 @@ export interface ForumPost {
   downvotes: number;
   commentCount: number;
   tags?: string[];
+  topComment?: ForumComment;
+  userVote?: "up" | "down" | null;
 }
