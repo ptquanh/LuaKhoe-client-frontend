@@ -11,9 +11,6 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/forgot-password") ||
     pathname === "/";
 
-  // Define admin routes
-  const isAdminRoute = pathname.startsWith("/admin");
-
   if (!token && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

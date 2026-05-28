@@ -5,6 +5,16 @@ import { userService } from "@/services/user.service";
 import { UpdateProfilePayload, UserWithProfile } from "@/types/auth.type";
 
 const getErrorMessage = (err: any): string => {
+  // Handle Network Error explicitly
+  if (
+    err.message === "Network Error" ||
+    err.code === "ERR_NETWORK" ||
+    (err.message && err.message.toLowerCase().includes("network error")) ||
+    (!err.response && err.request)
+  ) {
+    return "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet hoặc máy chủ.";
+  }
+
   const data = err.response?.data;
   if (!data) return "Kết nối máy chủ thất bại.";
   if (Array.isArray(data.message)) return data.message.join(", ");

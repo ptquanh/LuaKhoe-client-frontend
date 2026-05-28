@@ -1,6 +1,14 @@
 "use client";
 
-import { Bell, History, Leaf, Search, Stethoscope, User } from "lucide-react";
+import {
+  Bell,
+  History,
+  Leaf,
+  Search,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -29,6 +37,11 @@ export default function PrivateLayout({
       path: "/history",
       label: "Lịch sử",
       icon: <History className="h-4 w-4" />,
+    },
+    {
+      path: "/forum",
+      label: "Diễn đàn",
+      icon: <Users className="h-4 w-4" />,
     },
   ];
 
