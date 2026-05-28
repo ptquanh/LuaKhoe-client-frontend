@@ -450,7 +450,9 @@ export function DiagnoseUploadSection({
                     </div>
                   </label>
                 </div>
-              ) : (
+              ) : fields.length === 0 &&
+                gpsLat === undefined &&
+                gpsLng === undefined ? (
                 <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 text-amber-800">
                   <div className="flex gap-2">
                     <span className="text-base">📍</span>
@@ -460,7 +462,7 @@ export function DiagnoseUploadSection({
                     </span>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Collapsible custom map container using smooth Tailwind transitions */}
               <div

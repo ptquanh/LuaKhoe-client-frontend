@@ -8,6 +8,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserFields } from "@/hooks/useUserFields";
 
 const LazyMapComponent = lazy(
   () => import("../../(private)/diagnose/components/MapComponent"),
@@ -16,7 +17,8 @@ const LazyMapComponent = lazy(
 export default function OnboardingLocationPage() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { updateProfile, isUpdating } = useProfile();
+  const { refetch } = useProfile();
+  const { createField, isCreating } = useUserFields();
 
   const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
   const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
@@ -99,17 +101,20 @@ export default function OnboardingLocationPage() {
       return;
     }
 
-    await updateProfile(
+    await createField(
       {
-        defaultGpsLat: gpsLat,
-        defaultGpsLng: gpsLng,
-        defaultProvince: province,
+        fieldName: "Thửa ruộng mặc định",
+        gpsLat,
+        gpsLng,
+        address: province,
+        isDefault: true,
       },
-      () => {
+      async () => {
         message.success("Lưu vị trí ruộng mặc định thành công!");
         if (user) {
           localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
         }
+        await refetch();
         router.push(ROUTES.DIAGNOSE);
       },
     );
@@ -247,10 +252,10 @@ export default function OnboardingLocationPage() {
           </button>
           <button
             onClick={handleSaveLocation}
-            disabled={gpsLat === undefined || isUpdating || geocoding}
+            disabled={gpsLat === undefined || isCreating || geocoding}
             className="flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-[#2F9E44] px-6 text-[14px] font-[600] text-white transition-all hover:bg-[#1F6F2E] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isUpdating ? (
+            {isCreating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Check className="h-4 w-4" />

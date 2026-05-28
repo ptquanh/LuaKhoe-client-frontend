@@ -35,9 +35,6 @@ export interface FarmerProfile {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  defaultGpsLat?: number;
-  defaultGpsLng?: number;
-  defaultProvince?: string;
 }
 
 export interface AdminProfile {
@@ -101,9 +98,6 @@ export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  defaultGpsLat?: number;
-  defaultGpsLng?: number;
-  defaultProvince?: string;
 }
 
 export interface UserField {

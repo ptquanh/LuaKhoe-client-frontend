@@ -9,6 +9,7 @@ import { FIELD_PARAM_DEFAULTS } from "@/constants/diagnose";
 import { useAuth } from "@/hooks/useAuth";
 import { useDiagnose } from "@/hooks/useDiagnose";
 import { useProfile } from "@/hooks/useProfile";
+import { useUserFields } from "@/hooks/useUserFields";
 import { FieldParams } from "@/types/diagnose.type";
 
 import { DiagnoseGuidelines } from "./components/DiagnoseGuidelines";
@@ -31,6 +32,7 @@ export default function DiagnosePage() {
   const { predict, isLoading, result, error, reset } = useDiagnose();
   const { profile } = useProfile();
   const { user } = useAuth();
+  const { fields, isLoading: isFieldsLoading } = useUserFields();
 
   const [file, setFile] = useState<{ raw: File; url: string } | null>(null);
   const [showExamples, setShowExamples] = useState(false);
@@ -51,29 +53,19 @@ export default function DiagnosePage() {
 
   // Load default location if available
   useEffect(() => {
-    if (profile?.role === "FARMER" && profile.farmerProfile) {
-      const activeProfile = profile.farmerProfile;
-      if (
-        activeProfile.defaultGpsLat !== undefined &&
-        activeProfile.defaultGpsLat !== null &&
-        activeProfile.defaultGpsLng !== undefined &&
-        activeProfile.defaultGpsLng !== null
-      ) {
-        setGpsLat(Number(activeProfile.defaultGpsLat));
-        setGpsLng(Number(activeProfile.defaultGpsLng));
+    if (profile?.role === "FARMER" && fields.length > 0) {
+      const defaultField = fields.find((f) => f.isDefault);
+      if (defaultField) {
+        setGpsLat(Number(defaultField.gpsLat));
+        setGpsLng(Number(defaultField.gpsLng));
       }
     }
-  }, [profile]);
+  }, [profile, fields]);
 
   // Redirect to onboarding if default location is missing and not skipped (only for FARMERs)
   useEffect(() => {
-    if (user && profile && user.role !== "ADMIN") {
-      const activeProfile = profile.farmerProfile;
-      const hasDefaultLoc =
-        activeProfile?.defaultGpsLat !== null &&
-        activeProfile?.defaultGpsLat !== undefined &&
-        activeProfile?.defaultGpsLng !== null &&
-        activeProfile?.defaultGpsLng !== undefined;
+    if (user && profile && user.role !== "ADMIN" && !isFieldsLoading) {
+      const hasDefaultLoc = fields.some((f) => f.isDefault);
       const onboardingSkipped =
         typeof window !== "undefined" &&
         localStorage.getItem(`onboarding_skipped_${user.id}`) === "true";
@@ -86,7 +78,7 @@ export default function DiagnosePage() {
         }
       }
     }
-  }, [user, profile, router]);
+  }, [user, profile, fields, isFieldsLoading, router]);
 
   const handleFileSelect = (f: File) => {
     setFile({ raw: f, url: URL.createObjectURL(f) });
