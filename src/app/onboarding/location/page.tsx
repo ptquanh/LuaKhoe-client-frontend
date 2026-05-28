@@ -16,7 +16,7 @@ const LazyMapComponent = lazy(
 export default function OnboardingLocationPage() {
   const router = useRouter();
   const { user, isLoading: isAuthLoading } = useAuth();
-  const { updateProfile, isUpdating } = useProfile();
+  const { updateProfile, isUpdating, refetch } = useProfile();
 
   const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
   const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
@@ -105,11 +105,12 @@ export default function OnboardingLocationPage() {
         defaultGpsLng: gpsLng,
         defaultProvince: province,
       },
-      () => {
+      async () => {
         message.success("Lưu vị trí ruộng mặc định thành công!");
         if (user) {
           localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
         }
+        await refetch();
         router.push(ROUTES.DIAGNOSE);
       },
     );

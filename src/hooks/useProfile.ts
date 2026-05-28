@@ -25,7 +25,7 @@ export function useProfile() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  const { data: profileResponse, isLoading: isProfileLoading } = useQuery({
+  const { data: profileResponse, isLoading: isProfileLoading, refetch } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
       const res = await userService.getProfile();
@@ -69,6 +69,7 @@ export function useProfile() {
   return {
     profile: profileResponse,
     isLoading: isProfileLoading,
+    refetch,
     updateProfile,
     isUpdating: updateProfileMutation.isPending,
     error,
