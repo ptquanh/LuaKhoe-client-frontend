@@ -1,7 +1,7 @@
 import { Card } from "antd";
-import { User as UserIcon } from "lucide-react";
 import React from "react";
 
+import { AvatarUpload } from "@/components/profile/AvatarUpload";
 import { User } from "@/types/auth.type";
 
 interface ProfileHeaderCardProps {
@@ -22,9 +22,10 @@ export function ProfileHeaderCard({ user, profile }: ProfileHeaderCardProps) {
   return (
     <Card className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center gap-5">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-green-200 bg-green-50">
-          <UserIcon className="h-8 w-8 text-green-600" />
-        </div>
+        <AvatarUpload
+          avatarUrl={user?.avatarUrl || ""}
+          username={user?.username || ""}
+        />
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-gray-800">

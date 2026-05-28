@@ -1,5 +1,4 @@
 import { Alert, Card, Col, Form, Input, Row } from "antd";
-import React from "react";
 
 import { User } from "@/types/auth.type";
 

@@ -1,7 +1,7 @@
 export interface ForumUser {
   id: string;
   name: string;
-  avatarUrl?: string;
+  avatarUrl: string;
   role?: "farmer" | "expert" | "admin";
   location?: string;
 }

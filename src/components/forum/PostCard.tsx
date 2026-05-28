@@ -1,17 +1,13 @@
 "use client";
 
-import {
-  MessageSquare,
-  MoreHorizontal,
-  Share2,
-  ThumbsDown,
-  ThumbsUp,
-} from "lucide-react";
-import { useState } from "react";
-import { message } from "antd";
+import { useDeletePost, useVotePost } from "@/hooks/useForum";
+import { useProfile } from "@/hooks/useProfile";
 import { ForumPost } from "@/types/forum.type";
+import { Dropdown, message, Modal } from "antd";
+import { MessageSquare, MoreHorizontal, Share2, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import CommentSection from "./CommentSection";
-import { MOCK_COMMENTS } from "@/services/mock/forum.mock";
 
 interface PostCardProps {
   post: ForumPost;
@@ -20,12 +16,26 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const [vote, setVote] = useState<"up" | "down" | null>(post.userVote || null);
   const [showComments, setShowComments] = useState(false);
+  const { profile } = useProfile();
 
-  // Lấy comments mock cho bài viết này
-  const comments = MOCK_COMMENTS.filter((c) => c.postId === post.id);
+  const voteMutation = useVotePost();
+  const deletePostMutation = useDeletePost();
 
-  const handleUpvote = () => setVote(vote === "up" ? null : "up");
-  const handleDownvote = () => setVote(vote === "down" ? null : "down");
+  useEffect(() => {
+    setVote(post.userVote || null);
+  }, [post.userVote]);
+
+  const handleUpvote = () => {
+    const nextVote = vote === "up" ? "none" : "up";
+    setVote(nextVote === "none" ? null : nextVote);
+    voteMutation.mutate({ postId: post.id, type: nextVote });
+  };
+
+  const handleDownvote = () => {
+    const nextVote = vote === "down" ? "none" : "down";
+    setVote(nextVote === "none" ? null : nextVote);
+    voteMutation.mutate({ postId: post.id, type: nextVote });
+  };
 
   // Calculate displayed upvotes and downvotes optimistically
   const initialUserVote = post.userVote || null;
@@ -34,16 +44,16 @@ export default function PostCard({ post }: PostCardProps) {
 
   if (initialUserVote === "up") {
     if (vote === null) {
-      displayedUpvotes -= 1;
+      displayedUpvotes = Math.max(0, displayedUpvotes - 1);
     } else if (vote === "down") {
-      displayedUpvotes -= 1;
+      displayedUpvotes = Math.max(0, displayedUpvotes - 1);
       displayedDownvotes += 1;
     }
   } else if (initialUserVote === "down") {
     if (vote === null) {
-      displayedDownvotes -= 1;
+      displayedDownvotes = Math.max(0, displayedDownvotes - 1);
     } else if (vote === "up") {
-      displayedDownvotes -= 1;
+      displayedDownvotes = Math.max(0, displayedDownvotes - 1);
       displayedUpvotes += 1;
     }
   } else {
@@ -64,6 +74,25 @@ export default function PostCard({ post }: PostCardProps) {
     }
   };
 
+  const handleDelete = () => {
+    Modal.confirm({
+      title: "Xác nhận xóa bài viết",
+      content:
+        "Bạn có chắc chắn muốn xóa bài viết này không? Thao tác này không thể hoàn tác.",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          await deletePostMutation.mutateAsync(post.id);
+          message.success("Đã xóa bài viết thành công.");
+        } catch (err: any) {
+          message.error(err.message || "Xóa bài viết thất bại.");
+        }
+      },
+    });
+  };
+
   const formattedDate = new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -72,34 +101,46 @@ export default function PostCard({ post }: PostCardProps) {
     minute: "2-digit",
   }).format(new Date(post.createdAt));
 
+  const isAuthor = profile?.id === post.author.id;
+  const isAdmin = profile?.role === "ADMIN";
+  const canDelete = isAuthor || isAdmin;
+
+  // Dropdown menu items for more options
+  const dropdownItems = [
+    {
+      key: "delete",
+      label: (
+        <span className="flex items-center gap-2 text-red-600">
+          <Trash2 className="h-4 w-4" />
+          Xóa bài viết
+        </span>
+      ),
+      onClick: handleDelete,
+    },
+  ];
+
   return (
-    <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {post.author.avatarUrl ? (
-            <img
-              src={post.author.avatarUrl}
-              alt={post.author.name}
-              className="h-10 w-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6F4EA] font-semibold text-[#2F9E44]">
-              {post.author.name.charAt(0)}
-            </div>
-          )}
+          <img
+            src={post.author.avatarUrl}
+            alt={post.author.name}
+            className="h-10 w-10 rounded-full object-cover"
+          />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-[600] text-[#1B1B1B]">
+              <span className="font-[600] text-[#1B1B1B] dark:text-gray-100">
                 {post.author.name}
               </span>
               {post.author.role === "expert" && (
-                <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[500] text-[#2F9E44]">
+                <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                   Chuyên gia
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-[12px] text-[#757575]">
+            <div className="flex items-center gap-2 text-[12px] text-[#757575] dark:text-gray-400">
               <span>{formattedDate}</span>
               {post.author.location && (
                 <>
@@ -110,19 +151,30 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
           </div>
         </div>
-        <button className="rounded-lg p-2 text-[#5C5C5C] hover:bg-[#F0F2F5]">
-          <MoreHorizontal className="h-5 w-5" />
-        </button>
+
+        {canDelete && (
+          <Dropdown
+            menu={{ items: dropdownItems }}
+            trigger={["click"]}
+            placement="bottomRight"
+          >
+            <button className="rounded-lg p-2 text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+          </Dropdown>
+        )}
       </div>
 
       {/* Content */}
       <div className="mt-3">
-        <p className="text-[15px] leading-relaxed text-[#1B1B1B]">
-          {post.content}
-        </p>
+        <Link href={`/forum/post/${post.id}`}>
+          <p className="cursor-pointer text-[15px] leading-relaxed text-[#1B1B1B] hover:text-green-700 dark:text-gray-300 dark:hover:text-green-400">
+            {post.content}
+          </p>
+        </Link>
 
         {post.images && post.images.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-lg border border-[#E0E0E0]">
+          <div className="mt-3 overflow-hidden rounded-lg border border-[#E0E0E0] dark:border-gray-800">
             <img
               src={post.images[0]}
               alt="Post attachment"
@@ -136,7 +188,7 @@ export default function PostCard({ post }: PostCardProps) {
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-md bg-[#F0F2F5] px-2 py-1 text-[12px] text-[#5C5C5C]"
+                className="rounded-md bg-[#F0F2F5] px-2 py-1 text-[12px] text-[#5C5C5C] dark:bg-gray-800 dark:text-gray-300"
               >
                 #{tag}
               </span>
@@ -146,41 +198,35 @@ export default function PostCard({ post }: PostCardProps) {
 
         {/* Top Community Solution Highlight (Sneak Peek) */}
         {post.topComment && (
-          <div className="mt-4 rounded-xl border border-[#D3F9D8] bg-[#E6F4EA]/40 p-4 transition-all duration-200 hover:bg-[#E6F4EA]/60">
+          <div className="mt-4 rounded-xl border border-[#D3F9D8] bg-[#E6F4EA]/40 p-4 transition-all duration-200 hover:bg-[#E6F4EA]/60 dark:border-green-900/40 dark:bg-green-950/20 dark:hover:bg-green-950/30">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#2F9E44] px-2.5 py-1 text-[11px] font-[600] text-white">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#2F9E44] px-2.5 py-1 text-[11px] font-[600] text-white dark:bg-green-700">
                 ✨ Giải pháp được cộng đồng đánh giá cao nhất
               </span>
-              <span className="text-[12px] font-[600] text-[#2F9E44]">
+              <span className="text-[12px] font-[600] text-[#2F9E44] dark:text-green-400">
                 Điểm đánh giá:{" "}
                 {post.topComment.upvotes - post.topComment.downvotes}
               </span>
             </div>
 
             <div className="flex gap-3">
-              {post.topComment.author.avatarUrl ? (
-                <img
-                  src={post.topComment.author.avatarUrl}
-                  alt={post.topComment.author.name}
-                  className="h-8 w-8 shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#D3F9D8] text-[11px] font-semibold text-[#2F9E44]">
-                  {post.topComment.author.name.charAt(0)}
-                </div>
-              )}
+              <img
+                src={post.topComment.author.avatarUrl}
+                alt={post.topComment.author.name}
+                className="h-8 w-8 shrink-0 rounded-full object-cover"
+              />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                  <span className="text-[13px] font-[600] text-[#1B1B1B] dark:text-gray-200">
                     {post.topComment.author.name}
                   </span>
                   {post.topComment.author.role === "expert" && (
-                    <span className="rounded-full bg-[#2F9E44]/10 px-2 py-0.5 text-[11px] font-[500] text-[#2F9E44]">
+                    <span className="rounded-full bg-[#2F9E44]/10 px-2 py-0.5 text-[11px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                       Chuyên gia
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-[13px] leading-relaxed text-[#333333]">
+                <p className="mt-1 text-[13px] leading-relaxed text-[#333333] dark:text-gray-400">
                   {post.topComment.content}
                 </p>
               </div>
@@ -190,7 +236,7 @@ export default function PostCard({ post }: PostCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="mt-4 flex items-center justify-between border-t border-[#E0E0E0] pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-[#E0E0E0] pt-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
           {/* Upvote Button */}
           <button
@@ -198,7 +244,7 @@ export default function PostCard({ post }: PostCardProps) {
             className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-[600] transition-all duration-200 ${
               vote === "up"
                 ? "border-[#2F9E44] bg-[#2F9E44] text-white shadow-sm hover:bg-[#1F6F2E]"
-                : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7]"
+                : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
           >
             <span>👍 Hữu ích</span>
@@ -210,8 +256,8 @@ export default function PostCard({ post }: PostCardProps) {
             onClick={handleDownvote}
             className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-[600] transition-all duration-200 ${
               vote === "down"
-                ? "border-[#FCA5A5] bg-[#FEE2E2] text-[#991B1B] shadow-sm hover:bg-[#FECACA]"
-                : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7]"
+                ? "border-[#FCA5A5] bg-[#FEE2E2] text-[#991B1B] shadow-sm hover:bg-[#FECACA] dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400"
+                : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
           >
             <span>👎 Không hữu ích</span>
@@ -222,14 +268,14 @@ export default function PostCard({ post }: PostCardProps) {
         <div className="flex gap-2">
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800"
           >
             <MessageSquare className="h-4 w-4" />
             <span>{post.commentCount} Bình luận</span>
           </button>
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800"
           >
             <Share2 className="h-4 w-4" />
             <span>Chia sẻ</span>
@@ -239,8 +285,8 @@ export default function PostCard({ post }: PostCardProps) {
 
       {/* Inline Comments */}
       {showComments && (
-        <div className="mt-4 border-t border-[#E0E0E0] pt-4">
-          <CommentSection comments={comments} />
+        <div className="mt-4 border-t border-[#E0E0E0] pt-4 dark:border-gray-800">
+          <CommentSection postId={post.id} initialIsOpen={true} />
         </div>
       )}
     </div>

@@ -1,34 +1,47 @@
-import { ArrowLeft } from "lucide-react";
+"use client";
+
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import React from "react";
 
-import PostCard from "@/components/forum/PostCard";
 import CommentSection from "@/components/forum/CommentSection";
-import { MOCK_POSTS, MOCK_COMMENTS } from "@/services/mock/forum.mock";
+import PostCard from "@/components/forum/PostCard";
+import { useForumPostDetail } from "@/hooks/useForum";
 
-export default async function PostDetailPage({
+export default function PostDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id } = React.use(params);
 
-  // Find post in mock data
-  const post = MOCK_POSTS.find((p) => p.id === id);
+  // Load single post details via React Query
+  const { data: response, isLoading, isError } = useForumPostDetail(id);
 
-  if (!post) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-[#2F9E44]" />
+        <p className="mt-4 text-[14px] text-[#5C5C5C] dark:text-gray-400">
+          Đang tải chi tiết bài viết...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !response || !response.success || !response.data) {
     notFound();
   }
 
-  // Get mock comments for this post
-  const comments = MOCK_COMMENTS.filter((c) => c.postId === id);
+  const post = response.data;
 
   return (
     <div className="mx-auto flex max-w-[800px] flex-col gap-4 pb-20">
       {/* Back Button */}
       <Link
         href="/forum"
-        className="flex w-fit items-center gap-2 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#2F9E44]"
+        className="flex w-fit items-center gap-2 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#2F9E44] dark:text-gray-400 dark:hover:text-green-400"
       >
         <ArrowLeft className="h-4 w-4" />
         <span>Quay lại diễn đàn</span>
@@ -40,7 +53,7 @@ export default async function PostDetailPage({
       </div>
 
       {/* Comments Area */}
-      <CommentSection comments={comments} />
+      <CommentSection postId={post.id} initialIsOpen={true} />
     </div>
   );
 }

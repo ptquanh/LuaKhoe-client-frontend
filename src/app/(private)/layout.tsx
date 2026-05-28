@@ -104,9 +104,17 @@ export default function PrivateLayout({
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#E0E0E0] bg-[#E6F4EA] text-[#2F9E44]"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#E0E0E0] bg-[#E6F4EA] text-[#2F9E44]"
             >
-              <User className="h-4 w-4" />
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.username}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
             </button>
             {showUserMenu && (
               <div className="absolute top-10 right-0 z-50 w-48 rounded-lg border border-[#E0E0E0] bg-white py-1 shadow-lg">

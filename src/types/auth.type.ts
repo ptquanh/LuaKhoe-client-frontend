@@ -25,6 +25,8 @@ export interface User {
   role: ROLE;
   status: ENTITY_STATUS;
   hasPassword: boolean;
+  metadata?: Record<string, any>;
+  avatarUrl: string;
 }
 
 export interface FarmerProfile {

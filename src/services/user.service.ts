@@ -19,6 +19,21 @@ export const userService = {
     return response.data;
   },
 
+  uploadAvatar: async (
+    file: File,
+  ): Promise<BaseResponse<{ avatarUrl: string }>> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosClient.patch<
+      BaseResponse<{ avatarUrl: string }>
+    >("/users/me/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  },
+
   getUsersForAdmin: async (params?: {
     keyword?: string;
     role?: string;

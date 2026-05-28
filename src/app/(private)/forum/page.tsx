@@ -1,20 +1,41 @@
 "use client";
 
-import { Filter, Flame, Clock, Search } from "lucide-react";
-import { useState, useMemo } from "react";
 import CreatePostWidget from "@/components/forum/CreatePostWidget";
 import PostCard from "@/components/forum/PostCard";
-import { MOCK_POSTS } from "@/services/mock/forum.mock";
+import { useForumPosts } from "@/hooks/useForum";
+import { Clock, Filter, Flame, Loader2, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export default function ForumPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sort, setSort] = useState<"hot" | "new">("hot");
+  const [selectedTag, setSelectedTag] = useState<string | undefined>(undefined);
 
-  // Logic tìm kiếm bài viết theo nội dung, tên người đăng hoặc tags
+  // Fetch infinite posts from server via React Query hook
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useForumPosts({
+    sort,
+    tag: selectedTag,
+    limit: 10,
+  });
+
+  // Flatten the loaded pages into a single flat array
+  const posts = useMemo(() => {
+    return data?.pages.flatMap((page) => page.data?.items || []) || [];
+  }, [data]);
+
+  // Client-side search filtering over retrieved items
   const filteredPosts = useMemo(() => {
-    if (!searchQuery.trim()) return MOCK_POSTS;
+    if (!searchQuery.trim()) return posts;
 
     const query = searchQuery.toLowerCase();
-    return MOCK_POSTS.filter((post) => {
+    return posts.filter((post) => {
       const matchContent = post.content.toLowerCase().includes(query);
       const matchAuthor = post.author.name.toLowerCase().includes(query);
       const matchTags = post.tags?.some((tag) =>
@@ -23,23 +44,23 @@ export default function ForumPage() {
 
       return matchContent || matchAuthor || matchTags;
     });
-  }, [searchQuery]);
+  }, [posts, searchQuery]);
 
   return (
     <div className="mx-auto flex max-w-[800px] flex-col gap-6 pb-20">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-[24px] font-[700] text-[#1B1B1B]">
+          <h1 className="text-[24px] font-[700] text-[#1B1B1B] dark:text-gray-100">
             Diễn đàn nông dân
           </h1>
-          <p className="text-[14px] text-[#5C5C5C]">
+          <p className="text-[14px] text-[#5C5C5C] dark:text-gray-400">
             Nơi giao lưu, hỏi đáp và chia sẻ kinh nghiệm canh tác
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative w-full shrink-0 md:w-[300px]">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9E9E9E]">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9E9E9E] dark:text-gray-500">
             <Search className="h-5 w-5" />
           </div>
           <input
@@ -47,7 +68,7 @@ export default function ForumPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm bài viết, kỹ thuật..."
-            className="w-full rounded-full border border-[#E0E0E0] bg-white py-2.5 pr-4 pl-10 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
+            className="w-full rounded-full border border-[#E0E0E0] bg-white py-2.5 pr-4 pl-10 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-[#2F9E44] dark:focus:ring-[#2F9E44]"
           />
         </div>
       </div>
@@ -56,16 +77,47 @@ export default function ForumPage() {
       <CreatePostWidget />
 
       {/* Sort & Filter */}
-      <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto border-b border-[#E0E0E0] pb-3">
-        <button className="flex shrink-0 items-center gap-2 rounded-full bg-[#E6F4EA] px-4 py-2 text-[14px] font-[600] text-[#2F9E44]">
+      <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto border-b border-[#E0E0E0] pb-3 dark:border-gray-800">
+        <button
+          onClick={() => {
+            setSort("hot");
+            setSelectedTag(undefined);
+          }}
+          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+            sort === "hot" && !selectedTag
+              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
+              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          }`}
+        >
           <Flame className="h-4 w-4" />
           <span>Hot nhất</span>
         </button>
-        <button className="flex shrink-0 items-center gap-2 rounded-full border border-[#E0E0E0] bg-white px-4 py-2 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]">
+
+        <button
+          onClick={() => {
+            setSort("new");
+            setSelectedTag(undefined);
+          }}
+          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+            sort === "new" && !selectedTag
+              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
+              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          }`}
+        >
           <Clock className="h-4 w-4" />
           <span>Mới nhất</span>
         </button>
-        <button className="flex shrink-0 items-center gap-2 rounded-full border border-[#E0E0E0] bg-white px-4 py-2 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]">
+
+        <button
+          onClick={() => {
+            setSelectedTag(selectedTag === "Đạo ôn" ? undefined : "Đạo ôn");
+          }}
+          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+            selectedTag === "Đạo ôn"
+              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
+              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          }`}
+        >
           <Filter className="h-4 w-4" />
           <span>Bệnh đạo ôn</span>
         </button>
@@ -73,15 +125,53 @@ export default function ForumPage() {
 
       {/* Feed List */}
       <div className="flex flex-col gap-4">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Loader2 className="h-10 w-10 animate-spin text-[#2F9E44]" />
+            <p className="mt-3 text-[14px] text-[#5C5C5C] dark:text-gray-400">
+              Đang tải danh sách bài viết...
+            </p>
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center dark:border-gray-800 dark:bg-gray-900">
+            <p className="text-[16px] font-[500] text-red-600">
+              Không thể tải dữ liệu diễn đàn
+            </p>
+            <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
+              Vui lòng thử lại sau hoặc kiểm tra kết nối mạng.
+            </p>
+          </div>
+        ) : filteredPosts.length > 0 ? (
+          <>
+            {filteredPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+
+            {/* Load More Trigger */}
+            {hasNextPage && (
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#E0E0E0] bg-white py-3 text-[14px] font-[600] text-[#2F9E44] transition-all hover:bg-[#F7F7F7] disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-green-400 dark:hover:bg-gray-800"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Đang tải thêm...</span>
+                  </>
+                ) : (
+                  <span>Xem thêm bài viết</span>
+                )}
+              </button>
+            )}
+          </>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center dark:border-gray-800 dark:bg-gray-900">
             <Search className="mb-3 h-10 w-10 text-[#9E9E9E]" />
-            <p className="text-[16px] font-[500] text-[#1B1B1B]">
+            <p className="text-[16px] font-[500] text-[#1B1B1B] dark:text-gray-100">
               Không tìm thấy bài viết nào
             </p>
-            <p className="mt-1 text-[14px] text-[#5C5C5C]">
+            <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
               Thử sử dụng các từ khóa khác xem sao (ví dụ: đạo ôn, ST25...)
             </p>
           </div>

@@ -44,8 +44,10 @@ export function useProfile() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["user-profile"], data);
-      // Also invalidate whoami/auth-me just in case profile elements are shared
+      // Also invalidate whoami/auth-me and forum queries just in case profile elements are shared
       queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["forum-comments"] });
     },
     onError: (err: any) => {
       setError(getErrorMessage(err));
