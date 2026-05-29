@@ -1,53 +1,74 @@
-import { message } from "antd";
-import { deleteCookie } from "cookies-next";
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { ERROR_MESSAGES } from "@/constants/error-messages";
+import { message } from "antd";
+import { AxiosError } from "axios";
+import { deleteCookie } from "cookies-next";
 
-export const handleApiError = (error: any, customFallback?: string) => {
+interface NestJsErrorResponse {
+  code?: string;
+  errorCode?: string;
+  statusCode?: number | string;
+  message?: string | string[];
+}
+
+/**
+ * Xử lý khi user mất quyền truy cập (401)
+ */
+const handleUnauthorized = () => {
+  message.error(ERROR_MESSAGES["UNAUTHORIZED"] || "Phiên đăng nhập hết hạn");
+  deleteCookie(ACCESS_TOKEN);
+
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+};
+
+/**
+ * Global Handle API Error
+ */
+export const handleApiError = (
+  error: unknown,
+  customFallback?: string,
+): void => {
+  const axiosError = error as AxiosError<NestJsErrorResponse>;
+  const errorData = axiosError.response?.data;
+
+  const rawMsg =
+    (typeof errorData?.message === "string"
+      ? errorData.message
+      : axiosError.message) || "";
+
   // 1. Handle Network Errors
   if (
-    error.message === "Network Error" ||
-    error.code === "ERR_NETWORK" ||
-    (error.message && error.message.toLowerCase().includes("network error"))
+    axiosError.code === "ERR_NETWORK" ||
+    rawMsg.toLowerCase().includes("network error")
   ) {
-    return message.error(ERROR_MESSAGES["NETWORK_ERROR"]);
-  }
-
-  // 2. Extract error data from NestJS/Axios response structure
-  const errorData = error.response?.data;
-  const code =
-    errorData?.code ||
-    errorData?.errorCode ||
-    errorData?.statusCode?.toString();
-
-  // 3. Robust check for content policy violations or AI/Gemini moderation flags in the raw message
-  const rawMsg = errorData?.message || error.message || "";
-  const isAiViolation =
-    typeof rawMsg === "string" &&
-    (rawMsg.toLowerCase().includes("profanity") ||
-      rawMsg.toLowerCase().includes("offensive") ||
-      rawMsg.toLowerCase().includes("appropriate"));
-
-  if (code === "CONTENT_POLICY_VIOLATION" || isAiViolation) {
-    return message.error(ERROR_MESSAGES["CONTENT_POLICY_VIOLATION"]);
-  }
-
-  // 4. Handle 401 / UNAUTHORIZED token expiration
-  if (code === "UNAUTHORIZED" || error.response?.status === 401) {
-    message.error(ERROR_MESSAGES["UNAUTHORIZED"]);
-    deleteCookie(ACCESS_TOKEN);
-    if (typeof window !== "undefined") {
-      window.location.href = "/login";
-    }
+    message.error(ERROR_MESSAGES["NETWORK_ERROR"]);
     return;
   }
 
-  // 5. General message fallback priority:
-  // Centralized Dictionary -> Custom Fallback String -> Backend Response Message -> Global Default Error Message
+  // 2. Lấy mã lỗi từ Backend (Backend nay đã tự trả về mã CONTENT_POLICY_VIOLATION nếu vi phạm AI)
+  const code = (
+    errorData?.code ||
+    errorData?.errorCode ||
+    errorData?.statusCode
+  )?.toString();
+
+  // 3. Handle 401 / UNAUTHORIZED
+  if (code === "UNAUTHORIZED" || axiosError.response?.status === 401) {
+    handleUnauthorized();
+    return;
+  }
+
+  // 4. O(1) Dictionary Lookup cho các lỗi còn lại
+  const formattedCode = code?.toUpperCase() as keyof typeof ERROR_MESSAGES;
+  const mappedMessage = formattedCode ? ERROR_MESSAGES[formattedCode] : null;
+
+  // 5. Hiển thị thông báo
   const displayMessage =
-    ERROR_MESSAGES[code] ||
+    mappedMessage ||
     customFallback ||
-    (typeof errorData?.message === "string" ? errorData.message : null) ||
+    (rawMsg !== "Request failed with status code 400" ? rawMsg : null) ||
     ERROR_MESSAGES["DEFAULT"];
 
   message.error(displayMessage);
