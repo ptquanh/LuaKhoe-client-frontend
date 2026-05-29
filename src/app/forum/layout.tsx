@@ -2,7 +2,7 @@
 
 import SharedHeader from "@/components/layout/SharedHeader";
 
-export default function PrivateLayout({
+export default function ForumLayout({
   children,
 }: {
   children: React.ReactNode;

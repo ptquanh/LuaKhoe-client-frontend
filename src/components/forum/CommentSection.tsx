@@ -1,10 +1,12 @@
 "use client";
 
+import { ACCESS_TOKEN } from "@/constants/auth";
 import { useCreateComment, useForumComments } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
-import { message } from "antd";
+import { getCookie } from "cookies-next";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
 import CommentItem from "./CommentItem";
 
@@ -14,6 +16,11 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ postId }: CommentSectionProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [visibleCount, setVisibleCount] = useState(3);
   const { profile } = useProfile();
 
@@ -57,12 +64,29 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
       {/* Comment Input */}
       <div className="mb-8">
-        <CommentInput
-          onSubmit={handleSubmit}
-          avatarUrl={avatarUrl}
-          profileName={profileName}
-          isPending={createCommentMutation.isPending}
-        />
+        {!mounted ? (
+          <div className="h-20 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+        ) : getCookie(ACCESS_TOKEN) ? (
+          <CommentInput
+            onSubmit={handleSubmit}
+            avatarUrl={avatarUrl}
+            profileName={profileName}
+            isPending={createCommentMutation.isPending}
+          />
+        ) : (
+          <div className="rounded-lg bg-gray-50 p-4 text-center dark:bg-gray-800">
+            <p className="text-[14px] text-[#5C5C5C] dark:text-gray-400">
+              Vui lòng{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-[#2F9E44] hover:underline dark:text-green-400"
+              >
+                đăng nhập
+              </Link>{" "}
+              để bình luận về bài viết này.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Comments List */}

@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getCookie } from "cookies-next";
 import { useState } from "react";
 
+import { ACCESS_TOKEN } from "@/constants/auth";
 import { userService } from "@/services/user.service";
-import { UpdateProfilePayload, UserWithProfile } from "@/types/auth.type";
+import { UpdateProfilePayload } from "@/types/auth.type";
 
 const getErrorMessage = (err: any): string => {
   // Handle Network Error explicitly
@@ -25,6 +27,9 @@ export function useProfile() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
+  const hasToken =
+    typeof window !== "undefined" ? !!getCookie(ACCESS_TOKEN) : false;
+
   const {
     data: profileResponse,
     isLoading: isProfileLoading,
@@ -35,6 +40,7 @@ export function useProfile() {
       const res = await userService.getProfile();
       return res.data || null;
     },
+    enabled: hasToken,
   });
 
   const updateProfileMutation = useMutation({

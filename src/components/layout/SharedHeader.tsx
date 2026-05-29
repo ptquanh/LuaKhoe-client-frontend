@@ -1,0 +1,162 @@
+"use client";
+
+import {
+  Bell,
+  History,
+  Leaf,
+  Search,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/hooks/useAuth";
+import { ROLE } from "@/types/auth.type";
+
+export default function SharedHeader() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const { logout, user } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const navItems = [
+    {
+      path: "/diagnose",
+      label: "Chẩn đoán",
+      icon: <Stethoscope className="h-4 w-4" />,
+    },
+    {
+      path: "/history",
+      label: "Lịch sử",
+      icon: <History className="h-4 w-4" />,
+    },
+    {
+      path: "/forum",
+      label: "Diễn đàn",
+      icon: <Users className="h-4 w-4" />,
+    },
+  ];
+
+  const isActive = (path: string) => {
+    return pathname.startsWith(path);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const showUserArea = () => {
+    if (!mounted) {
+      return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200" />;
+    }
+
+    if (user) {
+      return (
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#E0E0E0] bg-[#E6F4EA] text-[#2F9E44]"
+          >
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.username}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <User className="h-4 w-4" />
+            )}
+          </button>
+          {showUserMenu && (
+            <div className="absolute top-10 right-0 z-50 w-48 rounded-lg border border-[#E0E0E0] bg-white py-1 shadow-lg">
+              <button
+                onClick={() => {
+                  router.push("/profile");
+                  setShowUserMenu(false);
+                }}
+                className="w-full cursor-pointer px-4 py-2.5 text-left text-[14px] text-[#1B1B1B] hover:bg-[#F0F2F5]"
+              >
+                Thông tin cá nhân
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full cursor-pointer px-4 py-2.5 text-left text-[14px] text-[#E53935] hover:bg-[#F0F2F5]"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href="/login"
+        className="flex h-10 items-center justify-center rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[600] text-white transition-colors hover:bg-[#2b8a3e]"
+      >
+        Đăng nhập
+      </Link>
+    );
+  };
+
+  return (
+    <header className="sticky top-0 z-50 flex h-[72px] items-center border-b border-[#E0E0E0] bg-white px-6">
+      <div
+        className="flex cursor-pointer items-center gap-2"
+        onClick={() => router.push("/")}
+      >
+        <Leaf className="h-6 w-6 text-[#2F9E44]" />
+        <span className="text-[18px] font-[600] text-[#1B1B1B]">Lúa Khoẻ</span>
+      </div>
+
+      <nav className="ml-8 flex items-center gap-2">
+        {navItems.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => router.push(item.path)}
+            className={`flex h-10 cursor-pointer items-center gap-2 rounded-lg px-4 text-[14px] transition-colors ${
+              isActive(item.path)
+                ? "bg-[#E6F4EA] font-[500] text-[#1F6F2E]"
+                : "text-[#5C5C5C] hover:bg-[#F0F2F5]"
+            }`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        ))}
+        {mounted && user?.role === ROLE.ADMIN && (
+          <Link
+            href={ROUTES.ADMIN_DASHBOARD}
+            className="flex h-10 items-center gap-2 rounded-lg bg-[#FFF3E0] px-4 text-[14px] font-[600] text-[#E65100] transition-colors hover:bg-[#FFE0B2]"
+          >
+            <span>⚙️ Quay lại Dashboard</span>
+          </Link>
+        )}
+      </nav>
+
+      <div className="ml-auto flex items-center gap-3">
+        <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-[#5C5C5C] hover:bg-[#F0F2F5]">
+          <Search className="h-5 w-5" />
+        </button>
+        {mounted && user && (
+          <button className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-[#5C5C5C] hover:bg-[#F0F2F5]">
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#E53935]" />
+          </button>
+        )}
+        {showUserArea()}
+      </div>
+    </header>
+  );
+}

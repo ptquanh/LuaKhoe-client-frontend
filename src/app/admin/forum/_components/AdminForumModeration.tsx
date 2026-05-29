@@ -2,7 +2,7 @@
 
 import PostStatusBadge from "@/components/forum/PostStatusBadge";
 import { useForumPosts, useModeratePost } from "@/hooks/useForum";
-import axiosClient from "@/lib/axiosClient";
+import { adminService } from "@/services/admin.service";
 import { Button, Input, message, Modal, Spin, Tabs } from "antd";
 import {
   AlertTriangle,
@@ -48,13 +48,12 @@ export default function AdminForumModeration() {
     limit: 10,
   });
 
-  // Try to load BANNED_WORDS from system config if available
   useEffect(() => {
     const fetchBannedWords = async () => {
       try {
-        const response = await axiosClient.get("/system-configs/banned-words");
-        if (response.data?.success && response.data?.data) {
-          const { value } = response.data.data;
+        const response = await adminService.getBannedWords();
+        if (response?.success && response?.data) {
+          const { value } = response.data;
           if (value) {
             const parsed = JSON.parse(value);
             if (Array.isArray(parsed)) {

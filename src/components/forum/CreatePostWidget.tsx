@@ -1,9 +1,11 @@
 "use client";
 
+import { ACCESS_TOKEN } from "@/constants/auth";
 import { useProfile } from "@/hooks/useProfile";
 import { diseaseService } from "@/services/disease.service";
 import { forumService } from "@/services/forum.service";
 import { message } from "antd";
+import { getCookie } from "cookies-next";
 import {
   Image as ImageIcon,
   Loader2,
@@ -23,6 +25,11 @@ const STATIC_TAGS = ["Hỏi đáp", "Kinh nghiệm", "Phân bón", "Kỹ thuật
 const CATEGORIES = ["Hỏi đáp", "Kinh nghiệm", "Thảo luận chung"];
 
 export default function CreatePostWidget() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [category, setCategory] = useState<string>("Hỏi đáp");
@@ -255,6 +262,13 @@ export default function CreatePostWidget() {
       },
     });
   };
+
+  const hasToken =
+    typeof window !== "undefined" ? !!getCookie(ACCESS_TOKEN) : false;
+
+  if (!mounted || !hasToken) {
+    return null;
+  }
 
   return (
     <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm transition-all dark:border-gray-800 dark:bg-gray-900">

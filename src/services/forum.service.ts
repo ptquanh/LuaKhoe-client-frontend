@@ -84,6 +84,7 @@ export interface CreatePostPayload {
   images?: string[];
   tags?: string[];
   category?: string;
+  isDraft?: boolean;
 }
 
 export interface UpdatePostPayload {
@@ -323,7 +324,7 @@ export const forumService = {
     flaggedReason?: string,
   ): Promise<BaseResponse<any>> => {
     const response = await axiosClient.put<BaseResponse<any>>(
-      `/forum/posts/${id}/moderate`,
+      `/admin/forum/posts/${id}/moderate`,
       { status, flaggedReason },
     );
     return response.data;
