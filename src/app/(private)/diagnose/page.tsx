@@ -39,9 +39,27 @@ export default function DiagnosePage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Environment and Field condition parameters
-  const [gpsLat, setGpsLat] = useState<number | undefined>(undefined);
-  const [gpsLng, setGpsLng] = useState<number | undefined>(undefined);
-  const [fieldId, setFieldId] = useState<string | undefined>(undefined);
+  const [gpsLat, setGpsLat] = useState<number | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("temp_gps_lat");
+      return saved ? Number(saved) : undefined;
+    }
+    return undefined;
+  });
+  const [gpsLng, setGpsLng] = useState<number | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("temp_gps_lng");
+      return saved ? Number(saved) : undefined;
+    }
+    return undefined;
+  });
+  const [fieldId, setFieldId] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("temp_field_id");
+      return saved ? saved : undefined;
+    }
+    return undefined;
+  });
   const [modelVersionId, setModelVersionId] = useState<string | undefined>(
     undefined,
   );
@@ -49,8 +67,44 @@ export default function DiagnosePage() {
   const [fieldParams, setFieldParams] =
     useState<FieldParams>(FIELD_PARAM_DEFAULTS);
 
-  // Load default location if available
+  // Sync state to sessionStorage for session persistence
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (gpsLat !== undefined) {
+        sessionStorage.setItem("temp_gps_lat", gpsLat.toString());
+      } else {
+        sessionStorage.removeItem("temp_gps_lat");
+      }
+    }
+  }, [gpsLat]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (gpsLng !== undefined) {
+        sessionStorage.setItem("temp_gps_lng", gpsLng.toString());
+      } else {
+        sessionStorage.removeItem("temp_gps_lng");
+      }
+    }
+  }, [gpsLng]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (fieldId !== undefined) {
+        sessionStorage.setItem("temp_field_id", fieldId);
+      } else {
+        sessionStorage.removeItem("temp_field_id");
+      }
+    }
+  }, [fieldId]);
+
+  // Load default location if available (only if no sessionStorage exists)
+  useEffect(() => {
+    const hasTempGps =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("temp_gps_lat") !== null;
+    if (hasTempGps) return;
+
     if (profile?.role === "FARMER" && profile.farmerProfile) {
       const activeProfile = profile.farmerProfile;
       if (
@@ -97,10 +151,18 @@ export default function DiagnosePage() {
     setFile(null);
     setDescription("");
     setFieldDescription("");
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("temp_gps_lat");
+      sessionStorage.removeItem("temp_gps_lng");
+      sessionStorage.removeItem("temp_field_id");
+    }
+    setGpsLat(undefined);
+    setGpsLng(undefined);
+    setFieldId(undefined);
     reset();
   };
 
-  const handlePredict = (hasModifiedFieldParams: boolean = false) => {
+  const handlePredict = () => {
     if (file) {
       if (!fieldId && (gpsLat === undefined || gpsLng === undefined)) {
         message.warning(
@@ -108,15 +170,21 @@ export default function DiagnosePage() {
           5,
         );
       }
+      // Kiểm tra xem người dùng đã chủ động chọn bất kỳ thông số nào chưa
+      const hasParams =
+        fieldParams.water ||
+        fieldParams.growth ||
+        fieldParams.density ||
+        fieldParams.fog !== null ||
+        fieldParams.pesticide !== null;
+
       predict({
         image: file.raw,
         envDescription: description || undefined,
         fieldDescription: fieldDescription || undefined,
         gpsLat,
         gpsLng,
-        // Chỉ gửi fieldParams nếu user đã chủ động chỉnh sửa
-        // Tránh gửi default values làm sai score dự đoán
-        fieldParams: hasModifiedFieldParams ? fieldParams : undefined,
+        fieldParams: hasParams ? fieldParams : undefined,
         fieldId,
         modelVersionId,
       });
