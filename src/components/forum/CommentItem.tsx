@@ -8,8 +8,9 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { ForumComment } from "@/types/forum.type";
 import { Dropdown, message, Modal } from "antd";
-import { Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import CommentInput from "./CommentInput";
 
 interface CommentItemProps {
   comment: ForumComment;
@@ -20,11 +21,10 @@ export default function CommentItem({
   comment,
   isReply = false,
 }: CommentItemProps) {
-  const [vote, setVote] = useState<"up" | "down" | null>(
+  const [vote, setVote] = useState<"UP" | "DOWN" | null>(
     comment.userVote || null,
   );
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyContent, setReplyContent] = useState("");
   const [visibleRepliesCount, setVisibleRepliesCount] = useState(3);
   const { profile } = useProfile();
 
@@ -37,8 +37,8 @@ export default function CommentItem({
   }, [comment.userVote]);
 
   const handleUpvote = () => {
-    const nextVote = vote === "up" ? "none" : "up";
-    setVote(nextVote === "none" ? null : nextVote);
+    const nextVote = vote === "UP" ? "NONE" : "UP";
+    setVote(nextVote === "NONE" ? null : nextVote);
     voteMutation.mutate({
       commentId: comment.id,
       postId: comment.postId,
@@ -47,8 +47,8 @@ export default function CommentItem({
   };
 
   const handleDownvote = () => {
-    const nextVote = vote === "down" ? "none" : "down";
-    setVote(nextVote === "none" ? null : nextVote);
+    const nextVote = vote === "DOWN" ? "NONE" : "DOWN";
+    setVote(nextVote === "NONE" ? null : nextVote);
     voteMutation.mutate({
       commentId: comment.id,
       postId: comment.postId,
@@ -61,47 +61,42 @@ export default function CommentItem({
   let displayedUpvotes = comment.upvotes;
   let displayedDownvotes = comment.downvotes;
 
-  if (initialUserVote === "up") {
+  if (initialUserVote === "UP") {
     if (vote === null) {
       displayedUpvotes = Math.max(0, displayedUpvotes - 1);
-    } else if (vote === "down") {
+    } else if (vote === "DOWN") {
       displayedUpvotes = Math.max(0, displayedUpvotes - 1);
       displayedDownvotes += 1;
     }
-  } else if (initialUserVote === "down") {
+  } else if (initialUserVote === "DOWN") {
     if (vote === null) {
       displayedDownvotes = Math.max(0, displayedDownvotes - 1);
-    } else if (vote === "up") {
+    } else if (vote === "UP") {
       displayedDownvotes = Math.max(0, displayedDownvotes - 1);
       displayedUpvotes += 1;
     }
   } else {
-    if (vote === "up") {
+    if (vote === "UP") {
       displayedUpvotes += 1;
-    } else if (vote === "down") {
+    } else if (vote === "DOWN") {
       displayedDownvotes += 1;
     }
   }
 
-  const handleReplySubmit = async () => {
-    const trimmed = replyContent.trim();
-    if (!trimmed) return;
-
-    if (trimmed.length > 1000) {
-      message.error("Phản hồi không được vượt quá 1000 ký tự!");
-      return;
-    }
-
+  const handleReplySubmit = async (content: string, imageFile: File | null) => {
     try {
-      await createCommentMutation.mutateAsync({
-        content: trimmed,
-        parentId: comment.id,
-      });
+      const formData = new FormData();
+      formData.append("content", content);
+      formData.append("parentId", comment.id);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      await createCommentMutation.mutateAsync(formData);
       message.success("Phản hồi thành công!");
-      setReplyContent("");
       setShowReplyInput(false);
     } catch (err: any) {
       message.error(err.message || "Phản hồi thất bại.");
+      throw err;
     }
   };
 
@@ -179,8 +174,12 @@ export default function CommentItem({
                   trigger={["click"]}
                   placement="bottomRight"
                 >
-                  <button className="rounded-full p-1 text-[#5C5C5C] opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700">
-                    <MoreHorizontal className="h-4 w-4" />
+                  <button
+                    type="button"
+                    aria-label="Thêm tùy chọn"
+                    className="rounded-full p-1 text-[#5C5C5C] opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                  >
+                    <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </Dropdown>
               )}
@@ -188,6 +187,15 @@ export default function CommentItem({
             <p className="mt-1 text-[14px] leading-relaxed text-[#1B1B1B] dark:text-gray-200">
               {comment.content}
             </p>
+            {comment.imageUrl && (
+              <div className="mt-2 overflow-hidden rounded-lg">
+                <img
+                  src={comment.imageUrl}
+                  alt="Comment attachment"
+                  className="max-h-[200px] w-auto rounded-lg object-contain"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -196,7 +204,7 @@ export default function CommentItem({
           <span>{formattedDate}</span>
           <button
             onClick={handleUpvote}
-            className={`flex items-center gap-0.5 transition-colors hover:text-[#2F9E44] dark:hover:text-green-400 ${vote === "up" ? "font-[600] text-[#2F9E44]" : ""}`}
+            className={`flex items-center gap-0.5 transition-colors hover:text-[#2F9E44] dark:hover:text-green-400 ${vote === "UP" ? "font-[600] text-[#2F9E44]" : ""}`}
           >
             <span>👍 Hữu ích</span>
             <span>({displayedUpvotes})</span>
@@ -204,7 +212,7 @@ export default function CommentItem({
 
           <button
             onClick={handleDownvote}
-            className={`flex items-center gap-0.5 transition-colors hover:text-[#E53935] dark:hover:text-red-400 ${vote === "down" ? "font-[600] text-[#E53935]" : ""}`}
+            className={`flex items-center gap-0.5 transition-colors hover:text-[#E53935] dark:hover:text-red-400 ${vote === "DOWN" ? "font-[600] text-[#E53935]" : ""}`}
           >
             <span>👎 Không hữu ích</span>
             <span>({displayedDownvotes})</span>
@@ -222,30 +230,12 @@ export default function CommentItem({
 
         {/* Reply Input */}
         {showReplyInput && (
-          <div className="mt-3 flex gap-2">
-            <div className="relative flex-1">
-              <textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder={`Viết phản hồi cho ${comment.author.name}...`}
-                maxLength={1000}
-                className="w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-2 pb-6 text-[14px] focus:border-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                rows={1}
-              />
-              <span className="absolute right-2 bottom-1 text-[10px] font-medium text-[#9E9E9E] dark:text-gray-500">
-                {replyContent.length}/1000
-              </span>
-            </div>
-            <button
-              onClick={handleReplySubmit}
-              disabled={!replyContent.trim() || createCommentMutation.isPending}
-              className="flex items-center gap-1 rounded-lg bg-[#2F9E44] px-4 py-2 text-[14px] font-[600] text-white hover:bg-[#1F6F2E] disabled:opacity-50"
-            >
-              {createCommentMutation.isPending && (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              )}
-              <span>Gửi</span>
-            </button>
+          <div className="mt-3">
+            <CommentInput
+              placeholder={`Viết phản hồi cho ${comment.author.name}…`}
+              isPending={createCommentMutation.isPending}
+              onSubmit={handleReplySubmit}
+            />
           </div>
         )}
 

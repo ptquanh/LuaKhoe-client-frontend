@@ -14,7 +14,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const [vote, setVote] = useState<"up" | "down" | null>(post.userVote || null);
+  const [vote, setVote] = useState<"UP" | "DOWN" | null>(post.userVote || null);
   const [showComments, setShowComments] = useState(false);
   const { profile } = useProfile();
 
@@ -26,14 +26,14 @@ export default function PostCard({ post }: PostCardProps) {
   }, [post.userVote]);
 
   const handleUpvote = () => {
-    const nextVote = vote === "up" ? "none" : "up";
-    setVote(nextVote === "none" ? null : nextVote);
+    const nextVote = vote === "UP" ? "NONE" : "UP";
+    setVote(nextVote === "NONE" ? null : nextVote);
     voteMutation.mutate({ postId: post.id, type: nextVote });
   };
 
   const handleDownvote = () => {
-    const nextVote = vote === "down" ? "none" : "down";
-    setVote(nextVote === "none" ? null : nextVote);
+    const nextVote = vote === "DOWN" ? "NONE" : "DOWN";
+    setVote(nextVote === "NONE" ? null : nextVote);
     voteMutation.mutate({ postId: post.id, type: nextVote });
   };
 
@@ -42,24 +42,24 @@ export default function PostCard({ post }: PostCardProps) {
   let displayedUpvotes = post.upvotes;
   let displayedDownvotes = post.downvotes;
 
-  if (initialUserVote === "up") {
+  if (initialUserVote === "UP") {
     if (vote === null) {
       displayedUpvotes = Math.max(0, displayedUpvotes - 1);
-    } else if (vote === "down") {
+    } else if (vote === "DOWN") {
       displayedUpvotes = Math.max(0, displayedUpvotes - 1);
       displayedDownvotes += 1;
     }
-  } else if (initialUserVote === "down") {
+  } else if (initialUserVote === "DOWN") {
     if (vote === null) {
       displayedDownvotes = Math.max(0, displayedDownvotes - 1);
-    } else if (vote === "up") {
+    } else if (vote === "UP") {
       displayedDownvotes = Math.max(0, displayedDownvotes - 1);
       displayedUpvotes += 1;
     }
   } else {
-    if (vote === "up") {
+    if (vote === "UP") {
       displayedUpvotes += 1;
-    } else if (vote === "down") {
+    } else if (vote === "DOWN") {
       displayedDownvotes += 1;
     }
   }
@@ -111,7 +111,7 @@ export default function PostCard({ post }: PostCardProps) {
       key: "delete",
       label: (
         <span className="flex items-center gap-2 text-red-600">
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" aria-hidden="true" />
           Xóa bài viết
         </span>
       ),
@@ -169,8 +169,11 @@ export default function PostCard({ post }: PostCardProps) {
             trigger={["click"]}
             placement="bottomRight"
           >
-            <button className="rounded-lg p-2 text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800">
-              <MoreHorizontal className="h-5 w-5" />
+            <button
+              aria-label="Thêm tùy chọn"
+              className="rounded-lg p-2 text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800"
+            >
+              <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
             </button>
           </Dropdown>
         )}
@@ -201,7 +204,7 @@ export default function PostCard({ post }: PostCardProps) {
                 key={tag}
                 className="rounded-md bg-[#F0F2F5] px-2 py-1 text-[12px] text-[#5C5C5C] dark:bg-gray-800 dark:text-gray-300"
               >
-                #{tag}
+                {tag}
               </span>
             ))}
           </div>
@@ -253,7 +256,7 @@ export default function PostCard({ post }: PostCardProps) {
           <button
             onClick={handleUpvote}
             className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-[600] transition-all duration-200 ${
-              vote === "up"
+              vote === "UP"
                 ? "border-[#2F9E44] bg-[#2F9E44] text-white shadow-sm hover:bg-[#1F6F2E]"
                 : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
@@ -266,7 +269,7 @@ export default function PostCard({ post }: PostCardProps) {
           <button
             onClick={handleDownvote}
             className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[13px] font-[600] transition-all duration-200 ${
-              vote === "down"
+              vote === "DOWN"
                 ? "border-[#FCA5A5] bg-[#FEE2E2] text-[#991B1B] shadow-sm hover:bg-[#FECACA] dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400"
                 : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:border-[#CCCCCC] hover:bg-[#F7F7F7] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             }`}
@@ -281,14 +284,14 @@ export default function PostCard({ post }: PostCardProps) {
             onClick={() => setShowComments(!showComments)}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800"
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4" aria-hidden="true" />
             <span>{post.commentCount} Bình luận</span>
           </button>
           <button
             onClick={handleShare}
             className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] dark:text-gray-400 dark:hover:bg-gray-800"
           >
-            <Share2 className="h-4 w-4" />
+            <Share2 className="h-4 w-4" aria-hidden="true" />
             <span>Chia sẻ</span>
           </button>
         </div>

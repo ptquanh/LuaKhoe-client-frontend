@@ -22,9 +22,12 @@ export default function PostDetailPage({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-[#2F9E44]" />
+        <Loader2
+          className="h-12 w-12 animate-spin text-[#2F9E44]"
+          aria-hidden="true"
+        />
         <p className="mt-4 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-          Đang tải chi tiết bài viết...
+          Đang tải chi tiết bài viết…
         </p>
       </div>
     );
@@ -43,7 +46,7 @@ export default function PostDetailPage({
         href="/forum"
         className="flex w-fit items-center gap-2 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#2F9E44] dark:text-gray-400 dark:hover:text-green-400"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         <span>Quay lại diễn đàn</span>
       </Link>
 

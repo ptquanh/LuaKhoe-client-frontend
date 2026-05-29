@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2, Send } from "lucide-react";
-import { message } from "antd";
-import CommentItem from "./CommentItem";
+import { useCreateComment, useForumComments } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
-import { useForumComments, useCreateComment } from "@/hooks/useForum";
+import { message } from "antd";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import CommentInput from "./CommentInput";
+import CommentItem from "./CommentItem";
 
 interface CommentSectionProps {
   postId: string;
@@ -13,7 +14,6 @@ interface CommentSectionProps {
 }
 
 export default function CommentSection({ postId }: CommentSectionProps) {
-  const [newComment, setNewComment] = useState("");
   const [visibleCount, setVisibleCount] = useState(3);
   const { profile } = useProfile();
 
@@ -33,23 +33,18 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
   const avatarUrl = profile?.avatarUrl || "";
 
-  const handleSubmit = async () => {
-    const trimmed = newComment.trim();
-    if (!trimmed) return;
-
-    if (trimmed.length > 1000) {
-      message.error("Bình luận không được vượt quá 1000 ký tự!");
-      return;
-    }
-
+  const handleSubmit = async (content: string, imageFile: File | null) => {
     try {
-      await createCommentMutation.mutateAsync({
-        content: trimmed,
-      });
+      const formData = new FormData();
+      formData.append("content", content);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+      await createCommentMutation.mutateAsync(formData);
       message.success("Bình luận thành công!");
-      setNewComment("");
     } catch (err: any) {
       message.error(err.message || "Bình luận thất bại.");
+      throw err;
     }
   };
 
@@ -62,45 +57,23 @@ export default function CommentSection({ postId }: CommentSectionProps) {
       </h3>
 
       {/* Comment Input */}
-      <div className="mb-8 flex gap-3">
-        <img
-          src={avatarUrl}
-          alt={profileName}
-          className="h-10 w-10 shrink-0 rounded-full object-cover"
+      <div className="mb-8">
+        <CommentInput
+          onSubmit={handleSubmit}
+          avatarUrl={avatarUrl}
+          profileName={profileName}
+          isPending={createCommentMutation.isPending}
         />
-        <div className="flex flex-1 items-end gap-2">
-          <div className="relative flex-1">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Viết bình luận của bạn..."
-              maxLength={1000}
-              className="w-full resize-none rounded-xl border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-8 text-[14px] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
-              rows={2}
-            />
-            <span className="absolute right-3 bottom-2 text-[11px] font-medium text-[#9E9E9E] dark:text-gray-500">
-              {newComment.length}/1000
-            </span>
-          </div>
-          <button
-            onClick={handleSubmit}
-            disabled={!newComment.trim() || createCommentMutation.isPending}
-            className="flex shrink-0 items-center justify-center rounded-xl bg-[#2F9E44] p-3 text-white transition-colors hover:bg-[#1F6F2E] disabled:opacity-50"
-          >
-            {createCommentMutation.isPending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
-          </button>
-        </div>
       </div>
 
       {/* Comments List */}
       <div className="flex flex-col gap-2">
         {isLoading ? (
           <div className="flex justify-center py-6">
-            <Loader2 className="h-6 w-6 animate-spin text-[#2F9E44]" />
+            <Loader2
+              className="h-6 w-6 animate-spin text-[#2F9E44]"
+              aria-hidden="true"
+            />
           </div>
         ) : isError ? (
           <p className="text-center text-[14px] text-red-500">

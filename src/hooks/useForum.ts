@@ -37,7 +37,7 @@ export function useForumPostDetail(postId: string) {
 export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreatePostPayload) =>
+    mutationFn: (payload: CreatePostPayload | FormData) =>
       forumService.createPost(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
@@ -54,7 +54,7 @@ export function useVotePost() {
       type,
     }: {
       postId: string;
-      type: "up" | "down" | "none";
+      type: "UP" | "DOWN" | "NONE";
     }) => forumService.votePost(postId, type),
     onMutate: async ({ postId, type }) => {
       // 1. Cancel outgoing queries
@@ -68,7 +68,7 @@ export function useVotePost() {
         postId,
       ]);
 
-      const calculateVotes = (item: any, newVote: "up" | "down" | "none") => {
+      const calculateVotes = (item: any, newVote: "UP" | "DOWN" | "NONE") => {
         const initialUserVote = item.userVote || null;
         let diffUp = 0;
         let diffDown = 0;
@@ -77,26 +77,26 @@ export function useVotePost() {
           return {
             upvotes: item.upvotes,
             downvotes: item.downvotes,
-            userVote: newVote === "none" ? null : newVote,
+            userVote: newVote === "NONE" ? null : newVote,
           };
         }
 
-        if (initialUserVote === "up") {
+        if (initialUserVote === "UP") {
           diffUp = -1;
-        } else if (initialUserVote === "down") {
+        } else if (initialUserVote === "DOWN") {
           diffDown = -1;
         }
 
-        if (newVote === "up") {
+        if (newVote === "UP") {
           diffUp += 1;
-        } else if (newVote === "down") {
+        } else if (newVote === "DOWN") {
           diffDown += 1;
         }
 
         return {
           upvotes: Math.max(0, item.upvotes + diffUp),
           downvotes: Math.max(0, item.downvotes + diffDown),
-          userVote: newVote === "none" ? null : newVote,
+          userVote: newVote === "NONE" ? null : newVote,
         };
       };
 
@@ -181,7 +181,7 @@ export function useForumComments(
 export function useCreateComment(postId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreateCommentPayload) =>
+    mutationFn: (payload: CreateCommentPayload | FormData) =>
       forumService.createComment(postId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
@@ -201,7 +201,7 @@ export function useVoteComment() {
     }: {
       commentId: string;
       postId: string;
-      type: "up" | "down" | "none";
+      type: "UP" | "DOWN" | "NONE";
     }) => forumService.voteComment(commentId, type),
     onMutate: async ({ commentId, postId, type }) => {
       await queryClient.cancelQueries({ queryKey: ["forum-comments", postId] });
@@ -211,7 +211,7 @@ export function useVoteComment() {
         postId,
       ]);
 
-      const calculateVotes = (item: any, newVote: "up" | "down" | "none") => {
+      const calculateVotes = (item: any, newVote: "UP" | "DOWN" | "NONE") => {
         const initialUserVote = item.userVote || null;
         let diffUp = 0;
         let diffDown = 0;
@@ -220,26 +220,26 @@ export function useVoteComment() {
           return {
             upvotes: item.upvotes,
             downvotes: item.downvotes,
-            userVote: newVote === "none" ? null : newVote,
+            userVote: newVote === "NONE" ? null : newVote,
           };
         }
 
-        if (initialUserVote === "up") {
+        if (initialUserVote === "UP") {
           diffUp = -1;
-        } else if (initialUserVote === "down") {
+        } else if (initialUserVote === "DOWN") {
           diffDown = -1;
         }
 
-        if (newVote === "up") {
+        if (newVote === "UP") {
           diffUp += 1;
-        } else if (newVote === "down") {
+        } else if (newVote === "DOWN") {
           diffDown += 1;
         }
 
         return {
           upvotes: Math.max(0, item.upvotes + diffUp),
           downvotes: Math.max(0, item.downvotes + diffDown),
-          userVote: newVote === "none" ? null : newVote,
+          userVote: newVote === "NONE" ? null : newVote,
         };
       };
 
@@ -330,5 +330,12 @@ export function useModeratePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
     },
+  });
+}
+
+export function useMyPosts(params?: { status?: string; search?: string }) {
+  return useQuery({
+    queryKey: ["my-posts", params],
+    queryFn: () => forumService.getMyPosts(params),
   });
 }

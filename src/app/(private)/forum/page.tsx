@@ -3,7 +3,16 @@
 import CreatePostWidget from "@/components/forum/CreatePostWidget";
 import PostCard from "@/components/forum/PostCard";
 import { useForumPosts } from "@/hooks/useForum";
-import { Clock, Filter, Flame, Loader2, Search } from "lucide-react";
+import {
+  Clock,
+  Filter,
+  Flame,
+  Globe,
+  History,
+  Loader2,
+  Search,
+} from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export default function ForumPage() {
@@ -53,7 +62,7 @@ export default function ForumPage() {
           <h1 className="text-[24px] font-[700] text-[#1B1B1B] dark:text-gray-100">
             Diễn đàn nông dân
           </h1>
-          <p className="text-[14px] text-[#5C5C5C] dark:text-gray-400">
+          <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
             Nơi giao lưu, hỏi đáp và chia sẻ kinh nghiệm canh tác
           </p>
         </div>
@@ -61,16 +70,35 @@ export default function ForumPage() {
         {/* Search Bar */}
         <div className="relative w-full shrink-0 md:w-[300px]">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9E9E9E] dark:text-gray-500">
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5" aria-hidden="true" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm bài viết, kỹ thuật..."
+            placeholder="Tìm bài viết, kỹ thuật…"
+            aria-label="Tìm kiếm bài viết trên diễn đàn"
             className="w-full rounded-full border border-[#E0E0E0] bg-white py-2.5 pr-4 pl-10 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-[#2F9E44] dark:focus:ring-[#2F9E44]"
           />
         </div>
+      </div>
+
+      {/* Segmented Control Navigation */}
+      <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+        <Link
+          href="/forum"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white py-2.5 text-center font-bold text-[#2F9E44] shadow-xs focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:bg-gray-700 dark:text-green-400"
+        >
+          <Globe className="h-4 w-4" aria-hidden="true" />
+          <span>Diễn đàn chung</span>
+        </Link>
+        <Link
+          href="/forum/my-posts"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-center font-medium text-gray-600 transition hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:text-green-400"
+        >
+          <History className="h-4 w-4" aria-hidden="true" />
+          <span>Bài viết của tôi</span>
+        </Link>
       </div>
 
       {/* Create Post Area */}
@@ -89,7 +117,7 @@ export default function ForumPage() {
               : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           }`}
         >
-          <Flame className="h-4 w-4" />
+          <Flame className="h-4 w-4" aria-hidden="true" />
           <span>Hot nhất</span>
         </button>
 
@@ -104,7 +132,7 @@ export default function ForumPage() {
               : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           }`}
         >
-          <Clock className="h-4 w-4" />
+          <Clock className="h-4 w-4" aria-hidden="true" />
           <span>Mới nhất</span>
         </button>
 
@@ -118,7 +146,7 @@ export default function ForumPage() {
               : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           }`}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4" aria-hidden="true" />
           <span>Bệnh đạo ôn</span>
         </button>
       </div>
@@ -127,9 +155,12 @@ export default function ForumPage() {
       <div className="flex flex-col gap-4">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Loader2 className="h-10 w-10 animate-spin text-[#2F9E44]" />
+            <Loader2
+              className="h-10 w-10 animate-spin text-[#2F9E44]"
+              aria-hidden="true"
+            />
             <p className="mt-3 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-              Đang tải danh sách bài viết...
+              Đang tải danh sách bài viết…
             </p>
           </div>
         ) : isError ? (
@@ -156,8 +187,11 @@ export default function ForumPage() {
               >
                 {isFetchingNextPage ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Đang tải thêm...</span>
+                    <Loader2
+                      className="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    <span>Đang tải thêm…</span>
                   </>
                 ) : (
                   <span>Xem thêm bài viết</span>
@@ -167,12 +201,15 @@ export default function ForumPage() {
           </>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center dark:border-gray-800 dark:bg-gray-900">
-            <Search className="mb-3 h-10 w-10 text-[#9E9E9E]" />
+            <Search
+              className="mb-3 h-10 w-10 text-[#9E9E9E]"
+              aria-hidden="true"
+            />
             <p className="text-[16px] font-[500] text-[#1B1B1B] dark:text-gray-100">
               Không tìm thấy bài viết nào
             </p>
             <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-              Thử sử dụng các từ khóa khác xem sao (ví dụ: đạo ôn, ST25...)
+              Thử sử dụng các từ khóa khác xem sao (ví dụ: đạo ôn, ST25…)
             </p>
           </div>
         )}

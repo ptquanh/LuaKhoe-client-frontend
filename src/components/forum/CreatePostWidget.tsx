@@ -4,8 +4,15 @@ import { useProfile } from "@/hooks/useProfile";
 import { diseaseService } from "@/services/disease.service";
 import { forumService } from "@/services/forum.service";
 import { message } from "antd";
-import { Image as ImageIcon, Loader2, Send, Sparkles, Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Image as ImageIcon,
+  Loader2,
+  Send,
+  Sparkles,
+  Tag,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 // Use absolute import or local hook since we already have useCreatePost in hook file
 import { useCreatePost as useCreatePostHook } from "@/hooks/useForum";
@@ -21,6 +28,9 @@ export default function CreatePostWidget() {
   const [category, setCategory] = useState<string>("Hỏi đáp");
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [customTagInput, setCustomTagInput] = useState(""); // Custom tag input state
+  const [images, setImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State lưu danh sách gợi ý tổng hợp
   const [suggestedTags, setSuggestedTags] = useState<string[]>(STATIC_TAGS);
@@ -47,6 +57,63 @@ export default function CreatePostWidget() {
 
     fetchDiseaseTags();
   }, []);
+
+  // Keep track of preview URLs to revoke them on unmount
+  const activePreviewsRef = useRef<string[]>([]);
+  useEffect(() => {
+    activePreviewsRef.current = previewUrls;
+  }, [previewUrls]);
+
+  useEffect(() => {
+    return () => {
+      activePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles) return;
+
+    const newFiles = Array.from(selectedFiles);
+    const validFiles: File[] = [];
+    const newPreviewUrls: string[] = [];
+
+    for (const file of newFiles) {
+      if (file.size > 5 * 1024 * 1024) {
+        message.error(`Ảnh ${file.name} vượt quá dung lượng 5MB cho phép!`);
+        continue;
+      }
+
+      const allowedTypes = [
+        "image/png",
+        "image/jpeg",
+        "image/jpg",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        message.error(`Định dạng tệp ${file.name} không hỗ trợ!`);
+        continue;
+      }
+
+      validFiles.push(file);
+      newPreviewUrls.push(URL.createObjectURL(file));
+    }
+
+    if (images.length + validFiles.length > 4) {
+      message.warning("Bà con chỉ được chọn tối đa 4 ảnh cho mỗi bài viết.");
+      newPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+      return;
+    }
+
+    setImages((prev) => [...prev, ...validFiles]);
+    setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
+  };
+
+  const removeImage = (index: number) => {
+    URL.revokeObjectURL(previewUrls[index]);
+    setImages((prev) => prev.filter((_, idx) => idx !== index));
+    setPreviewUrls((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   const { profile } = useProfile();
   const createPostMutation = useCreatePostHook();
@@ -160,15 +227,30 @@ export default function CreatePostWidget() {
     }
 
     try {
-      await createPostMutation.mutateAsync({
-        content: trimmed,
-        tags: tags.length > 0 ? tags : ["Hỏi đáp"],
-        category: category,
+      const formData = new FormData();
+      formData.append("content", trimmed);
+      formData.append("category", category);
+      formData.append("isDraft", "false");
+
+      const postTags = tags.length > 0 ? tags : ["Hỏi đáp"];
+      postTags.forEach((tag) => {
+        formData.append("tags", tag);
       });
+
+      images.forEach((image) => {
+        formData.append("images", image);
+      });
+
+      await createPostMutation.mutateAsync(formData);
       message.success("Đăng bài viết thành công!");
       setContent("");
       setTags([]);
       setCategory("Hỏi đáp");
+
+      // Reset image state
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+      setImages([]);
+      setPreviewUrls([]);
     } catch (err: any) {
       message.error(err.message || "Không thể đăng bài viết.");
     }
@@ -195,10 +277,14 @@ export default function CreatePostWidget() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-semibold text-[#5C5C5C] dark:text-gray-400">
+          <label
+            htmlFor="create-post-category"
+            className="text-[13px] font-semibold text-[#5C5C5C] dark:text-gray-400"
+          >
             Thể loại:
-          </span>
+          </label>
           <select
+            id="create-post-category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] px-3 py-1.5 text-[13px] font-bold text-[#2F9E44] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-emerald-400"
@@ -217,8 +303,9 @@ export default function CreatePostWidget() {
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Bà con đang gặp vấn đề gì về lúa, thắc mắc bệnh hại hay có kinh nghiệm bổ ích muốn chia sẻ..."
+          placeholder="Bà con đang gặp vấn đề gì về lúa, thắc mắc bệnh hại hay có kinh nghiệm bổ ích muốn chia sẻ…"
           maxLength={5000}
+          aria-label="Nội dung bài viết mới"
           className="w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-14 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           rows={4}
         />
@@ -233,19 +320,51 @@ export default function CreatePostWidget() {
             className="flex animate-pulse items-center gap-1.5 rounded-lg border border-[#2F9E44]/20 bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-[#2F9E44] transition-all hover:bg-[#E6F4EA] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-950/10 dark:hover:bg-emerald-950/20"
           >
             {isEnhancing ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2
+                className="h-3.5 w-3.5 animate-spin"
+                aria-hidden="true"
+              />
             ) : (
-              <Sparkles className="h-3.5 w-3.5 text-[#2F9E44]" />
+              <Sparkles
+                className="h-3.5 w-3.5 text-[#2F9E44]"
+                aria-hidden="true"
+              />
             )}
             <span>Cải thiện bằng AI</span>
           </button>
         </div>
       </div>
 
+      {/* Image Preview Grid */}
+      {previewUrls.length > 0 && (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {previewUrls.map((url, idx) => (
+            <div
+              key={idx}
+              className="group relative aspect-square overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800"
+            >
+              <img
+                src={url}
+                alt={`preview-${idx}`}
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(idx)}
+                className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-rose-600 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
+                aria-label="Xóa ảnh này"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 3. Suggested chips area using natural language Vietnamese tags */}
       <div className="mt-4 space-y-2.5 border-t border-dashed border-gray-100 pt-3 dark:border-gray-800">
         <div className="flex items-center gap-1.5">
-          <Tag className="h-4 w-4 text-[#2F9E44]" />
+          <Tag className="h-4 w-4 text-[#2F9E44]" aria-hidden="true" />
           <span className="text-[13px] font-semibold text-[#5C5C5C] dark:text-gray-400">
             Chủ đề bài đăng:
           </span>
@@ -255,21 +374,26 @@ export default function CreatePostWidget() {
         <div className="flex min-h-[32px] flex-wrap gap-2 rounded-lg border border-emerald-500/5 bg-emerald-50/10 p-2 dark:bg-emerald-950/5">
           {tags.length === 0 ? (
             <span className="text-[12px] text-gray-400 italic">
-              Chưa chọn chủ đề nào...
+              Chưa chọn chủ đề nào…
             </span>
           ) : (
             tags.map((tag, idx) => (
-              <span
+              <button
                 key={idx}
+                type="button"
                 onClick={() => toggleTag(tag)}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-500/10 bg-[#E6F4EA] px-3 py-1.5 text-[13px] font-bold text-[#2F9E44] shadow-xs transition-colors hover:bg-rose-50 hover:text-rose-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                aria-pressed="true"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-emerald-500/10 bg-[#E6F4EA] px-3 py-1.5 text-[13px] font-bold text-[#2F9E44] shadow-xs transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:bg-emerald-950/40 dark:text-emerald-400"
                 title="Bấm để xóa thẻ này"
               >
                 {tag}
-                <span className="ml-1 text-[11px] font-extrabold opacity-75">
+                <span
+                  className="ml-1 text-[11px] font-extrabold opacity-75"
+                  aria-hidden="true"
+                >
                   ✕
                 </span>
-              </span>
+              </button>
             ))
           )}
         </div>
@@ -283,13 +407,15 @@ export default function CreatePostWidget() {
             {suggestedTags
               .filter((tag) => !isTagExists(tag))
               .map((tag, idx) => (
-                <span
+                <button
                   key={idx}
+                  type="button"
                   onClick={() => toggleTag(tag)}
-                  className="dark:border-gray-850 inline-block cursor-pointer rounded-md border border-gray-100 bg-[#F7F7F7] px-3 py-1.5 text-[13px] font-semibold text-[#5C5C5C] transition-all hover:bg-[#E6F4EA] hover:text-[#2F9E44] dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-[#2F9E44]/20"
+                  aria-pressed={isTagExists(tag)}
+                  className="dark:border-gray-850 inline-block cursor-pointer rounded-md border border-gray-100 bg-[#F7F7F7] px-3 py-1.5 text-[13px] font-semibold text-[#5C5C5C] transition-all hover:bg-[#E6F4EA] hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-[#2F9E44]/20"
                 >
                   + {tag}
-                </span>
+                </button>
               ))}
           </div>
         </div>
@@ -301,7 +427,8 @@ export default function CreatePostWidget() {
             value={customTagInput}
             onChange={(e) => setCustomTagInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddCustomTag(e)}
-            placeholder="Nhập chủ đề khác (Ví dụ: bệnh sâu đục thân)..."
+            placeholder="Nhập chủ đề khác (Ví dụ: bệnh sâu đục thân)…"
+            aria-label="Nhập chủ đề tùy chỉnh"
             className="flex-1 rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] px-3 py-1.5 text-[13px] text-[#1B1B1B] placeholder-[#9E9E9E] outline-none focus:border-[#2F9E44] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-emerald-500"
           />
           <button
@@ -316,9 +443,21 @@ export default function CreatePostWidget() {
 
       {/* 4. Action Buttons (Submit & Media upload) */}
       <div className="mt-4 flex items-center justify-between border-t border-[#E0E0E0] pt-3 dark:border-gray-800">
-        <button className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] hover:text-[#2F9E44] dark:text-gray-400 dark:hover:bg-gray-800">
-          <ImageIcon className="h-4 w-5" />
-          <span>Thêm ảnh</span>
+        <input
+          type="file"
+          multiple
+          accept="image/png, image/jpeg, image/jpg, image/webp"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleImageSelect}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+        >
+          <ImageIcon className="h-4 w-5" aria-hidden="true" />
+          <span>Thêm ảnh {images.length > 0 && `(${images.length}/4)`}</span>
         </button>
 
         <button
@@ -326,12 +465,12 @@ export default function CreatePostWidget() {
           disabled={
             !content.trim() || createPostMutation.isPending || isEnhancing
           }
-          className="flex items-center gap-2 rounded-lg bg-[#2F9E44] px-5 py-2 text-[14px] font-[600] text-white shadow-xs transition-colors hover:bg-[#1F6F2E] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-[#2F9E44] px-5 py-2 text-[14px] font-[600] text-white shadow-xs transition-colors hover:bg-[#1F6F2E] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {createPostMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4" aria-hidden="true" />
           )}
           <span>Đăng bài</span>
         </button>

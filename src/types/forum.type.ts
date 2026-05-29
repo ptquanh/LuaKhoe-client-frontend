@@ -16,7 +16,8 @@ export interface ForumComment {
   upvotes: number;
   downvotes: number;
   replies?: ForumComment[];
-  userVote?: "up" | "down" | null;
+  userVote?: "UP" | "DOWN" | null;
+  imageUrl?: string | null;
 }
 
 export interface ForumPost {
@@ -30,8 +31,8 @@ export interface ForumPost {
   commentCount: number;
   tags?: string[];
   topComment?: ForumComment;
-  userVote?: "up" | "down" | null;
-  status?: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
+  userVote?: "UP" | "DOWN" | null;
+  status?: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
   category?: string;
   flaggedReason?: string | null;
   isAdminPost?: boolean;

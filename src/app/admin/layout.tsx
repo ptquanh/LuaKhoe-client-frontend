@@ -33,7 +33,7 @@ const menuItems = [
   },
   { label: "Mô hình", href: ROUTES.ADMIN_MODELS, icon: Brain },
   { label: "Phản hồi AI", href: ROUTES.ADMIN_FEEDBACK, icon: MessageSquare },
-  { label: "Diễn đàn", href: ROUTES.ADMIN_FORUM, icon: CheckSquare },
+  { label: "Quản lý Diễn đàn", href: ROUTES.ADMIN_FORUM, icon: CheckSquare },
   { label: "Cấu hình", href: ROUTES.ADMIN_CONFIGS, icon: Settings },
 ];
 

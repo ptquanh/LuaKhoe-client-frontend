@@ -70,6 +70,7 @@ export const mapBackendCommentToForumComment = (comment: any): ForumComment => {
     upvotes: comment.upvotes || 0,
     downvotes: comment.downvotes || 0,
     userVote: comment.userVote || null,
+    imageUrl: comment.imageUrl || null,
     replies: comment.replies
       ? comment.replies.map((reply: any) =>
           mapBackendCommentToForumComment(reply),
@@ -156,7 +157,7 @@ export const forumService = {
   },
 
   createPost: async (
-    payload: CreatePostPayload,
+    payload: CreatePostPayload | FormData,
   ): Promise<BaseResponse<ForumPost>> => {
     const response = await axiosClient.post<BaseResponse<any>>(
       "/forum/posts",
@@ -197,7 +198,7 @@ export const forumService = {
 
   votePost: async (
     id: string,
-    type: "up" | "down" | "none",
+    type: "UP" | "DOWN" | "NONE",
   ): Promise<BaseResponse<void>> => {
     const response = await axiosClient.post<BaseResponse<void>>(
       `/forum/posts/${id}/vote`,
@@ -232,7 +233,7 @@ export const forumService = {
 
   createComment: async (
     postId: string,
-    payload: CreateCommentPayload,
+    payload: CreateCommentPayload | FormData,
   ): Promise<BaseResponse<ForumComment>> => {
     const response = await axiosClient.post<BaseResponse<any>>(
       `/forum/posts/${postId}/comments`,
@@ -273,7 +274,7 @@ export const forumService = {
 
   voteComment: async (
     commentId: string,
-    type: "up" | "down" | "none",
+    type: "UP" | "DOWN" | "NONE",
   ): Promise<BaseResponse<void>> => {
     const response = await axiosClient.post<BaseResponse<void>>(
       `/forum/comments/${commentId}/vote`,
@@ -296,6 +297,24 @@ export const forumService = {
       { content },
     );
     return response.data;
+  },
+
+  getMyPosts: async (params?: {
+    status?: string;
+    search?: string;
+  }): Promise<BaseResponse<ForumPost[]>> => {
+    const response = await axiosClient.get<BaseResponse<any[]>>(
+      "/forum/posts/my-posts",
+      { params },
+    );
+    const items = response.data.data
+      ? response.data.data.map(mapBackendPostToForumPost)
+      : [];
+    return {
+      success: response.data.success,
+      message: response.data.message,
+      data: items,
+    };
   },
 
   moderatePost: async (
