@@ -25,6 +25,19 @@ export default function OnboardingLocationPage() {
   const [province, setProvince] = useState<string>("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
+  const [isGoogleFlow, setIsGoogleFlow] = useState(false);
+
+  // Check if they completed the password onboarding step in this session
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const completedPassword = sessionStorage.getItem(
+        "completed_password_step",
+      );
+      if (completedPassword === "true") {
+        setIsGoogleFlow(true);
+      }
+    }
+  }, []);
 
   // Redirect if not logged in or doesn't have password
   useEffect(() => {
@@ -114,6 +127,9 @@ export default function OnboardingLocationPage() {
         if (user) {
           localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
         }
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("completed_password_step");
+        }
         await refetch();
         router.push(ROUTES.DIAGNOSE);
       },
@@ -123,6 +139,9 @@ export default function OnboardingLocationPage() {
   const handleSkip = () => {
     if (user) {
       localStorage.setItem(`onboarding_skipped_${user.id}`, "true");
+    }
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("completed_password_step");
     }
     router.push(ROUTES.DIAGNOSE);
   };
@@ -150,7 +169,7 @@ export default function OnboardingLocationPage() {
             </span>
           </div>
           <span className="rounded-full bg-[#E6F4EA] px-2.5 py-0.5 text-[11px] font-[600] text-[#2F9E44]">
-            Bước 2 / 2
+            {isGoogleFlow ? "Bước 2 / 2" : "Bước 1 / 1"}
           </span>
         </div>
 
