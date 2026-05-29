@@ -1,18 +1,22 @@
 import {
   AlertTriangle,
+  Bot,
   CheckCircle2,
   Clock,
   FileText,
   HelpCircle,
+  ShieldAlert,
 } from "lucide-react";
 
 interface PostStatusBadgeProps {
   status?: string;
+  rejectedBy?: "AI" | "ADMIN" | null;
   className?: string;
 }
 
 export default function PostStatusBadge({
   status,
+  rejectedBy,
   className = "",
 }: PostStatusBadgeProps) {
   const normalizedStatus = status?.toUpperCase() || "";
@@ -43,11 +47,22 @@ export default function PostStatusBadge({
         </span>
       );
     case "REJECTED":
+      if (rejectedBy === "AI") {
+        return (
+          <span
+            className={`inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-800 ${className}`}
+          >
+            <Bot className="h-3.5 w-3.5" aria-hidden="true" /> Từ chối tự động
+            (AI)
+          </span>
+        );
+      }
       return (
         <span
-          className={`inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 ${className}`}
+          className={`inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800 ${className}`}
         >
-          <AlertTriangle className="h-3 w-3" aria-hidden="true" /> Từ chối
+          <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" /> Từ chối
+          (Ban Quản Trị)
         </span>
       );
     case "EXPIRED":

@@ -268,14 +268,27 @@ export default function MyPostsPage() {
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <PostStatusBadge status={post.status} />
-                  {post.status === "REJECTED" && post.flaggedReason && (
-                    <span
-                      className="max-w-[220px] truncate text-right text-[12px] font-medium text-red-600 dark:text-red-400"
-                      title={post.flaggedReason}
-                    >
-                      Lý do: {post.flaggedReason}
-                    </span>
+                  <PostStatusBadge
+                    status={post.status}
+                    rejectedBy={post.rejectedBy}
+                  />
+                  {post.status === "REJECTED" && (
+                    <div className="mt-1 flex max-w-[260px] flex-col items-end text-right text-[12px] font-medium">
+                      {post.flaggedReason && (
+                        <span
+                          className="truncate text-red-600 dark:text-red-400"
+                          title={post.flaggedReason}
+                        >
+                          Lý do: {post.flaggedReason}
+                        </span>
+                      )}
+                      {post.rejectedBy === "AI" && (
+                        <span className="mt-0.5 block text-[11px] leading-normal font-normal text-purple-600 dark:text-purple-400">
+                          Hệ thống tự động phát hiện nội dung chưa phù hợp. Bạn
+                          có thể sửa bài để gửi duyệt lại.
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

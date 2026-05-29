@@ -212,7 +212,7 @@ export default function CreatePostWidget() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = (submitAsDraft: boolean) => {
     const trimmed = content.trim();
     if (!trimmed) return;
 
@@ -226,34 +226,34 @@ export default function CreatePostWidget() {
       return;
     }
 
-    try {
-      const formData = new FormData();
-      formData.append("content", trimmed);
-      formData.append("category", category);
-      formData.append("isDraft", "false");
-
-      const postTags = tags.length > 0 ? tags : ["Hỏi đáp"];
-      postTags.forEach((tag) => {
-        formData.append("tags", tag);
-      });
-
-      images.forEach((image) => {
-        formData.append("images", image);
-      });
-
-      await createPostMutation.mutateAsync(formData);
-      message.success("Đăng bài viết thành công!");
-      setContent("");
-      setTags([]);
-      setCategory("Hỏi đáp");
-
-      // Reset image state
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-      setImages([]);
-      setPreviewUrls([]);
-    } catch (err: any) {
-      message.error(err.message || "Không thể đăng bài viết.");
+    const formData = new FormData();
+    formData.append("content", trimmed);
+    formData.append("category", category);
+    if (submitAsDraft) {
+      formData.append("isDraft", "true");
     }
+
+    const postTags = tags.length > 0 ? tags : ["Hỏi đáp"];
+    postTags.forEach((tag) => {
+      formData.append("tags", tag);
+    });
+
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
+
+    createPostMutation.mutate(formData, {
+      onSuccess: () => {
+        setContent("");
+        setTags([]);
+        setCategory("Hỏi đáp");
+
+        // Reset image state
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        setImages([]);
+        setPreviewUrls([]);
+      },
+    });
   };
 
   return (
@@ -460,20 +460,36 @@ export default function CreatePostWidget() {
           <span>Thêm ảnh {images.length > 0 && `(${images.length}/4)`}</span>
         </button>
 
-        <button
-          onClick={handleSubmit}
-          disabled={
-            !content.trim() || createPostMutation.isPending || isEnhancing
-          }
-          className="flex items-center gap-2 rounded-lg bg-[#2F9E44] px-5 py-2 text-[14px] font-[600] text-white shadow-xs transition-colors hover:bg-[#1F6F2E] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {createPostMutation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <Send className="h-4 w-4" aria-hidden="true" />
-          )}
-          <span>Đăng bài</span>
-        </button>
+        <div className="flex gap-2">
+          {/* Button 1: Save Draft */}
+          <button
+            type="button"
+            onClick={() => handleSubmit(true)}
+            disabled={
+              !content.trim() || createPostMutation.isPending || isEnhancing
+            }
+            className="dark:text-gray-250 rounded-lg bg-gray-100 px-4 py-2 text-[14px] font-semibold text-gray-700 transition hover:bg-gray-200 focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:hover:bg-gray-700"
+          >
+            Lưu nháp
+          </button>
+
+          {/* Button 2: Publish */}
+          <button
+            type="button"
+            onClick={() => handleSubmit(false)}
+            disabled={
+              !content.trim() || createPostMutation.isPending || isEnhancing
+            }
+            className="flex items-center gap-2 rounded-lg bg-[#2F9E44] px-5 py-2 text-[14px] font-bold text-white shadow-xs transition hover:bg-[#1F6F2E] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {createPostMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Send className="h-4 w-4" aria-hidden="true" />
+            )}
+            <span>Đăng bài</span>
+          </button>
+        </div>
       </div>
     </div>
   );

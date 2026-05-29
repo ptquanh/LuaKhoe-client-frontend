@@ -83,21 +83,22 @@ export default function CommentItem({
     }
   }
 
-  const handleReplySubmit = async (content: string, imageFile: File | null) => {
-    try {
+  const handleReplySubmit = (content: string, imageFile: File | null) => {
+    return new Promise<void>((resolve, reject) => {
       const formData = new FormData();
       formData.append("content", content);
       formData.append("parentId", comment.id);
       if (imageFile) {
         formData.append("image", imageFile);
       }
-      await createCommentMutation.mutateAsync(formData);
-      message.success("Phản hồi thành công!");
-      setShowReplyInput(false);
-    } catch (err: any) {
-      message.error(err.message || "Phản hồi thất bại.");
-      throw err;
-    }
+      createCommentMutation.mutate(formData, {
+        onSuccess: () => {
+          setShowReplyInput(false);
+          resolve();
+        },
+        onError: (err) => reject(err),
+      });
+    });
   };
 
   const handleDelete = () => {

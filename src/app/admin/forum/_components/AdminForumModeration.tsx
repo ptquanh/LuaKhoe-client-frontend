@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import PostStatusBadge from "@/components/forum/PostStatusBadge";
+import { useForumPosts, useModeratePost } from "@/hooks/useForum";
+import axiosClient from "@/lib/axiosClient";
 import { Button, Input, message, Modal, Spin, Tabs } from "antd";
 import {
   AlertTriangle,
@@ -13,8 +15,7 @@ import {
   Tag,
   XCircle,
 } from "lucide-react";
-import PostStatusBadge from "@/components/forum/PostStatusBadge";
-import { useForumPosts, useModeratePost } from "@/hooks/useForum";
+import { useEffect, useMemo, useState } from "react";
 
 const { TextArea } = Input;
 type StatusTab = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
@@ -51,11 +52,11 @@ export default function AdminForumModeration() {
   useEffect(() => {
     const fetchBannedWords = async () => {
       try {
-        const response = await fetch("/api/v1/system-configs/BANNED_WORDS");
-        if (response.ok) {
-          const json = await response.json();
-          if (json.data && json.data.value) {
-            const parsed = JSON.parse(json.data.value);
+        const response = await axiosClient.get("/system-configs/banned-words");
+        if (response.data?.success && response.data?.data) {
+          const { value } = response.data.data;
+          if (value) {
+            const parsed = JSON.parse(value);
             if (Array.isArray(parsed)) {
               setBannedWords(parsed);
             }
@@ -270,7 +271,10 @@ export default function AdminForumModeration() {
                 </div>
 
                 {/* Use the new reusable PostStatusBadge */}
-                <PostStatusBadge status={post.status} />
+                <PostStatusBadge
+                  status={post.status}
+                  rejectedBy={post.rejectedBy}
+                />
               </div>
 
               {/* Content body */}

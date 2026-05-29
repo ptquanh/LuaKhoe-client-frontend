@@ -5,12 +5,14 @@ import {
   GetCommentsParams,
   GetPostsParams,
 } from "@/services/forum.service";
+import { handleApiError } from "@/utils/error-handler";
 import {
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { message } from "antd";
 
 export function useForumPosts(params?: GetPostsParams) {
   return useInfiniteQuery({
@@ -39,8 +41,20 @@ export function useCreatePost() {
   return useMutation({
     mutationFn: (payload: CreatePostPayload | FormData) =>
       forumService.createPost(payload),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
+      let isDraft = false;
+      if (variables instanceof FormData) {
+        isDraft = variables.get("isDraft") === "true";
+      } else {
+        isDraft = !!variables.isDraft;
+      }
+      message.success(
+        isDraft ? "Lưu bản nháp thành công!" : "Đăng bài viết thành công!",
+      );
+    },
+    onError: (error) => {
+      handleApiError(error, "Không thể đăng bài viết.");
     },
   });
 }
@@ -156,6 +170,7 @@ export function useVotePost() {
           context.previousPostDetail,
         );
       }
+      handleApiError(err);
     },
     onSettled: (data, error, variables) => {
       // Final synchronization
@@ -183,10 +198,32 @@ export function useCreateComment(postId: string) {
   return useMutation({
     mutationFn: (payload: CreateCommentPayload | FormData) =>
       forumService.createComment(postId, payload),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
       queryClient.invalidateQueries({ queryKey: ["forum-post", postId] });
+
+      let isReply = false;
+      if (variables instanceof FormData) {
+        isReply = variables.has("parentId");
+      } else {
+        isReply = !!variables.parentId;
+      }
+      message.success(
+        isReply ? "Phản hồi thành công!" : "Bình luận thành công!",
+      );
+    },
+    onError: (error, variables) => {
+      let isReply = false;
+      if (variables instanceof FormData) {
+        isReply = variables.has("parentId");
+      } else {
+        isReply = !!variables.parentId;
+      }
+      handleApiError(
+        error,
+        isReply ? "Phản hồi thất bại." : "Bình luận thất bại.",
+      );
     },
   });
 }
@@ -277,6 +314,7 @@ export function useVoteComment() {
           context.previousComments,
         );
       }
+      handleApiError(err);
     },
     onSettled: (data, error, variables) => {
       // 1. Sync the comments list
@@ -299,6 +337,10 @@ export function useDeletePost() {
     mutationFn: (id: string) => forumService.deletePost(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
+      message.success("Xóa bài viết thành công.");
+    },
+    onError: (error) => {
+      handleApiError(error, "Xóa bài viết thất bại.");
     },
   });
 }
@@ -311,6 +353,10 @@ export function useDeleteComment(postId: string) {
       queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
       queryClient.invalidateQueries({ queryKey: ["forum-post", postId] });
+      message.success("Xóa bình luận thành công.");
+    },
+    onError: (error) => {
+      handleApiError(error, "Xóa bình luận thất bại.");
     },
   });
 }
@@ -327,8 +373,16 @@ export function useModeratePost() {
       status: string;
       flaggedReason?: string;
     }) => forumService.moderatePost(id, status, flaggedReason),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
+      const actionText =
+        variables.status === "APPROVED" ? "Phê duyệt" : "Từ chối";
+      message.success(`${actionText} bài viết thành công.`);
+    },
+    onError: (error, variables) => {
+      const actionText =
+        variables.status === "APPROVED" ? "phê duyệt" : "từ chối";
+      handleApiError(error, `Có lỗi xảy ra khi ${actionText} bài viết.`);
     },
   });
 }

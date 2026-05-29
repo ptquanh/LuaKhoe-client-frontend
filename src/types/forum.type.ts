@@ -33,6 +33,7 @@ export interface ForumPost {
   topComment?: ForumComment;
   userVote?: "UP" | "DOWN" | null;
   status?: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
+  rejectedBy?: "AI" | "ADMIN" | null;
   category?: string;
   flaggedReason?: string | null;
   isAdminPost?: boolean;

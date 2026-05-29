@@ -33,19 +33,18 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
   const avatarUrl = profile?.avatarUrl || "";
 
-  const handleSubmit = async (content: string, imageFile: File | null) => {
-    try {
+  const handleSubmit = (content: string, imageFile: File | null) => {
+    return new Promise<void>((resolve, reject) => {
       const formData = new FormData();
       formData.append("content", content);
       if (imageFile) {
         formData.append("image", imageFile);
       }
-      await createCommentMutation.mutateAsync(formData);
-      message.success("Bình luận thành công!");
-    } catch (err: any) {
-      message.error(err.message || "Bình luận thất bại.");
-      throw err;
-    }
+      createCommentMutation.mutate(formData, {
+        onSuccess: () => resolve(),
+        onError: (err) => reject(err),
+      });
+    });
   };
 
   const visibleComments = comments.slice(0, visibleCount);
