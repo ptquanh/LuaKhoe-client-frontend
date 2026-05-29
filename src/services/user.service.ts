@@ -43,7 +43,7 @@ export const userService = {
   }): Promise<BaseResponse<PaginatedResponse<any>>> => {
     const response = await axiosClient.get<
       BaseResponse<PaginatedResponse<any>>
-    >("/users", { params });
+    >("/admin/users", { params });
     return response.data;
   },
 
@@ -52,7 +52,7 @@ export const userService = {
     payload: { status: string; reason?: string },
   ): Promise<BaseResponse<any>> => {
     const response = await axiosClient.put<BaseResponse<any>>(
-      `/users/${id}/status`,
+      `/admin/users/${id}/status`,
       payload,
     );
     return response.data;
@@ -60,7 +60,7 @@ export const userService = {
 
   deleteUserForAdmin: async (id: string): Promise<BaseResponse<any>> => {
     const response = await axiosClient.delete<BaseResponse<any>>(
-      `/users/${id}`,
+      `/admin/users/${id}`,
     );
     return response.data;
   },

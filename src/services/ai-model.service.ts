@@ -10,7 +10,7 @@ export const aiModelService = {
   }): Promise<BaseResponse<PaginatedResponse<AiModel>>> => {
     const response = await axiosClient.get<
       BaseResponse<PaginatedResponse<AiModel>>
-    >("/ai-models", { params });
+    >("/admin/ai-models", { params });
     return response.data;
   },
 
@@ -22,7 +22,7 @@ export const aiModelService = {
 
   getModelById: async (id: string): Promise<BaseResponse<AiModel>> => {
     const response = await axiosClient.get<BaseResponse<AiModel>>(
-      `/ai-models/${id}`,
+      `/admin/ai-models/${id}`,
     );
     return response.data;
   },
@@ -35,7 +35,7 @@ export const aiModelService = {
         ? { "Content-Type": "multipart/form-data" }
         : undefined;
     const response = await axiosClient.post<BaseResponse<AiModel>>(
-      "/ai-models",
+      "/admin/ai-models",
       payload,
       { headers, timeout: 0 },
     );
@@ -44,7 +44,7 @@ export const aiModelService = {
 
   setActiveModel: async (id: string): Promise<BaseResponse<AiModel>> => {
     const response = await axiosClient.put<BaseResponse<AiModel>>(
-      `/ai-models/${id}/active`,
+      `/admin/ai-models/${id}/active`,
     );
     return response.data;
   },
@@ -58,7 +58,7 @@ export const aiModelService = {
         ? { "Content-Type": "multipart/form-data" }
         : undefined;
     const response = await axiosClient.patch<BaseResponse<AiModel>>(
-      `/ai-models/${id}`,
+      `/admin/ai-models/${id}`,
       payload,
       { headers, timeout: 0 },
     );
@@ -67,7 +67,7 @@ export const aiModelService = {
 
   deleteModel: async (id: string): Promise<BaseResponse<any>> => {
     const response = await axiosClient.delete<BaseResponse<any>>(
-      `/ai-models/${id}`,
+      `/admin/ai-models/${id}`,
     );
     return response.data;
   },

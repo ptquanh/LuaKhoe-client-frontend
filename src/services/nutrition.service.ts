@@ -27,7 +27,7 @@ export const nutritionService = {
   }): Promise<BaseResponse<PaginatedResponse<NutritionChunk>>> => {
     const response = await axiosClient.get<
       BaseResponse<PaginatedResponse<NutritionChunk>>
-    >("/nutrition", { params });
+    >("/admin/nutrition", { params });
     return response.data;
   },
 
@@ -35,7 +35,7 @@ export const nutritionService = {
     payload: CreateNutritionChunkPayload,
   ): Promise<BaseResponse<NutritionChunk[]>> => {
     const response = await axiosClient.post<BaseResponse<NutritionChunk[]>>(
-      "/nutrition",
+      "/admin/nutrition",
       payload,
     );
     return response.data;
@@ -45,7 +45,7 @@ export const nutritionService = {
     const formData = new FormData();
     formData.append("file", file);
     const response = await axiosClient.post<BaseResponse<NutritionChunk[]>>(
-      "/nutrition/upload",
+      "/admin/nutrition/upload",
       formData,
     );
     return response.data;
@@ -53,7 +53,7 @@ export const nutritionService = {
 
   deleteChunk: async (id: string): Promise<BaseResponse<any>> => {
     const response = await axiosClient.delete<BaseResponse<any>>(
-      `/nutrition/${id}`,
+      `/admin/nutrition/${id}`,
     );
     return response.data;
   },

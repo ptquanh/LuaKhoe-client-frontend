@@ -31,7 +31,7 @@ export const diseaseService = {
   }): Promise<BaseResponse<PaginatedResponse<DiseaseItem>>> => {
     const response = await axiosClient.get<
       BaseResponse<PaginatedResponse<DiseaseItem>>
-    >("/diseases/admin", { params });
+    >("/admin/diseases", { params });
     return response.data;
   },
 
@@ -45,7 +45,7 @@ export const diseaseService = {
     payload: DiseasePayload,
   ): Promise<BaseResponse<DiseaseItem>> => {
     const response = await axiosClient.post<BaseResponse<DiseaseItem>>(
-      "/diseases",
+      "/admin/diseases",
       payload,
     );
     return response.data;
@@ -56,7 +56,7 @@ export const diseaseService = {
     payload: DiseasePayload,
   ): Promise<BaseResponse<DiseaseItem>> => {
     const response = await axiosClient.put<BaseResponse<DiseaseItem>>(
-      `/diseases/${id}`,
+      `/admin/diseases/${id}`,
       payload,
     );
     return response.data;
@@ -64,7 +64,7 @@ export const diseaseService = {
 
   deleteDisease: async (id: string): Promise<BaseResponse<void>> => {
     const response = await axiosClient.delete<BaseResponse<void>>(
-      `/diseases/${id}`,
+      `/admin/diseases/${id}`,
     );
     return response.data;
   },
@@ -75,7 +75,7 @@ export const diseaseService = {
     const formData = new FormData();
     formData.append("image", file);
     const response = await axiosClient.post<BaseResponse<{ imageUrl: string }>>(
-      "/diseases/upload",
+      "/admin/diseases/upload",
       formData,
       {
         headers: {
