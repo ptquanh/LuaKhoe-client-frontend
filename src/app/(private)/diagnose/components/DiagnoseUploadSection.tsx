@@ -43,7 +43,7 @@ interface DiagnoseUploadSectionProps {
   modelVersionId?: string;
   setModelVersionId: (val: string | undefined) => void;
   handleReset: () => void;
-  handlePredict: () => void;
+  handlePredict: (hasModifiedFieldParams: boolean) => void;
 }
 
 export function DiagnoseUploadSection({
@@ -74,6 +74,7 @@ export function DiagnoseUploadSection({
   const [isMounted, setIsMounted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showAdvance, setShowAdvance] = useState(false);
+  const [hasModifiedFieldParams, setHasModifiedFieldParams] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [addressQuery, setAddressQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -227,7 +228,7 @@ export function DiagnoseUploadSection({
         },
       );
     }
-    handlePredict();
+    handlePredict(hasModifiedFieldParams);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -261,6 +262,7 @@ export function DiagnoseUploadSection({
 
   const updateFieldParam = (key: keyof FieldParams, value: any) => {
     setFieldParams((prev) => ({ ...prev, [key]: value }));
+    setHasModifiedFieldParams(true);
   };
 
   return (
@@ -650,7 +652,14 @@ export function DiagnoseUploadSection({
                 onClick={() => setShowAdvance(!showAdvance)}
                 className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-[600] text-[#1B1B1B] hover:bg-[#F8F9FA]"
               >
-                <span>Thông số thực địa (Tăng độ chính xác)</span>
+                <span>
+                  Thông số thực địa (Tăng độ chính xác)
+                  {!hasModifiedFieldParams && (
+                    <span className="ml-2 rounded-full bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[500] text-[#E65100]">
+                      Chưa điền — AI dùng dữ liệu mặc định
+                    </span>
+                  )}
+                </span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${showAdvance ? "rotate-180" : ""}`}
                 />

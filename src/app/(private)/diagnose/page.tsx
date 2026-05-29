@@ -100,7 +100,7 @@ export default function DiagnosePage() {
     reset();
   };
 
-  const handlePredict = () => {
+  const handlePredict = (hasModifiedFieldParams: boolean = false) => {
     if (file) {
       if (!fieldId && (gpsLat === undefined || gpsLng === undefined)) {
         message.warning(
@@ -114,7 +114,9 @@ export default function DiagnosePage() {
         fieldDescription: fieldDescription || undefined,
         gpsLat,
         gpsLng,
-        fieldParams: fieldParams,
+        // Chỉ gửi fieldParams nếu user đã chủ động chỉnh sửa
+        // Tránh gửi default values làm sai score dự đoán
+        fieldParams: hasModifiedFieldParams ? fieldParams : undefined,
         fieldId,
         modelVersionId,
       });
