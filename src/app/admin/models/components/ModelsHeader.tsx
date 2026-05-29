@@ -19,7 +19,7 @@ export function ModelsHeader({ total, onOpenUpload }: ModelsHeaderProps) {
         onClick={onOpenUpload}
         className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] text-white hover:bg-[#1F6F2E]"
       >
-        <Upload className="h-4 w-4" /> Upload Model
+        <Upload className="h-4 w-4" /> Tải lên mô hình
       </button>
     </div>
   );

@@ -31,4 +31,8 @@ export interface ForumPost {
   tags?: string[];
   topComment?: ForumComment;
   userVote?: "up" | "down" | null;
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
+  category?: string;
+  flaggedReason?: string | null;
+  isAdminPost?: boolean;
 }

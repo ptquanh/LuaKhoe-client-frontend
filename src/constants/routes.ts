@@ -19,4 +19,5 @@ export const ROUTES = {
   ADMIN_FEEDBACK: "/admin/feedback",
   ADMIN_CONFIGS: "/admin/configs",
   ADMIN_KNOWLEDGE: "/admin/knowledge",
+  ADMIN_FORUM: "/admin/forum",
 } as const;

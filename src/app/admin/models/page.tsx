@@ -74,7 +74,7 @@ export default function AdminModelsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1200px] p-4">
+    <div className="mx-auto max-w-[1200px]">
       <ModelsHeader total={total} onOpenUpload={() => setShowUpload(true)} />
 
       {/* Yellow Warning Banner for Zero Active Models */}

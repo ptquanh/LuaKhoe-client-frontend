@@ -30,7 +30,7 @@ export function ModelsTable({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
       <table className="w-full">
         <thead>
           <tr className="bg-[#F0F2F5]">

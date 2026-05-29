@@ -2,6 +2,8 @@
 
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Loader2,
   Search,
@@ -190,7 +192,7 @@ export default function AdminDocumentsPage() {
         </button>
       </div>
 
-      <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-xs">
+      <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-white p-4">
         <form
           onSubmit={handleSearch}
           className="flex flex-wrap items-end gap-4"
@@ -271,7 +273,7 @@ export default function AdminDocumentsPage() {
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white shadow-xs">
+          <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
             <table className="w-full">
               <thead>
                 <tr className="bg-[#F0F2F5]">
@@ -373,26 +375,36 @@ export default function AdminDocumentsPage() {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between gap-4">
-              <span className="text-[13px] text-[#5C5C5C]">
-                Trang{" "}
-                <span className="font-[600] text-[#1B1B1B]">{currentPage}</span>{" "}
-                / {totalPages}
-              </span>
-              <div className="flex gap-2">
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-[12px] text-[#5C5C5C]">
+                Hiển thị {offset + 1}–{Math.min(offset + limit, totalChunks)} /{" "}
+                {totalChunks}
+              </p>
+              <div className="flex items-center gap-1">
                 <button
                   onClick={handlePrevPage}
                   disabled={offset === 0}
-                  className="h-9 rounded-lg border border-[#E0E0E0] bg-white px-4 text-[13px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Trước
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (p) => (
+                    <button
+                      key={p}
+                      onClick={() => setOffset((p - 1) * limit)}
+                      className={`h-8 w-8 cursor-pointer rounded-md text-[14px] font-[500] ${p === currentPage ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
                 <button
                   onClick={handleNextPage}
                   disabled={offset + limit >= totalChunks}
-                  className="h-9 rounded-lg border border-[#E0E0E0] bg-white px-4 text-[13px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Sau
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>

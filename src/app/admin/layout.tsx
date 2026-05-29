@@ -3,6 +3,7 @@
 import {
   Brain,
   Bug,
+  CheckSquare,
   FileText,
   LayoutDashboard,
   Leaf,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +33,7 @@ const menuItems = [
   },
   { label: "Mô hình", href: ROUTES.ADMIN_MODELS, icon: Brain },
   { label: "Phản hồi AI", href: ROUTES.ADMIN_FEEDBACK, icon: MessageSquare },
+  { label: "Diễn đàn", href: ROUTES.ADMIN_FORUM, icon: CheckSquare },
   { label: "Cấu hình", href: ROUTES.ADMIN_CONFIGS, icon: Settings },
 ];
 

@@ -1,6 +1,6 @@
 import axiosClient from "@/lib/axiosClient";
 import { BaseResponse } from "@/types/common.type";
-import { ForumPost, ForumComment, ForumUser } from "@/types/forum.type";
+import { ForumComment, ForumPost, ForumUser } from "@/types/forum.type";
 
 // Mapping helper for User structures from backend to frontend ForumUser
 export const mapUserToForumUser = (user: any): ForumUser => {
@@ -51,6 +51,10 @@ export const mapBackendPostToForumPost = (post: any): ForumPost => {
     topComment: post.topComment
       ? mapBackendCommentToForumComment(post.topComment)
       : undefined,
+    status: post.status,
+    category: post.category,
+    flaggedReason: post.flaggedReason,
+    isAdminPost: post.isAdminPost,
   };
 };
 
@@ -78,12 +82,14 @@ export interface CreatePostPayload {
   content: string;
   images?: string[];
   tags?: string[];
+  category?: string;
 }
 
 export interface UpdatePostPayload {
   content?: string;
   images?: string[];
   tags?: string[];
+  category?: string;
 }
 
 export interface CreateCommentPayload {
@@ -100,6 +106,8 @@ export interface GetPostsParams {
   limit?: number;
   sort?: "new" | "hot";
   tag?: string;
+  category?: string;
+  status?: string;
 }
 
 export interface GetCommentsParams {
@@ -270,6 +278,34 @@ export const forumService = {
     const response = await axiosClient.post<BaseResponse<void>>(
       `/forum/comments/${commentId}/vote`,
       { type },
+    );
+    return response.data;
+  },
+
+  aiEnhanceContent: async (
+    content: string,
+  ): Promise<
+    BaseResponse<{
+      enhancedContent: string;
+      hashtags: string[];
+      category: string;
+    }>
+  > => {
+    const response = await axiosClient.post<BaseResponse<any>>(
+      "/forum/posts/ai-enhance",
+      { content },
+    );
+    return response.data;
+  },
+
+  moderatePost: async (
+    id: string,
+    status: string,
+    flaggedReason?: string,
+  ): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.put<BaseResponse<any>>(
+      `/forum/posts/${id}/moderate`,
+      { status, flaggedReason },
     );
     return response.data;
   },

@@ -1,18 +1,16 @@
 import {
+  CreateCommentPayload,
+  CreatePostPayload,
+  forumService,
+  GetCommentsParams,
+  GetPostsParams,
+} from "@/services/forum.service";
+import {
   useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import {
-  forumService,
-  CreatePostPayload,
-  UpdatePostPayload,
-  CreateCommentPayload,
-  UpdateCommentPayload,
-  GetPostsParams,
-  GetCommentsParams,
-} from "@/services/forum.service";
 
 export function useForumPosts(params?: GetPostsParams) {
   return useInfiniteQuery({
@@ -313,6 +311,24 @@ export function useDeleteComment(postId: string) {
       queryClient.invalidateQueries({ queryKey: ["forum-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
       queryClient.invalidateQueries({ queryKey: ["forum-post", postId] });
+    },
+  });
+}
+
+export function useModeratePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      flaggedReason,
+    }: {
+      id: string;
+      status: string;
+      flaggedReason?: string;
+    }) => forumService.moderatePost(id, status, flaggedReason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
     },
   });
 }

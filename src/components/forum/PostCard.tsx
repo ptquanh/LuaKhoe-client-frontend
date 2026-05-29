@@ -120,7 +120,13 @@ export default function PostCard({ post }: PostCardProps) {
   ];
 
   return (
-    <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900">
+    <div
+      className={`rounded-xl border p-4 shadow-sm transition-all duration-300 hover:shadow-md ${
+        post.isAdminPost
+          ? "border-emerald-500 bg-emerald-50/10 shadow-[0_0_12px_rgba(16,185,129,0.15)] hover:shadow-[0_0_16px_rgba(16,185,129,0.25)] dark:border-emerald-500 dark:bg-emerald-950/10"
+          : "border-[#E0E0E0] bg-white dark:border-gray-800 dark:bg-gray-900"
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -130,13 +136,18 @@ export default function PostCard({ post }: PostCardProps) {
             className="h-10 w-10 rounded-full object-cover"
           />
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-[600] text-[#1B1B1B] dark:text-gray-100">
                 {post.author.name}
               </span>
               {post.author.role === "expert" && (
                 <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                   Chuyên gia
+                </span>
+              )}
+              {post.isAdminPost && (
+                <span className="shrink-0 animate-pulse rounded bg-[#2F9E44] px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  📢 Thông báo BQT
                 </span>
               )}
             </div>
