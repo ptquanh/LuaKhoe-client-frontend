@@ -1,6 +1,7 @@
 import "./globals.css";
 
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { ConfigProvider } from "antd";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -27,7 +28,16 @@ export default function RootLayout({
     <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
         <AntdRegistry>
-          <ReactQueryProvider>{children}</ReactQueryProvider>
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: "#16a34a",
+                borderRadius: 8,
+              },
+            }}
+          >
+            <ReactQueryProvider>{children}</ReactQueryProvider>
+          </ConfigProvider>
         </AntdRegistry>
       </body>
     </html>

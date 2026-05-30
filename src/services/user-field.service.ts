@@ -9,7 +9,7 @@ import { BaseResponse } from "@/types/common.type";
 export const userFieldService = {
   getUserFields: async (): Promise<BaseResponse<UserField[]>> => {
     const response =
-      await axiosClient.get<BaseResponse<UserField[]>>("/users/fields");
+      await axiosClient.get<BaseResponse<UserField[]>>("/user-fields");
     return response.data;
   },
 
@@ -17,7 +17,7 @@ export const userFieldService = {
     payload: CreateUserFieldPayload,
   ): Promise<BaseResponse<UserField>> => {
     const response = await axiosClient.post<BaseResponse<UserField>>(
-      "/users/fields",
+      "/user-fields",
       payload,
     );
     return response.data;
@@ -28,7 +28,7 @@ export const userFieldService = {
     payload: UpdateUserFieldPayload,
   ): Promise<BaseResponse<UserField>> => {
     const response = await axiosClient.put<BaseResponse<UserField>>(
-      `/users/fields/${id}`,
+      `/user-fields/${id}`,
       payload,
     );
     return response.data;
@@ -36,7 +36,7 @@ export const userFieldService = {
 
   deleteUserField: async (id: string): Promise<BaseResponse<void>> => {
     const response = await axiosClient.delete<BaseResponse<void>>(
-      `/users/fields/${id}`,
+      `/user-fields/${id}`,
     );
     return response.data;
   },

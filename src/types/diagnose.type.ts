@@ -87,6 +87,7 @@ export interface Disease {
   scientificName?: string | null;
   signs?: string | null;
   status: string;
+  treatment?: string | null;
 }
 
 export interface DiagnosisResultResponse {
@@ -96,6 +97,7 @@ export interface DiagnosisResultResponse {
   disease: Disease;
   confidence: number; // 0-100 decimal percentage
   maskPolygon?: any;
+  advisory?: any;
 }
 
 export interface DiagnosisAdvisory {

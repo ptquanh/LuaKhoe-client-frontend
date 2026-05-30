@@ -6,17 +6,44 @@ import { ForumPost } from "@/types/forum.type";
 import { Dropdown, message, Modal } from "antd";
 import { MessageSquare, MoreHorizontal, Share2, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import CommentSection from "./CommentSection";
+import DiagnosisEmbeddedCard from "./DiagnosisEmbeddedCard";
 
 interface PostCardProps {
   post: ForumPost;
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const router = useRouter();
   const [vote, setVote] = useState<"UP" | "DOWN" | null>(post.userVote || null);
   const [showComments, setShowComments] = useState(false);
   const { profile } = useProfile();
+
+  const renderContent = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/((?:^|\s)@[a-zA-Z0-9_.]+)/g);
+    return parts.map((part, index) => {
+      if (part.trim().startsWith("@")) {
+        const username = part.trim().slice(1);
+        const prefix = part.slice(0, part.indexOf("@")); // Lấy khoảng trắng nếu có
+        return (
+          <span key={index}>
+            {prefix}
+            <Link
+              href={`/profile/${username}`}
+              className="font-semibold text-blue-600 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              @{username}
+            </Link>
+          </span>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   const voteMutation = useVotePost();
   const deletePostMutation = useDeletePost();
@@ -181,11 +208,21 @@ export default function PostCard({ post }: PostCardProps) {
 
       {/* Content */}
       <div className="mt-3">
-        <Link href={`/forum/post/${post.id}`}>
-          <p className="cursor-pointer text-[15px] leading-relaxed text-[#1B1B1B] hover:text-green-700 dark:text-gray-300 dark:hover:text-green-400">
-            {post.content}
-          </p>
-        </Link>
+        <div
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            if (
+              target.tagName !== "A" &&
+              !target.closest("a") &&
+              !target.closest("button")
+            ) {
+              router.push(`/forum/post/${post.id}`);
+            }
+          }}
+          className="cursor-pointer text-[15px] leading-relaxed text-[#1B1B1B] hover:text-[#1F6F2E] dark:text-gray-300 dark:hover:text-emerald-400"
+        >
+          <p>{renderContent(post.content)}</p>
+        </div>
 
         {post.images && post.images.length > 0 && (
           <div className="mt-3 overflow-hidden rounded-lg border border-[#E0E0E0] dark:border-gray-800">
@@ -209,6 +246,8 @@ export default function PostCard({ post }: PostCardProps) {
             ))}
           </div>
         )}
+
+        {post.diagnosis && <DiagnosisEmbeddedCard diagnosis={post.diagnosis} />}
 
         {/* Top Community Solution Highlight (Sneak Peek) */}
         {post.topComment && (

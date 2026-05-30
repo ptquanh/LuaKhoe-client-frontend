@@ -1,7 +1,6 @@
 import { CheckCircle, Info } from "lucide-react";
-import React from "react";
 
-import { LegacyRagRecommendation } from "./LegacyRagRecommendation";
+import { LegacyRagRecommendation } from "@/components/diagnosis/LegacyRagRecommendation";
 import { renderMarkdown } from "./MarkdownRenderer";
 
 interface AdvisorySectionViewProps {

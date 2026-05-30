@@ -2,12 +2,15 @@
 
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { useProfile } from "@/hooks/useProfile";
+import { diagnosisService } from "@/services/diagnosis.service";
 import { diseaseService } from "@/services/disease.service";
 import { forumService } from "@/services/forum.service";
-import { message } from "antd";
+import { userService } from "@/services/user.service";
+import { Mentions, message, Modal } from "antd";
 import { getCookie } from "cookies-next";
 import {
   Image as ImageIcon,
+  Leaf,
   Loader2,
   Send,
   Sparkles,
@@ -38,6 +41,44 @@ export default function CreatePostWidget() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mentions & Diagnosis state
+  const [userList, setUserList] = useState<
+    { id: string; username: string; displayName: string; email: string }[]
+  >([]);
+  const [attachedDiagnosis, setAttachedDiagnosis] = useState<any | null>(null);
+  const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
+  const [recentDiagnoses, setRecentDiagnoses] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  const handleMentionSearch = async (text: string) => {
+    if (!text) {
+      setUserList([]);
+      return;
+    }
+    try {
+      const res = await userService.searchUsers(text);
+      if (res.success && Array.isArray(res.data)) {
+        setUserList(res.data);
+      }
+    } catch (err) {
+      console.error("Lỗi tìm kiếm user:", err);
+    }
+  };
+
+  const fetchRecentDiagnoses = async () => {
+    setIsHistoryLoading(true);
+    try {
+      const res = await diagnosisService.getHistory({ limit: 10 });
+      if (res.success && res.data && Array.isArray(res.data.rows)) {
+        setRecentDiagnoses(res.data.rows);
+      }
+    } catch (err) {
+      message.error("Không thể tải lịch sử chẩn đoán.");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
 
   // State lưu danh sách gợi ý tổng hợp
   const [suggestedTags, setSuggestedTags] = useState<string[]>(STATIC_TAGS);
@@ -240,6 +281,23 @@ export default function CreatePostWidget() {
       formData.append("isDraft", "true");
     }
 
+    // Extract tagged usernames using regex from the content text
+    const mentionRegex = /(?:^|\s)@([a-zA-Z0-9_.]+)/g;
+    const usernames: string[] = [];
+    let match;
+    while ((match = mentionRegex.exec(trimmed)) !== null) {
+      usernames.push(match[1]);
+    }
+    const finalTaggedUsernames = Array.from(new Set(usernames)).slice(0, 10);
+
+    if (finalTaggedUsernames.length > 0) {
+      formData.append("taggedUsernames", finalTaggedUsernames.join(","));
+    }
+
+    if (attachedDiagnosis) {
+      formData.append("attachedDiagnosisId", attachedDiagnosis.id);
+    }
+
     const postTags = tags.length > 0 ? tags : ["Hỏi đáp"];
     postTags.forEach((tag) => {
       formData.append("tags", tag);
@@ -254,6 +312,8 @@ export default function CreatePostWidget() {
         setContent("");
         setTags([]);
         setCategory("Hỏi đáp");
+        setAttachedDiagnosis(null);
+        setUserList([]);
 
         // Reset image state
         previewUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -312,18 +372,39 @@ export default function CreatePostWidget() {
         </div>
       </div>
 
-      {/* 2. Textarea with absolute bottom-right AI trigger */}
+      {/* 2. Textarea/Mentions with absolute bottom-right AI trigger */}
       <div className="relative">
-        <textarea
+        <Mentions
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Bà con đang gặp vấn đề gì về lúa, thắc mắc bệnh hại hay có kinh nghiệm bổ ích muốn chia sẻ…"
+          onChange={(val) => setContent(val)}
+          onSearch={handleMentionSearch}
+          placeholder="Nhập nội dung... Gõ @ để nhắc đến ai đó"
           maxLength={5000}
           aria-label="Nội dung bài viết mới"
-          className="w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-14 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+          className="min-h-[100px] w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-14 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           rows={4}
-        />
-        <div className="absolute right-2.5 bottom-2.5 flex items-center gap-2.5">
+          variant="borderless"
+        >
+          {userList.map((user: any) => {
+            const fullName =
+              [user.lastName, user.firstName].filter(Boolean).join(" ") ||
+              user.displayName ||
+              user.username;
+            return (
+              <Mentions.Option key={user.username} value={user.username}>
+                <div className="flex flex-col py-1 text-left">
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">
+                    {fullName}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    @{user.username} • {user.email}
+                  </span>
+                </div>
+              </Mentions.Option>
+            );
+          })}
+        </Mentions>
+        <div className="absolute right-2.5 bottom-2.5 z-10 flex items-center gap-2.5">
           <span className="mr-1 text-[11px] font-medium text-[#9E9E9E] dark:text-gray-500">
             {content.length}/5000
           </span>
@@ -348,6 +429,39 @@ export default function CreatePostWidget() {
           </button>
         </div>
       </div>
+
+      {/* Embedded Diagnosis Mini Card Preview */}
+      {attachedDiagnosis && (
+        <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/10 p-3 dark:border-emerald-950/20 dark:bg-emerald-950/5">
+          <div className="flex items-center gap-3">
+            <img
+              src={
+                attachedDiagnosis.resultImageUrl ||
+                attachedDiagnosis.originalImageUrl ||
+                "/images/rice-default.png"
+              }
+              alt="Chẩn đoán"
+              className="h-12 w-12 rounded-lg border border-emerald-200 object-cover dark:border-emerald-900"
+            />
+            <div>
+              <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                Đã đính kèm chẩn đoán AI:
+              </p>
+              <p className="text-[14px] font-bold text-[#1F6F2E] dark:text-emerald-400">
+                {attachedDiagnosis.results?.[0]?.disease?.name ||
+                  "Không phát hiện bệnh hại"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAttachedDiagnosis(null)}
+            className="text-gray-450 rounded-full p-1 transition-colors hover:bg-gray-200 hover:text-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Image Preview Grid */}
       {previewUrls.length > 0 && (
@@ -465,14 +579,30 @@ export default function CreatePostWidget() {
           ref={fileInputRef}
           onChange={handleImageSelect}
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <ImageIcon className="h-4 w-5" aria-hidden="true" />
-          <span>Thêm ảnh {images.length > 0 && `(${images.length}/4)`}</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <ImageIcon className="h-4 w-5" aria-hidden="true" />
+            <span>Thêm ảnh {images.length > 0 && `(${images.length}/4)`}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowDiagnosisModal(true);
+              fetchRecentDiagnoses();
+            }}
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <Leaf className="h-4 w-5 text-emerald-600" aria-hidden="true" />
+            <span>
+              {attachedDiagnosis ? "Đổi chẩn đoán" : "Đính kèm chẩn đoán"}
+            </span>
+          </button>
+        </div>
 
         <div className="flex gap-2">
           {/* Button 1: Save Draft */}
@@ -505,6 +635,89 @@ export default function CreatePostWidget() {
           </button>
         </div>
       </div>
+
+      {/* 5. Diagnosis Selection Modal */}
+      <Modal
+        title={
+          <span className="text-[17px] font-bold text-gray-800 dark:text-gray-100">
+            Chọn chẩn đoán đính kèm
+          </span>
+        }
+        open={showDiagnosisModal}
+        onCancel={() => setShowDiagnosisModal(false)}
+        footer={null}
+        width={650}
+        styles={{ body: { maxHeight: "60vh", overflowY: "auto" } }}
+      >
+        {isHistoryLoading ? (
+          <div className="flex flex-col items-center justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-[#2F9E44]" />
+            <p className="mt-2 text-sm text-gray-500">
+              Đang tải lịch sử chẩn đoán...
+            </p>
+          </div>
+        ) : recentDiagnoses.length === 0 ? (
+          <div className="py-8 text-center text-gray-500">
+            Bà con chưa có lịch sử chẩn đoán lúa bằng AI nào gần đây.
+          </div>
+        ) : (
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {recentDiagnoses.map((diag) => {
+              const diagResults = diag.results || [];
+              const primaryRes =
+                diagResults.length > 0
+                  ? [...diagResults].sort(
+                      (a, b) => b.confidence - a.confidence,
+                    )[0]
+                  : null;
+              const name =
+                primaryRes?.disease?.name || "Không phát hiện bệnh hại";
+              const confVal = primaryRes ? Number(primaryRes.confidence) : 0;
+              const percent =
+                confVal <= 1 ? Math.round(confVal * 100) : Math.round(confVal);
+              const dateStr = new Intl.DateTimeFormat("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              }).format(new Date(diag.createdAt));
+
+              return (
+                <div
+                  key={diag.id}
+                  onClick={() => {
+                    setAttachedDiagnosis(diag);
+                    setShowDiagnosisModal(false);
+                  }}
+                  className="dark:border-gray-850 flex cursor-pointer gap-3 rounded-xl border border-gray-100 p-2.5 transition-all hover:border-emerald-400 hover:bg-emerald-50/10 dark:hover:bg-emerald-950/10"
+                >
+                  <img
+                    src={
+                      diag.resultImageUrl ||
+                      diag.originalImageUrl ||
+                      "/images/rice-default.png"
+                    }
+                    alt={name}
+                    className="h-14 w-14 rounded-lg border border-gray-100 object-cover dark:border-gray-800"
+                  />
+                  <div className="flex flex-col justify-between">
+                    <div>
+                      <p className="line-clamp-1 text-[14px] font-bold text-gray-800 dark:text-gray-200">
+                        {name}
+                      </p>
+                      {primaryRes && (
+                        <p className="text-[12px] font-semibold text-[#2F9E44] dark:text-emerald-400">
+                          Độ tin cậy: {percent}%
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400">{dateStr}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

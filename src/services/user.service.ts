@@ -64,4 +64,26 @@ export const userService = {
     );
     return response.data;
   },
+
+  searchUsers: async (query: string): Promise<BaseResponse<any[]>> => {
+    const response = await axiosClient.get<BaseResponse<any[]>>(
+      "/users/search",
+      {
+        params: { q: query },
+      },
+    );
+    return response.data;
+  },
+
+  getUserByUsername: async (username: string): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.get<BaseResponse<any>>(
+      `/users/username/${username}`,
+    );
+    return response.data;
+  },
+
+  getUserById: async (id: string): Promise<BaseResponse<any>> => {
+    const response = await axiosClient.get<BaseResponse<any>>(`/users/${id}`);
+    return response.data;
+  },
 };

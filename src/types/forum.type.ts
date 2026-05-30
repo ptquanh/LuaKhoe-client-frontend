@@ -1,3 +1,5 @@
+import { DiagnosisResponse } from "./diagnose.type";
+
 export interface ForumUser {
   id: string;
   name: string;
@@ -37,4 +39,6 @@ export interface ForumPost {
   category?: string;
   flaggedReason?: string | null;
   isAdminPost?: boolean;
+  diagnosis?: DiagnosisResponse;
+  taggedUsers?: { id: string; username: string }[];
 }

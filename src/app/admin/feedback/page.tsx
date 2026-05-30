@@ -13,10 +13,14 @@ import {
 import { useEffect, useState } from "react";
 
 import { feedbackService } from "@/services/feedback.service";
+import DiagnosisHistoryModal, {
+  DiagnosisData,
+} from "./_components/DiagnosisHistoryModal";
 
 interface FeedbackDisplay {
   id: string;
   farmer: string;
+  farmerName?: string;
   disease: string;
   rating: "positive" | "negative";
   comment: string;
@@ -25,6 +29,7 @@ interface FeedbackDisplay {
   status: "PENDING" | "ACCEPTED" | "REJECTED";
   actualDiseases?: string;
   adminResponse?: string;
+  diagnosis?: DiagnosisData;
 }
 
 export default function AdminFeedbackPage() {
@@ -34,6 +39,11 @@ export default function AdminFeedbackPage() {
   const [filterRating, setFilterRating] = useState<
     "all" | "positive" | "negative"
   >("all");
+
+  // History Modal States
+  const [selectedDiagnosis, setSelectedDiagnosis] =
+    useState<DiagnosisData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Reply Modal States
   const [replyModalOpen, setReplyModalOpen] = useState(false);
@@ -56,9 +66,19 @@ export default function AdminFeedbackPage() {
             comment.includes("4/5") ||
             comment.includes("5/5") ||
             comment.includes("tích cực");
+
+          const userProfile = item.user?.farmerProfile;
+          const constructedFarmerName = userProfile
+            ? [userProfile.firstName, userProfile.lastName]
+                .filter(Boolean)
+                .join(" ") || item.user?.username
+            : item.user?.username;
+          const finalFarmerName = constructedFarmerName || "Nông dân ẩn danh";
+
           return {
             id: item.id,
-            farmer: item.user?.fullName || "Nông dân Ẩn danh",
+            farmer: finalFarmerName,
+            farmerName: finalFarmerName,
             disease:
               item.diagnosis?.results?.[0]?.disease?.name ||
               item.diagnosis?.disease_name ||
@@ -72,6 +92,27 @@ export default function AdminFeedbackPage() {
               item.actualDiseases?.map((ad) => ad.disease?.name).join(", ") ||
               "Không báo thêm bệnh",
             adminResponse: item.adminResponse || undefined,
+            diagnosis: item.diagnosis
+              ? {
+                  id: item.diagnosis.id,
+                  imageUrl: item.diagnosis.originalImageUrl,
+                  originalImageUrl: item.diagnosis.originalImageUrl,
+                  resultImageUrl: item.diagnosis.resultImageUrl || undefined,
+                  createdAt: item.diagnosis.createdAt,
+                  results: (item.diagnosis.results || []).map((r) => ({
+                    confidence: r.confidence,
+                    disease: {
+                      id: r.disease?.id || "",
+                      name: r.disease?.name || "",
+                      description: r.disease?.signs || "",
+                      treatment: r.disease?.treatment || "",
+                    },
+                    advisory: r.advisory || null,
+                  })),
+                  province: item.diagnosis.province,
+                  envDescription: item.diagnosis.envDescription,
+                }
+              : undefined,
           };
         });
         setFeedbacks(mapped);
@@ -300,6 +341,17 @@ export default function AdminFeedbackPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                {f.diagnosis && (
+                  <button
+                    onClick={() => {
+                      setSelectedDiagnosis(f.diagnosis || null);
+                      setIsModalOpen(true);
+                    }}
+                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#1976D2] px-3 text-[12px] font-[600] text-[#1976D2] transition-colors hover:bg-[#E3F2FD]"
+                  >
+                    Xem Lịch sử
+                  </button>
+                )}
                 {f.status === "PENDING" ? (
                   <>
                     <button
@@ -419,6 +471,16 @@ export default function AdminFeedbackPage() {
           </div>
         </div>
       )}
+
+      {/* Diagnosis History Modal */}
+      <DiagnosisHistoryModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedDiagnosis(null);
+        }}
+        diagnosisData={selectedDiagnosis}
+      />
     </div>
   );
 }

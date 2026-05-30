@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/verify-otp") ||
     pathname.startsWith("/forgot-password") ||
     pathname === "/" ||
-    (pathname.startsWith("/forum") && !pathname.startsWith("/forum/my-posts"));
+    (pathname.startsWith("/forum") &&
+      !pathname.startsWith("/forum/my-posts")) ||
+    pathname.startsWith("/profile/");
 
   if (!token && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", request.url));

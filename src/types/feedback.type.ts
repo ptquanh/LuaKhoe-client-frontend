@@ -17,8 +17,13 @@ export interface FeedbackItem {
   userId: string;
   user?: {
     id: string;
-    fullName: string;
+    username: string;
     email: string;
+    farmerProfile?: {
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+    };
   };
   userMessage?: string;
   status: "PENDING" | "ACCEPTED" | "REJECTED";

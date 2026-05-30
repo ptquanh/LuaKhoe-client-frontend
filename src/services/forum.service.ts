@@ -55,6 +55,8 @@ export const mapBackendPostToForumPost = (post: any): ForumPost => {
     category: post.category,
     flaggedReason: post.flaggedReason,
     isAdminPost: post.isAdminPost,
+    diagnosis: post.diagnosis,
+    taggedUsers: post.taggedUsers,
   };
 };
 
@@ -85,6 +87,8 @@ export interface CreatePostPayload {
   tags?: string[];
   category?: string;
   isDraft?: boolean;
+  taggedUsernames?: string[];
+  attachedDiagnosisId?: string;
 }
 
 export interface UpdatePostPayload {
