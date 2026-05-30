@@ -145,3 +145,32 @@ body {
     box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
   }
 }
+
+/* === Custom Horizontal Image Slider Scrollbar === */
+.custom-image-slider {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  transition: scrollbar-color 0.3s ease;
+}
+.custom-image-slider::-webkit-scrollbar {
+  height: 8px; /* Độ dày của thanh trượt ngang */
+}
+.custom-image-slider::-webkit-scrollbar-track {
+  background: #f1f5f9; /* Màu nền rãnh trượt (slate-100) */
+  border-radius: 10px;
+}
+.custom-image-slider::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Màu thanh nắm mặc định (slate-300) */
+  border-radius: 10px;
+  border: 2px solid #f1f5f9; /* Tạo khoảng trống giúp thanh trượt thanh thoát */
+  transition: background 0.3s ease;
+}
+.custom-image-slider::-webkit-scrollbar-thumb:hover {
+  background: #2f9e44; /* Màu xanh lá nông nghiệp thương hiệu khi hover trực tiếp */
+}
+.custom-image-slider:hover::-webkit-scrollbar-thumb {
+  background: #86efac; /* Màu xanh lá cây sáng nổi bật khi hover trên vùng slider */
+}
+.custom-image-slider:hover::-webkit-scrollbar-thumb:hover {
+  background: #2f9e44; /* Vẫn giữ màu xanh lá đậm khi hover chính xác vào thumb */
+}

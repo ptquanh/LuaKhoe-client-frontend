@@ -63,6 +63,19 @@ export const diagnosisService = {
     return response.data;
   },
 
+  uploadSupplementaryImage: async (
+    id: string,
+    image: File,
+  ): Promise<BaseResponse<DiagnosisResponse>> => {
+    const formData = new FormData();
+    formData.append("image", image);
+    const response = await axiosClient.post<BaseResponse<DiagnosisResponse>>(
+      `/diagnosis/${id}/supplement`,
+      formData,
+    );
+    return response.data;
+  },
+
   getAdvisory: async (
     diseaseName: string,
     context?: string,

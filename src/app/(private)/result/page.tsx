@@ -1,6 +1,12 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
@@ -198,6 +204,9 @@ function ResultPageContent() {
   const previewImg =
     data.annotated_image || data.resultImageUrl || data.originalImageUrl || "";
 
+  const coreData = data || {};
+  const diseaseList = coreData.results || coreData.detections || [];
+
   return (
     <div className="mx-auto max-w-[900px] px-4 pt-4 pb-20 md:px-0">
       <button
@@ -215,6 +224,51 @@ function ResultPageContent() {
           confidence={confVal}
           isHealthy={isHealthy}
         />
+
+        {/* Supplementary Image Scoring Banner */}
+        {data.supplementImageUrl && (
+          <div className="animate-in fade-in slide-in-from-top-2 relative overflow-hidden rounded-2xl border border-green-200 bg-gradient-to-r from-green-50/90 to-emerald-50/90 p-6 shadow-md transition-all duration-300 hover:shadow-lg">
+            {/* Background absolute elements for a premium design */}
+            <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-green-200/20 blur-xl" />
+            <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-emerald-200/20 blur-xl" />
+
+            <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 animate-pulse items-center justify-center rounded-xl bg-green-600 text-white shadow-md shadow-green-200">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <h4 className="flex flex-wrap items-center gap-2 text-[16px] font-[800] text-green-900">
+                    Tối ưu hóa độ chính xác (Re-scoring)
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-[700] text-green-700">
+                      <CheckCircle2 className="h-3 w-3" /> Đã hiệu chỉnh
+                    </span>
+                  </h4>
+                  <p className="text-[13.5px] leading-relaxed font-[500] text-green-800">
+                    Hệ thống đã tự động chấm điểm lại kết quả bằng thuật toán{" "}
+                    <strong>Weighted Re-scoring</strong> dựa trên ảnh cận cảnh
+                    bạn đã gửi.
+                  </p>
+
+                  {/* Thumbnail display of supplementary image if present */}
+                  <div className="animate-in fade-in mt-3 flex items-center gap-3 duration-300">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-green-200 shadow-sm transition-transform hover:scale-105">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={data.supplementImageUrl}
+                        alt="Ảnh cận cảnh bổ sung"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span className="text-[12.5px] font-[500] text-green-700 italic">
+                      Ảnh cận cảnh đã được đính kèm vào lịch sử bệnh án.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* All Detections detailed list for multiple diseases */}
         {!isHealthy && data.results && data.results.length > 0 && (

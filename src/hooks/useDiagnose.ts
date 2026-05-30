@@ -61,5 +61,5 @@ export function useDiagnose() {
     setError(null);
   };
 
-  return { predict, isLoading, result, error, reset };
+  return { predict, isLoading, result, error, reset, setResult };
 }

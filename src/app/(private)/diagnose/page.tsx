@@ -29,7 +29,7 @@ const suggestedTags = [
 
 export default function DiagnosePage() {
   const router = useRouter();
-  const { predict, isLoading, result, error, reset } = useDiagnose();
+  const { predict, isLoading, result, error, reset, setResult } = useDiagnose();
   const { profile } = useProfile();
   const { user } = useAuth();
   const { fields, isLoading: isFieldsLoading } = useUserFields();
@@ -168,7 +168,7 @@ export default function DiagnosePage() {
         </div>
 
         <div>
-          <DiagnoseResultSection result={result} />
+          <DiagnoseResultSection result={result} onResultUpdate={setResult} />
         </div>
       </div>
     </div>

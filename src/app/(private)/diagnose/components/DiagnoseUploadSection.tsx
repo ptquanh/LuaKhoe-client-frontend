@@ -87,6 +87,27 @@ export function DiagnoseUploadSection({
     "default" | "saved" | "custom"
   >("default");
 
+  const loadingTexts = [
+    "Đang tải ảnh lên máy chủ...",
+    "AI đang phân tích triệu chứng trên lá...",
+    "Đang đối chiếu với kho dữ liệu bệnh học...",
+    "Đang tổng hợp phác đồ điều trị...",
+  ];
+  const [loadingTextIdx, setLoadingTextIdx] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLoadingTextIdx(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLoadingTextIdx((prev) => (prev + 1) % loadingTexts.length);
+    }, 4000); // Rotate text every 4 seconds for engaging farmer experience
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   useEffect(() => {
     if (activeModels.length > 0 && !modelVersionId) {
       setModelVersionId(activeModels[0].id);
@@ -319,10 +340,10 @@ export function DiagnoseUploadSection({
               <X className="h-4 w-4" />
             </button>
             {isLoading && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm">
+              <div className="animate-in fade-in absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm duration-200">
                 <Loader2 className="mb-3 h-8 w-8 animate-spin text-[#2F9E44]" />
-                <p className="text-[14px] font-[500] text-[#2F9E44]">
-                  AI đang phân tích hình ảnh...
+                <p className="animate-pulse px-4 text-center text-[14px] font-[700] text-[#2F9E44] transition-all duration-500">
+                  {loadingTexts[loadingTextIdx]}
                 </p>
               </div>
             )}

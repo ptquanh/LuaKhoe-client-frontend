@@ -135,6 +135,7 @@ export interface DiagnosisResponse {
   results: DiagnosisResultResponse[];
   feedbacks?: any[];
   advisory?: DiagnosisAdvisory | null;
+  supplementImageUrl?: string | null;
 
   // Enriched DiagnoseResult fields returned by Predict API
   disease_key?: string;
