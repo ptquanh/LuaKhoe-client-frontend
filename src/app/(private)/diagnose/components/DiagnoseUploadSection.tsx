@@ -78,13 +78,6 @@ export function DiagnoseUploadSection({
   const [addressQuery, setAddressQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  const isUnfilled =
-    !fieldParams.water &&
-    !fieldParams.growth &&
-    !fieldParams.density &&
-    (fieldParams.fog === null || fieldParams.fog === undefined) &&
-    (fieldParams.pesticide === null || fieldParams.pesticide === undefined);
-
   // Default Location UX states
   const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
   const { data: activeModels = [], isLoading: isModelsLoading } =
@@ -657,14 +650,7 @@ export function DiagnoseUploadSection({
                 onClick={() => setShowAdvance(!showAdvance)}
                 className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-[600] text-[#1B1B1B] hover:bg-[#F8F9FA]"
               >
-                <span>
-                  Thông số thực địa (Tăng độ chính xác)
-                  {isUnfilled && (
-                    <span className="ml-2 rounded-full bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[500] text-[#E65100]">
-                      Chưa điền — AI dùng dữ liệu mặc định
-                    </span>
-                  )}
-                </span>
+                <span>Thông số thực địa (Tăng độ chính xác)</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${showAdvance ? "rotate-180" : ""}`}
                 />
@@ -677,13 +663,12 @@ export function DiagnoseUploadSection({
                       Trạng thái nước
                     </label>
                     <select
-                      value={fieldParams.water ?? ""}
+                      value={fieldParams.water}
                       onChange={(e) =>
-                        updateFieldParam("water", e.target.value || undefined)
+                        updateFieldParam("water", e.target.value)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
-                      <option value="">-- Chọn tình trạng --</option>
                       {WATER_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -696,13 +681,12 @@ export function DiagnoseUploadSection({
                       Giai đoạn sinh trưởng
                     </label>
                     <select
-                      value={fieldParams.growth ?? ""}
+                      value={fieldParams.growth}
                       onChange={(e) =>
-                        updateFieldParam("growth", e.target.value || undefined)
+                        updateFieldParam("growth", e.target.value)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
-                      <option value="">-- Chọn giai đoạn --</option>
                       {GROWTH_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -715,13 +699,12 @@ export function DiagnoseUploadSection({
                       Mật độ gieo sạ
                     </label>
                     <select
-                      value={fieldParams.density ?? ""}
+                      value={fieldParams.density}
                       onChange={(e) =>
-                        updateFieldParam("density", e.target.value || undefined)
+                        updateFieldParam("density", e.target.value)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
-                      <option value="">-- Chọn mật độ --</option>
                       {DENSITY_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -732,53 +715,25 @@ export function DiagnoseUploadSection({
 
                   <div className="col-span-full grid grid-cols-2 gap-2 pt-2">
                     <button
-                      onClick={() => {
-                        if (fieldParams.fog === null || fieldParams.fog === undefined) 
-                          updateFieldParam("fog", true);
-                        else if (fieldParams.fog === true) 
-                          updateFieldParam("fog", false);
-                        else 
-                          updateFieldParam("fog", null);
-                      }}
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
-                        fieldParams.fog === null || fieldParams.fog === undefined
-                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
-                          : fieldParams.fog
-                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
-                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
-                      }`}
+                      onClick={() => updateFieldParam("fog", !fieldParams.fog)}
+                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.fog ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
                     >
                       <span className="text-[11px] font-[600]">Sương mù</span>
                       <span className="text-[10px]">
-                        {fieldParams.fog === null || fieldParams.fog === undefined 
-                          ? "Chưa chọn" 
-                          : fieldParams.fog ? "Có" : "Không"}
+                        {fieldParams.fog ? "Có" : "Không"}
                       </span>
                     </button>
                     <button
-                      onClick={() => {
-                        if (fieldParams.pesticide === null || fieldParams.pesticide === undefined) 
-                          updateFieldParam("pesticide", true);
-                        else if (fieldParams.pesticide === true) 
-                          updateFieldParam("pesticide", false);
-                        else 
-                          updateFieldParam("pesticide", null);
-                      }}
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
-                        fieldParams.pesticide === null || fieldParams.pesticide === undefined
-                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
-                          : fieldParams.pesticide
-                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
-                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
-                      }`}
+                      onClick={() =>
+                        updateFieldParam("pesticide", !fieldParams.pesticide)
+                      }
+                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.pesticide ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
                     >
                       <span className="text-[11px] font-[600]">
                         Đã phun thuốc
                       </span>
                       <span className="text-[10px]">
-                        {fieldParams.pesticide === null || fieldParams.pesticide === undefined 
-                          ? "Chưa chọn" 
-                          : fieldParams.pesticide ? "Rồi" : "Chưa"}
+                        {fieldParams.pesticide ? "Rồi" : "Chưa"}
                       </span>
                     </button>
                   </div>
