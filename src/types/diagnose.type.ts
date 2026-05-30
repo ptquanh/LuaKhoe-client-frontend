@@ -151,9 +151,9 @@ export interface FieldParams {
   water?: string;
   growth?: string;
   density?: string;
-  fog?: boolean | null;
-  leafhopper?: boolean | null;
-  pesticide?: boolean | null;
+  fog?: boolean;
+  leafhopper?: boolean;
+  pesticide?: boolean;
 }
 
 export interface CreateDiagnosisPayload {

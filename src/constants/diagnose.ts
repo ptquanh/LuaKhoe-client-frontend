@@ -14,9 +14,10 @@ export const GROWTH_OPTIONS = [
 export const DENSITY_OPTIONS = ["Vừa", "Dày", "Thưa"] as const;
 
 export const FIELD_PARAM_DEFAULTS = {
-  water: "",
-  growth: "",
-  density: "",
-  fog: null,
-  pesticide: null,
+  water: "Bình thường",
+  growth: "Đẻ nhánh",
+  density: "Vừa",
+  fog: false,
+  leafhopper: false,
+  pesticide: false,
 };
