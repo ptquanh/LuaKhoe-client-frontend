@@ -78,6 +78,13 @@ export function DiagnoseUploadSection({
   const [addressQuery, setAddressQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
+  const isUnfilled =
+    !fieldParams.water &&
+    !fieldParams.growth &&
+    !fieldParams.density &&
+    (fieldParams.fog === null || fieldParams.fog === undefined) &&
+    (fieldParams.pesticide === null || fieldParams.pesticide === undefined);
+
   // Default Location UX states
   const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
   const { data: activeModels = [], isLoading: isModelsLoading } =
@@ -617,9 +624,13 @@ export function DiagnoseUploadSection({
             </div>
 
             <div className="mb-4">
-              <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+              <label className="mb-0.5 block text-[13px] font-[600] text-[#1B1B1B]">
                 Mô tả triệu chứng (Tùy chọn)
               </label>
+              <p className="mb-2 text-[11px] text-[#5C5C5C]">
+                Dùng để AI đưa ra lời khuyên điều trị chính xác hơn. Không ảnh
+                hưởng đến kết quả nhận diện bệnh.
+              </p>
               <textarea
                 value={fieldDescription}
                 onChange={(e) => setFieldDescription(e.target.value)}
@@ -653,7 +664,8 @@ export function DiagnoseUploadSection({
                 Mô tả thời tiết hôm nay (Tùy chọn)
               </label>
               <p className="mb-2 text-[11px] text-[#5C5C5C]">
-                Bổ sung nếu thời tiết bất thường. Hệ thống tự động lấy dữ liệu thời tiết theo vị trí ruộng.
+                Bổ sung nếu thời tiết bất thường. Hệ thống tự động lấy dữ liệu
+                thời tiết theo vị trí ruộng.
               </p>
               <textarea
                 value={description}
@@ -670,7 +682,14 @@ export function DiagnoseUploadSection({
                 onClick={() => setShowAdvance(!showAdvance)}
                 className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-[600] text-[#1B1B1B] hover:bg-[#F8F9FA]"
               >
-                <span>Thông số thực địa (Tăng độ chính xác)</span>
+                <span>
+                  Thông số thực địa (Tăng độ chính xác)
+                  {isUnfilled && (
+                    <span className="ml-2 rounded-full bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[500] text-[#E65100]">
+                      Chưa điền — AI dùng dữ liệu mặc định
+                    </span>
+                  )}
+                </span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform ${showAdvance ? "rotate-180" : ""}`}
                 />
@@ -683,12 +702,13 @@ export function DiagnoseUploadSection({
                       Trạng thái nước
                     </label>
                     <select
-                      value={fieldParams.water}
+                      value={fieldParams.water ?? ""}
                       onChange={(e) =>
-                        updateFieldParam("water", e.target.value)
+                        updateFieldParam("water", e.target.value || undefined)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
+                      <option value="">-- Chọn tình trạng --</option>
                       {WATER_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -701,12 +721,13 @@ export function DiagnoseUploadSection({
                       Giai đoạn sinh trưởng
                     </label>
                     <select
-                      value={fieldParams.growth}
+                      value={fieldParams.growth ?? ""}
                       onChange={(e) =>
-                        updateFieldParam("growth", e.target.value)
+                        updateFieldParam("growth", e.target.value || undefined)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
+                      <option value="">-- Chọn giai đoạn --</option>
                       {GROWTH_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -719,12 +740,13 @@ export function DiagnoseUploadSection({
                       Mật độ gieo sạ
                     </label>
                     <select
-                      value={fieldParams.density}
+                      value={fieldParams.density ?? ""}
                       onChange={(e) =>
-                        updateFieldParam("density", e.target.value)
+                        updateFieldParam("density", e.target.value || undefined)
                       }
                       className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
                     >
+                      <option value="">-- Chọn mật độ --</option>
                       {DENSITY_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -733,38 +755,67 @@ export function DiagnoseUploadSection({
                     </select>
                   </div>
 
-                  <div className="col-span-full grid grid-cols-3 gap-2 pt-2">
+                  <div className="col-span-full grid grid-cols-2 gap-2 pt-2">
                     <button
-                      onClick={() => updateFieldParam("fog", !fieldParams.fog)}
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.fog ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
+                      onClick={() => {
+                        if (
+                          fieldParams.fog === null ||
+                          fieldParams.fog === undefined
+                        )
+                          updateFieldParam("fog", true);
+                        else if (fieldParams.fog === true)
+                          updateFieldParam("fog", false);
+                        else updateFieldParam("fog", null);
+                      }}
+                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
+                        fieldParams.fog === null ||
+                        fieldParams.fog === undefined
+                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
+                          : fieldParams.fog
+                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
+                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
+                      }`}
                     >
                       <span className="text-[11px] font-[600]">Sương mù</span>
                       <span className="text-[10px]">
-                        {fieldParams.fog ? "Có" : "Không"}
+                        {fieldParams.fog === null ||
+                        fieldParams.fog === undefined
+                          ? "Chưa chọn"
+                          : fieldParams.fog
+                            ? "Có"
+                            : "Không"}
                       </span>
                     </button>
                     <button
-                      onClick={() =>
-                        updateFieldParam("leafhopper", !fieldParams.leafhopper)
-                      }
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.leafhopper ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
-                    >
-                      <span className="text-[11px] font-[600]">Rầy nâu</span>
-                      <span className="text-[10px]">
-                        {fieldParams.leafhopper ? "Có" : "Không"}
-                      </span>
-                    </button>
-                    <button
-                      onClick={() =>
-                        updateFieldParam("pesticide", !fieldParams.pesticide)
-                      }
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.pesticide ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
+                      onClick={() => {
+                        if (
+                          fieldParams.pesticide === null ||
+                          fieldParams.pesticide === undefined
+                        )
+                          updateFieldParam("pesticide", true);
+                        else if (fieldParams.pesticide === true)
+                          updateFieldParam("pesticide", false);
+                        else updateFieldParam("pesticide", null);
+                      }}
+                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
+                        fieldParams.pesticide === null ||
+                        fieldParams.pesticide === undefined
+                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
+                          : fieldParams.pesticide
+                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
+                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
+                      }`}
                     >
                       <span className="text-[11px] font-[600]">
                         Đã phun thuốc
                       </span>
                       <span className="text-[10px]">
-                        {fieldParams.pesticide ? "Rồi" : "Chưa"}
+                        {fieldParams.pesticide === null ||
+                        fieldParams.pesticide === undefined
+                          ? "Chưa chọn"
+                          : fieldParams.pesticide
+                            ? "Rồi"
+                            : "Chưa"}
                       </span>
                     </button>
                   </div>
