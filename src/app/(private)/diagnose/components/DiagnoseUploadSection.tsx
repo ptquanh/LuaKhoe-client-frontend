@@ -594,12 +594,9 @@ export function DiagnoseUploadSection({
             </div>
 
             <div className="mb-4">
-              <label className="mb-0.5 block text-[13px] font-[600] text-[#1B1B1B]">
+              <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
                 Mô tả triệu chứng (Tùy chọn)
               </label>
-              <p className="mb-2 text-[11px] text-[#5C5C5C]">
-                Dùng để AI đưa ra lời khuyên điều trị chính xác hơn. Không ảnh hưởng đến kết quả nhận diện bệnh.
-              </p>
               <textarea
                 value={fieldDescription}
                 onChange={(e) => setFieldDescription(e.target.value)}
@@ -713,7 +710,7 @@ export function DiagnoseUploadSection({
                     </select>
                   </div>
 
-                  <div className="col-span-full grid grid-cols-2 gap-2 pt-2">
+                  <div className="col-span-full grid grid-cols-3 gap-2 pt-2">
                     <button
                       onClick={() => updateFieldParam("fog", !fieldParams.fog)}
                       className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.fog ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
@@ -721,6 +718,17 @@ export function DiagnoseUploadSection({
                       <span className="text-[11px] font-[600]">Sương mù</span>
                       <span className="text-[10px]">
                         {fieldParams.fog ? "Có" : "Không"}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        updateFieldParam("leafhopper", !fieldParams.leafhopper)
+                      }
+                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${fieldParams.leafhopper ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]" : "border-[#E0E0E0] bg-white text-[#5C5C5C]"}`}
+                    >
+                      <span className="text-[11px] font-[600]">Rầy nâu</span>
+                      <span className="text-[10px]">
+                        {fieldParams.leafhopper ? "Có" : "Không"}
                       </span>
                     </button>
                     <button
