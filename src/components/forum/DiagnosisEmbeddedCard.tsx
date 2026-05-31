@@ -2,7 +2,7 @@
 
 import { DiagnosisResponse } from "@/types/diagnose.type";
 import { LockOutlined } from "@ant-design/icons";
-import { Modal } from "antd";
+import { Image, Modal } from "antd";
 import { getCookie } from "cookies-next";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -87,10 +87,12 @@ export default function DiagnosisEmbeddedCard({
   return (
     <div className="mt-4 flex gap-4 rounded-xl border border-emerald-100 bg-[#F8FAFC] p-3.5 transition-all hover:border-emerald-300 hover:shadow-xs dark:border-emerald-950/30 dark:bg-emerald-950/5">
       <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-gray-800">
-        <img
+        <Image
           src={imageUrl}
           alt={diseaseName}
-          className="h-full w-full object-cover"
+          preview={false}
+          className="object-cover"
+          style={{ width: "100%", height: "100%" }}
         />
       </div>
 

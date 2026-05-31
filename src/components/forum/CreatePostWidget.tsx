@@ -6,7 +6,8 @@ import { diagnosisService } from "@/services/diagnosis.service";
 import { diseaseService } from "@/services/disease.service";
 import { forumService } from "@/services/forum.service";
 import { userService } from "@/services/user.service";
-import { Mentions, message, Modal } from "antd";
+import { Image, Mentions, message, Modal } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import { getCookie } from "cookies-next";
 import {
   Image as ImageIcon,
@@ -44,7 +45,13 @@ export default function CreatePostWidget() {
 
   // Mentions & Diagnosis state
   const [userList, setUserList] = useState<
-    { id: string; username: string; displayName: string; email: string }[]
+    {
+      id: string;
+      username: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+    }[]
   >([]);
   const [attachedDiagnosis, setAttachedDiagnosis] = useState<any | null>(null);
   const [showDiagnosisModal, setShowDiagnosisModal] = useState(false);
@@ -336,7 +343,10 @@ export default function CreatePostWidget() {
       <div className="mb-3 flex items-center justify-between border-b border-[#E0E0E0] pb-3 dark:border-gray-800">
         <div className="flex items-center gap-3">
           <img
-            src={avatarUrl}
+            src={
+              avatarUrl ||
+              "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+            }
             alt={profileName}
             className="h-10 w-10 rounded-full border border-gray-100 object-cover dark:border-gray-800"
           />
@@ -384,14 +394,23 @@ export default function CreatePostWidget() {
           className="min-h-[100px] w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-14 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           rows={4}
           variant="borderless"
-        >
-          {userList.map((user: any) => {
+          filterOption={(input, option) => {
+            const user = userList.find((u) => u.username === option?.value);
+            if (!user) return false;
             const fullName =
               [user.lastName, user.firstName].filter(Boolean).join(" ") ||
-              user.displayName ||
               user.username;
-            return (
-              <Mentions.Option key={user.username} value={user.username}>
+            const searchStr =
+              `${fullName} ${user.username} ${user.email}`.toLowerCase();
+            return searchStr.includes(input.toLowerCase());
+          }}
+          options={userList.map((user: any) => {
+            const fullName =
+              [user.lastName, user.firstName].filter(Boolean).join(" ") ||
+              user.username;
+            return {
+              value: user.username,
+              label: (
                 <div className="flex flex-col py-1 text-left">
                   <span className="font-semibold text-gray-800 dark:text-gray-200">
                     {fullName}
@@ -400,10 +419,10 @@ export default function CreatePostWidget() {
                     @{user.username} • {user.email}
                   </span>
                 </div>
-              </Mentions.Option>
-            );
+              ),
+            };
           })}
-        </Mentions>
+        />
         <div className="absolute right-2.5 bottom-2.5 z-10 flex items-center gap-2.5">
           <span className="mr-1 text-[11px] font-medium text-[#9E9E9E] dark:text-gray-500">
             {content.length}/5000
@@ -434,15 +453,19 @@ export default function CreatePostWidget() {
       {attachedDiagnosis && (
         <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/10 p-3 dark:border-emerald-950/20 dark:bg-emerald-950/5">
           <div className="flex items-center gap-3">
-            <img
-              src={
-                attachedDiagnosis.resultImageUrl ||
-                attachedDiagnosis.originalImageUrl ||
-                "/images/rice-default.png"
-              }
-              alt="Chẩn đoán"
-              className="h-12 w-12 rounded-lg border border-emerald-200 object-cover dark:border-emerald-900"
-            />
+            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-emerald-200 dark:border-emerald-900">
+              <Image
+                src={
+                  attachedDiagnosis.resultImageUrl ||
+                  attachedDiagnosis.originalImageUrl ||
+                  "/images/rice-default.png"
+                }
+                alt="Chẩn đoán"
+                preview={false}
+                className="object-cover"
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
             <div>
               <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500">
                 Đã đính kèm chẩn đoán AI:
@@ -471,10 +494,18 @@ export default function CreatePostWidget() {
               key={idx}
               className="group relative aspect-square overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800"
             >
-              <img
-                src={url}
+              <Image
+                src={url || undefined}
                 alt={`preview-${idx}`}
-                className="h-full w-full object-cover"
+                className="object-cover"
+                style={{ width: "100%", height: "100%" }}
+                preview={{
+                  mask: (
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <ZoomInOutlined /> Xem trước
+                    </div>
+                  ),
+                }}
               />
               <button
                 type="button"
@@ -690,15 +721,19 @@ export default function CreatePostWidget() {
                   }}
                   className="dark:border-gray-850 flex cursor-pointer gap-3 rounded-xl border border-gray-100 p-2.5 transition-all hover:border-emerald-400 hover:bg-emerald-50/10 dark:hover:bg-emerald-950/10"
                 >
-                  <img
-                    src={
-                      diag.resultImageUrl ||
-                      diag.originalImageUrl ||
-                      "/images/rice-default.png"
-                    }
-                    alt={name}
-                    className="h-14 w-14 rounded-lg border border-gray-100 object-cover dark:border-gray-800"
-                  />
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800">
+                    <Image
+                      src={
+                        diag.resultImageUrl ||
+                        diag.originalImageUrl ||
+                        "/images/rice-default.png"
+                      }
+                      alt={name}
+                      preview={false}
+                      className="object-cover"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </div>
                   <div className="flex flex-col justify-between">
                     <div>
                       <p className="line-clamp-1 text-[14px] font-bold text-gray-800 dark:text-gray-200">

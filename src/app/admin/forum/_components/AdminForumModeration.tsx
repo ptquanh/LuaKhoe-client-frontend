@@ -3,7 +3,8 @@
 import PostStatusBadge from "@/components/forum/PostStatusBadge";
 import { useForumPosts, useModeratePost } from "@/hooks/useForum";
 import { adminService } from "@/services/admin.service";
-import { Button, Input, message, Modal, Spin, Tabs } from "antd";
+import { Button, Image, Input, message, Modal, Spin, Tabs } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import {
   AlertTriangle,
   Calendar,
@@ -204,7 +205,7 @@ export default function AdminForumModeration() {
       {/* Main Content List */}
       {isLoading ? (
         <div className="flex h-64 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white dark:border-gray-800 dark:bg-gray-900">
-          <Spin size="large" tip="Đang tải dữ liệu bài đăng…" />
+          <Spin size="large" description="Đang tải dữ liệu bài đăng…" />
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white py-16 dark:border-gray-800 dark:bg-gray-900">
@@ -232,8 +233,9 @@ export default function AdminForumModeration() {
                   <div className="relative">
                     <img
                       src={
-                        post.author?.avatarUrl ||
-                        "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+                        post.author?.avatarUrl && post.author.avatarUrl !== ""
+                          ? post.author.avatarUrl
+                          : "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
                       }
                       alt={post.author?.name}
                       className="h-11 w-11 rounded-full border border-gray-100 object-cover dark:border-gray-800"
@@ -285,20 +287,30 @@ export default function AdminForumModeration() {
 
               {/* Render attached images if any */}
               {post.images && post.images.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {post.images.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-video overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Attachment-${idx}`}
-                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <Image.PreviewGroup>
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {post.images.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800"
+                      >
+                        <Image
+                          src={imgUrl || undefined}
+                          alt={`Attachment-${idx}`}
+                          className="object-cover"
+                          style={{ width: "100%", height: "100%" }}
+                          preview={{
+                            mask: (
+                              <div className="flex items-center gap-2">
+                                <ZoomInOutlined /> Xem
+                              </div>
+                            ),
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Image.PreviewGroup>
               )}
 
               {/* Flagged reasons */}

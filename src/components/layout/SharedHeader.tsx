@@ -67,7 +67,7 @@ export default function SharedHeader() {
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#E0E0E0] bg-[#E6F4EA] text-[#2F9E44]"
           >
-            {user.avatarUrl ? (
+            {user.avatarUrl && user.avatarUrl.trim() !== "" ? (
               <img
                 src={user.avatarUrl}
                 alt={user.username}

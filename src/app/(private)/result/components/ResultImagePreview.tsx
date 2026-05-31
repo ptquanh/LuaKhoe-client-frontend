@@ -2,20 +2,48 @@
 
 import { Download, ImageIcon, Share2 } from "lucide-react";
 import React from "react";
-
-import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { Image } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 
 interface ResultImagePreviewProps {
-  imageUrl: string;
+  originalImageUrl?: string;
+  resultImageUrl?: string;
+  supplementImageUrl?: string;
   diseaseName: string;
 }
 
 export function ResultImagePreview({
-  imageUrl,
+  originalImageUrl,
+  resultImageUrl,
+  supplementImageUrl,
   diseaseName,
 }: ResultImagePreviewProps) {
+  const activeImages = [
+    { url: originalImageUrl, label: "Ảnh gốc", maskText: "Phóng to ảnh gốc" },
+    { url: resultImageUrl, label: "AI Phân tích", maskText: "Phóng to ảnh AI" },
+    {
+      url: supplementImageUrl,
+      label: "Ảnh cận cảnh",
+      maskText: "Phóng to ảnh cận cảnh",
+    },
+  ].filter((item) => Boolean(item.url));
+
+  const count = activeImages.length;
+
+  const gridClass =
+    count === 3
+      ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+      : count === 2
+        ? "grid-cols-1 sm:grid-cols-2"
+        : "grid-cols-1";
+
+  const primaryDownloadUrl =
+    resultImageUrl || originalImageUrl || supplementImageUrl || "";
+
   const handleDownload = () => {
-    window.open(imageUrl, "_blank");
+    if (primaryDownloadUrl) {
+      window.open(primaryDownloadUrl, "_blank");
+    }
   };
 
   const handleShare = async () => {
@@ -34,26 +62,64 @@ export function ResultImagePreview({
     }
   };
 
+  if (count === 0) {
+    return null;
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white p-5 shadow-sm transition-all hover:shadow-md">
-      <div className="mb-3.5 flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F7F7F7] text-[#5C5C5C]">
-          <ImageIcon className="h-4.5 w-4.5" />
+      <div className="mb-4 flex items-center justify-between border-b border-[#F0F0F0] pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F7F7F7] text-[#5C5C5C]">
+            <ImageIcon className="h-4.5 w-4.5" />
+          </div>
+          <h3 className="text-[17px] font-[700] text-[#1B1B1B]">
+            Hình ảnh chẩn đoán chi tiết ({count})
+          </h3>
         </div>
-        <h3 className="text-[17px] font-[700] text-[#1B1B1B]">
-          Ảnh chẩn đoán AI
-        </h3>
+        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-[600] text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400">
+          💡 Click ảnh để so sánh & thu phóng
+        </span>
       </div>
 
-      <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-[#E0E0E0]/60 bg-[#F7F7F7] md:aspect-[21/9]">
-        <ImageWithFallback
-          src={imageUrl}
-          alt={diseaseName}
-          className="h-full w-full object-contain"
-        />
-      </div>
+      <Image.PreviewGroup>
+        <div className={`grid ${gridClass} gap-4`}>
+          {activeImages.map((img, idx) => (
+            <div
+              key={idx}
+              onClick={(e) => e.stopPropagation()}
+              className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[#E0E0E0]/60 bg-gray-50 transition-shadow hover:shadow-sm sm:aspect-[16/10]"
+            >
+              <Image
+                src={img.url}
+                alt={img.label}
+                className="object-cover"
+                style={{ width: "100%", height: "100%" }}
+                preview={{
+                  mask: (
+                    <div className="flex items-center gap-2">
+                      <ZoomInOutlined /> {img.maskText}
+                    </div>
+                  ),
+                }}
+              />
+              <div
+                className={`absolute bottom-3 left-3 z-10 rounded-md px-2.5 py-1 text-xs font-[700] text-white shadow-xs select-none ${
+                  img.label === "AI Phân tích"
+                    ? "bg-[#2F9E44]/90"
+                    : img.label === "Ảnh cận cảnh"
+                      ? "bg-blue-600/90"
+                      : "bg-black/60"
+                }`}
+              >
+                {img.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Image.PreviewGroup>
 
-      <div className="mt-4 flex flex-wrap justify-end gap-2.5">
+      <div className="mt-5 flex flex-wrap justify-end gap-2.5 border-t border-[#F0F0F0] pt-4">
         <button
           onClick={handleDownload}
           className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#E0E0E0] px-4 text-[14px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F7F7F7] hover:text-[#1B1B1B]"

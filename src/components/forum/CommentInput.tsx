@@ -1,6 +1,7 @@
 "use client";
 
-import { message } from "antd";
+import { Image, message } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import { Camera, Loader2, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -97,10 +98,18 @@ export default function CommentInput({
       {/* Image Preview Thumbnail */}
       {previewUrl && (
         <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-          <img
-            src={previewUrl}
+          <Image
+            src={previewUrl || undefined}
             alt="Preview attachment"
-            className="h-full w-full object-cover"
+            className="object-cover"
+            style={{ width: "100%", height: "100%" }}
+            preview={{
+              mask: (
+                <div className="flex items-center gap-1 text-[10px]">
+                  <ZoomInOutlined /> Xem trước
+                </div>
+              ),
+            }}
           />
           <button
             type="button"
@@ -174,7 +183,10 @@ export default function CommentInput({
     return (
       <div className="flex gap-3">
         <img
-          src={avatarUrl}
+          src={
+            avatarUrl ||
+            "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+          }
           alt={profileName}
           className="h-10 w-10 shrink-0 rounded-full object-cover"
         />

@@ -10,7 +10,7 @@ import { Suspense } from "react";
 const AdminForumFeed = dynamic(() => import("./_components/AdminForumFeed"), {
   loading: () => (
     <div className="flex h-64 items-center justify-center">
-      <Spin size="large" tip="Đang tải dòng thời gian…" />
+      <Spin size="large" description="Đang tải dòng thời gian…" />
     </div>
   ),
 });
@@ -20,7 +20,7 @@ const AdminForumModeration = dynamic(
   {
     loading: () => (
       <div className="flex h-64 items-center justify-center">
-        <Spin size="large" tip="Đang tải dữ liệu kiểm duyệt…" />
+        <Spin size="large" description="Đang tải dữ liệu kiểm duyệt…" />
       </div>
     ),
   },
@@ -112,7 +112,10 @@ export default function AdminForumPage() {
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center">
-          <Spin size="large" tip="Đang tải dữ liệu quản trị diễn đàn…" />
+          <Spin
+            size="large"
+            description="Đang tải dữ liệu quản trị diễn đàn…"
+          />
         </div>
       }
     >

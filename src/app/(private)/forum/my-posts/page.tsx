@@ -4,7 +4,8 @@ import PostStatusBadge from "@/components/forum/PostStatusBadge";
 import { useDeletePost, useMyPosts } from "@/hooks/useForum";
 import { forumService } from "@/services/forum.service";
 import { ForumPost } from "@/types/forum.type";
-import { Button, Input, message, Modal, Select, Spin, Tabs } from "antd";
+import { Button, Image, Input, message, Modal, Select, Spin, Tabs } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import {
   AlertTriangle,
   Calendar,
@@ -230,7 +231,7 @@ export default function MyPostsPage() {
       {/* Loading state */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Spin size="large" tip="Đang tải bài viết…" />
+          <Spin size="large" description="Đang tải bài viết…" />
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white py-16 text-center dark:border-gray-800 dark:bg-gray-900">
@@ -296,20 +297,30 @@ export default function MyPostsPage() {
 
               {/* Attached images */}
               {post.images && post.images.length > 0 && (
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {post.images.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-video overflow-hidden rounded-lg border"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt="Preview"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <Image.PreviewGroup>
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    {post.images.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-video w-full overflow-hidden rounded-lg border"
+                      >
+                        <Image
+                          src={imgUrl || undefined}
+                          alt="Preview"
+                          className="object-cover"
+                          style={{ width: "100%", height: "100%" }}
+                          preview={{
+                            mask: (
+                              <div className="flex items-center gap-1.5 text-xs">
+                                <ZoomInOutlined /> Xem
+                              </div>
+                            ),
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Image.PreviewGroup>
               )}
 
               {/* Reject reason overlay */}

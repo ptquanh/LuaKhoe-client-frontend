@@ -51,7 +51,7 @@ export default function PublicProfilePage() {
       <div className="min-h-screen bg-[#F7F7F7] font-[Inter,sans-serif]">
         <SharedHeader />
         <div className="flex h-[70vh] items-center justify-center">
-          <Spin size="large" tip="Đang tải thông tin hồ sơ..." />
+          <Spin size="large" description="Đang tải thông tin hồ sơ..." />
         </div>
       </div>
     );
@@ -142,7 +142,7 @@ export default function PublicProfilePage() {
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:gap-8 sm:text-left">
             {/* Profile Avatar */}
             <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-green-500 bg-gray-50 shadow-md">
-              {profileData.avatarUrl ? (
+              {profileData.avatarUrl && profileData.avatarUrl !== "" ? (
                 <Image
                   src={profileData.avatarUrl}
                   alt={profileData.username}

@@ -367,7 +367,14 @@ function ResultPageContent() {
         )}
 
         {/* Image Preview */}
-        <ResultImagePreview imageUrl={previewImg} diseaseName={diseaseName} />
+        <ResultImagePreview
+          originalImageUrl={data.originalImageUrl}
+          resultImageUrl={
+            data.resultImageUrl || data.annotated_image || undefined
+          }
+          supplementImageUrl={data.supplementImageUrl || undefined}
+          diseaseName={diseaseName}
+        />
 
         {/* Feedback Card */}
         <DiagnosisFeedbackCard

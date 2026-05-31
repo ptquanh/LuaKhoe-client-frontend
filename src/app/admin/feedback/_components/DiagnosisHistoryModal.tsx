@@ -1,7 +1,8 @@
 "use client";
 
 import { LegacyRagRecommendation } from "@/components/diagnosis/LegacyRagRecommendation";
-import { Collapse, Modal, Progress, Tabs } from "antd";
+import { Collapse, Image, Modal, Progress, Tabs } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 
 export interface DiagnosisResult {
   confidence: number;
@@ -67,10 +68,18 @@ export default function DiagnosisHistoryModal({
       children: (
         <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[#E0E0E0] bg-[#FAFAFA]">
           {diagnosisData.originalImageUrl || diagnosisData.imageUrl ? (
-            <img
+            <Image
               src={diagnosisData.originalImageUrl || diagnosisData.imageUrl}
               alt="Ảnh gốc"
-              className="h-auto max-h-[380px] w-full object-contain"
+              className="object-contain"
+              style={{ maxHeight: "380px", maxWidth: "100%" }}
+              preview={{
+                mask: (
+                  <div className="flex items-center gap-2">
+                    <ZoomInOutlined /> Phóng to
+                  </div>
+                ),
+              }}
             />
           ) : (
             <div className="py-12 text-center text-[#9E9E9E]">
@@ -86,10 +95,18 @@ export default function DiagnosisHistoryModal({
       children: (
         <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[#E0E0E0] bg-[#FAFAFA]">
           {diagnosisData.resultImageUrl ? (
-            <img
+            <Image
               src={diagnosisData.resultImageUrl}
               alt="Ảnh kết quả AI"
-              className="h-auto max-h-[380px] w-full object-contain"
+              className="object-contain"
+              style={{ maxHeight: "380px", maxWidth: "100%" }}
+              preview={{
+                mask: (
+                  <div className="flex items-center gap-2">
+                    <ZoomInOutlined /> Phóng to
+                  </div>
+                ),
+              }}
             />
           ) : (
             <div className="py-12 text-center text-[#9E9E9E]">
@@ -124,7 +141,9 @@ export default function DiagnosisHistoryModal({
       <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Left Column: Image Area with Tabs */}
         <div className="space-y-4">
-          <Tabs defaultActiveKey="original" items={imageTabItems} />
+          <Image.PreviewGroup>
+            <Tabs defaultActiveKey="original" items={imageTabItems} />
+          </Image.PreviewGroup>
 
           <div className="space-y-2 rounded-lg border border-[#F0F2F5] bg-[#FAFAFA] p-4 text-[13px] text-[#5C5C5C]">
             <p>

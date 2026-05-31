@@ -7,7 +7,8 @@ import {
 } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
 import { ForumComment } from "@/types/forum.type";
-import { Dropdown, message, Modal } from "antd";
+import { Dropdown, Image, message, Modal } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
@@ -148,7 +149,10 @@ export default function CommentItem({
     <div className={`flex gap-3 ${isReply ? "mt-4" : "mt-5"}`}>
       {/* Avatar */}
       <img
-        src={comment.author.avatarUrl}
+        src={
+          comment.author.avatarUrl ||
+          "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+        }
         alt={comment.author.name}
         className={`${isReply ? "h-8 w-8" : "h-10 w-10"} shrink-0 rounded-full object-cover`}
       />
@@ -189,11 +193,19 @@ export default function CommentItem({
               {comment.content}
             </p>
             {comment.imageUrl && (
-              <div className="mt-2 overflow-hidden rounded-lg">
-                <img
-                  src={comment.imageUrl}
+              <div className="relative mt-2 inline-block max-h-[200px] w-auto overflow-hidden rounded-lg">
+                <Image
+                  src={comment.imageUrl || undefined}
                   alt="Comment attachment"
-                  className="max-h-[200px] w-auto rounded-lg object-contain"
+                  className="rounded-lg object-contain"
+                  style={{ maxHeight: "200px", maxWidth: "100%" }}
+                  preview={{
+                    mask: (
+                      <div className="flex items-center gap-2">
+                        <ZoomInOutlined /> Phóng to
+                      </div>
+                    ),
+                  }}
                 />
               </div>
             )}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, message, Modal, Spin } from "antd";
+import { Button, Image, message, Modal, Spin } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import {
   Calendar,
   ChevronRight,
@@ -91,7 +92,7 @@ export default function AdminForumFeed() {
       {/* Community public feed */}
       {isLoading ? (
         <div className="flex h-64 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white dark:border-gray-800 dark:bg-gray-900">
-          <Spin size="large" tip="Đang tải dòng thời gian…" />
+          <Spin size="large" description="Đang tải dòng thời gian…" />
         </div>
       ) : posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white py-16 dark:border-gray-800 dark:bg-gray-900">
@@ -120,8 +121,9 @@ export default function AdminForumFeed() {
                   <div className="relative">
                     <img
                       src={
-                        post.author?.avatarUrl ||
-                        "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+                        post.author?.avatarUrl && post.author.avatarUrl !== ""
+                          ? post.author.avatarUrl
+                          : "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
                       }
                       alt={post.author?.name}
                       className="h-11 w-11 rounded-full border border-gray-100 object-cover dark:border-gray-800"
@@ -175,20 +177,31 @@ export default function AdminForumFeed() {
 
               {/* Images */}
               {post.images && post.images.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {post.images.map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-video overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Attachment-${idx}`}
-                        className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                    </div>
-                  ))}
-                </div>
+                <Image.PreviewGroup>
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {post.images.map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800"
+                      >
+                        <Image
+                          src={imgUrl}
+                          alt={`Attachment-${idx}`}
+                          className="object-cover"
+                          style={{ width: "100%", height: "100%" }}
+                          preview={{
+                            mask: (
+                              <div className="flex items-center gap-2">
+                                <ZoomInOutlined /> Phóng to
+                              </div>
+                            ),
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Image.PreviewGroup>
               )}
             </div>
           ))}

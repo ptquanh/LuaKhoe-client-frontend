@@ -3,7 +3,8 @@
 import { useDeletePost, useVotePost } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
 import { ForumPost } from "@/types/forum.type";
-import { Dropdown, message, Modal } from "antd";
+import { Dropdown, Image, message, Modal } from "antd";
+import { ZoomInOutlined } from "@ant-design/icons";
 import { MessageSquare, MoreHorizontal, Share2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -158,7 +159,10 @@ export default function PostCard({ post }: PostCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src={post.author.avatarUrl}
+            src={
+              post.author.avatarUrl ||
+              "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+            }
             alt={post.author.name}
             className="h-10 w-10 rounded-full object-cover"
           />
@@ -225,13 +229,23 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
 
         {post.images && post.images.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-lg border border-[#E0E0E0] dark:border-gray-800">
-            <img
-              src={post.images[0]}
-              alt="Post attachment"
-              className="max-h-[400px] w-full object-cover"
-            />
-          </div>
+          <Image.PreviewGroup>
+            <div className="relative mt-3 max-h-[400px] w-full overflow-hidden rounded-lg border border-[#E0E0E0] dark:border-gray-800">
+              <Image
+                src={post.images[0] || undefined}
+                alt="Post attachment"
+                className="object-cover"
+                style={{ width: "100%", height: "100%", maxHeight: "400px" }}
+                preview={{
+                  mask: (
+                    <div className="flex items-center gap-2">
+                      <ZoomInOutlined /> Thu phóng
+                    </div>
+                  ),
+                }}
+              />
+            </div>
+          </Image.PreviewGroup>
         )}
 
         {post.tags && post.tags.length > 0 && (
@@ -264,7 +278,10 @@ export default function PostCard({ post }: PostCardProps) {
 
             <div className="flex gap-3">
               <img
-                src={post.topComment.author.avatarUrl}
+                src={
+                  post.topComment.author.avatarUrl ||
+                  "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
+                }
                 alt={post.topComment.author.name}
                 className="h-8 w-8 shrink-0 rounded-full object-cover"
               />

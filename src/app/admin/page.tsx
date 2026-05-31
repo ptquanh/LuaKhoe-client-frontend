@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { adminService } from "@/services/admin.service";
+import { formatConfidenceToPercent } from "@/utils/format";
 
 export default function AdminDashboardPage() {
   const { data: dashboardData, isLoading } = useQuery({
@@ -213,10 +214,7 @@ export default function AdminDashboardPage() {
                                 : "text-[#E53935]"
                           }`}
                         >
-                          {d.confidence < 1
-                            ? (d.confidence * 100).toFixed(1)
-                            : Number(d.confidence).toFixed(1)}
-                          %
+                          {formatConfidenceToPercent(d.confidence)}
                         </span>
                       </td>
                       <td className="py-3 text-right text-[13px] text-[#9E9E9E]">
