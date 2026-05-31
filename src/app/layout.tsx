@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider } from "antd";
+import { App as AntdApp, ConfigProvider } from "antd";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -34,9 +34,13 @@ export default function RootLayout({
                 colorPrimary: "#16a34a",
                 borderRadius: 8,
               },
+              // @ts-expect-error: Force disable cssVar to bypass App component warning
+              cssVar: false,
             }}
           >
-            <ReactQueryProvider>{children}</ReactQueryProvider>
+            <AntdApp component={false}>
+              <ReactQueryProvider>{children}</ReactQueryProvider>
+            </AntdApp>
           </ConfigProvider>
         </AntdRegistry>
       </body>

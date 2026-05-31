@@ -15,6 +15,7 @@ import {
   InputNumber,
   Modal,
   Select,
+  Space,
   Spin,
   Switch,
   Tabs,
@@ -393,14 +394,18 @@ export default function AdminForumModeration() {
                 Thời gian trễ tối thiểu trước khi quét (phút):
               </h5>
               <div className="flex items-center gap-3">
-                <InputNumber
-                  min={1}
-                  max={1440}
-                  value={aiConfig.cronDelay}
-                  onChange={(val) => val && handleUpdateCronDelay(val)}
-                  className="w-32"
-                  addonAfter="phút"
-                />
+                <Space.Compact>
+                  <InputNumber
+                    min={1}
+                    max={1440}
+                    value={aiConfig.cronDelay}
+                    onChange={(val) => val && handleUpdateCronDelay(val)}
+                    className="w-32"
+                  />
+                  <Button disabled className="pointer-events-none">
+                    phút
+                  </Button>
+                </Space.Compact>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-gray-500">
                 Hệ thống chạy tác vụ ngầm kiểm tra mỗi 5 phút một lần để xử lý
