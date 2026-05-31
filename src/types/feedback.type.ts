@@ -25,8 +25,9 @@ export interface FeedbackItem {
       phone?: string;
     };
   };
-  userMessage?: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  rating?: number;
+  content?: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
   adminId?: string;
   adminResponse?: string;
   processedAt?: string;
@@ -36,11 +37,12 @@ export interface FeedbackItem {
 
 export interface CreateFeedbackDto {
   diagnosisId: string;
-  userMessage?: string;
+  rating: number;
+  content?: string;
   actualDiseaseIds: string[];
 }
 
 export interface ProcessFeedbackDto {
-  status: "ACCEPTED" | "REJECTED";
+  status: "APPROVED" | "REJECTED";
   response?: string;
 }

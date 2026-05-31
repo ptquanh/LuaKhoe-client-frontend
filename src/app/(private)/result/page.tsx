@@ -106,20 +106,17 @@ function ResultPageContent() {
   ) => {
     if (!id) return;
     try {
-      const prefix = rating > 0 ? `[Đánh giá: ${rating}/5 sao] ` : "";
-      const userMessage = `${prefix}${comment}`;
-
-      // Ground truth logic: if rating >= 4, auto submit with detected diseases
-      const finalActualDiseaseIds =
-        rating >= 4 ? detectedDiseaseIds : actualDiseaseIds || [];
+      const content = comment.trim() || undefined;
+      const finalActualDiseaseIds = actualDiseaseIds || [];
 
       const res = await feedbackService.submit({
         diagnosisId: id,
-        userMessage,
+        rating,
+        content,
         actualDiseaseIds: finalActualDiseaseIds,
       });
 
-      // Re-map actualDiseases for local state update
+      // Re-map actualDiseases for optimistic local state update
       const submittedActualDiseases = finalActualDiseaseIds.map((diseaseId) => {
         const foundDisease = diseases.find((d) => d.id === diseaseId);
         return {
@@ -137,12 +134,12 @@ function ResultPageContent() {
         id: res.data?.id || Date.now().toString(),
         diagnosisId: id,
         userId: "current",
-        userMessage,
+        rating,
+        content,
         actualDiseases: submittedActualDiseases,
-        status: "PENDING",
+        status: content ? "PENDING" : "APPROVED",
         createdAt: new Date().toISOString(),
       });
-      console.log("Feedback submitted successfully");
     } catch (err) {
       console.error("Lỗi gửi phản hồi:", err);
     }

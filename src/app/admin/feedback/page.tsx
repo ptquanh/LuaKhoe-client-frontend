@@ -22,11 +22,14 @@ interface FeedbackDisplay {
   farmer: string;
   farmerName?: string;
   disease: string;
-  rating: "positive" | "negative";
+  /** Numeric star rating from the user (1–5) */
+  starRating?: number;
+  /** positive = rating >= 4, negative = rating <= 2, neutral = 3 */
+  sentiment: "positive" | "negative" | "neutral";
   comment: string;
   date: string;
   flagged: boolean;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED";
   actualDiseases?: string;
   adminResponse?: string;
   diagnosis?: DiagnosisData;
@@ -52,7 +55,7 @@ export default function AdminFeedbackPage() {
   );
   const [replyText, setReplyText] = useState("");
   const [processStatus, setProcessStatus] = useState<
-    "ACCEPTED" | "REJECTED" | null
+    "APPROVED" | "REJECTED" | null
   >(null);
 
   const fetchFeedbacks = async () => {
@@ -61,11 +64,15 @@ export default function AdminFeedbackPage() {
       const res = await feedbackService.getAll();
       if (res.success && res.data) {
         const mapped: FeedbackDisplay[] = res.data.map((item) => {
-          const comment = item.userMessage || "";
-          const isPos =
-            comment.includes("4/5") ||
-            comment.includes("5/5") ||
-            comment.includes("tích cực");
+          const comment = item.content || "";
+          const starRating = item.rating;
+          const sentiment: "positive" | "negative" | "neutral" = !starRating
+            ? "neutral"
+            : starRating >= 4
+              ? "positive"
+              : starRating <= 2
+                ? "negative"
+                : "neutral";
 
           const userProfile = item.user?.farmerProfile;
           const constructedFarmerName = userProfile
@@ -83,8 +90,9 @@ export default function AdminFeedbackPage() {
               item.diagnosis?.results?.[0]?.disease?.name ||
               item.diagnosis?.disease_name ||
               "Chẩn đoán bệnh lúa",
-            rating: isPos ? "positive" : "negative",
-            comment: comment,
+            starRating,
+            sentiment,
+            comment,
             date: new Date(item.createdAt).toLocaleDateString("vi-VN"),
             flagged: (item.status || "").toUpperCase() === "PENDING",
             status: (item.status || "PENDING").toUpperCase() as any,
@@ -180,12 +188,16 @@ export default function AdminFeedbackPage() {
       f.farmer.toLowerCase().includes(search.toLowerCase()) ||
       f.disease.toLowerCase().includes(search.toLowerCase()) ||
       f.comment.toLowerCase().includes(search.toLowerCase());
-    const matchRating = filterRating === "all" || f.rating === filterRating;
+    const matchRating = filterRating === "all" || f.sentiment === filterRating;
     return matchSearch && matchRating;
   });
 
-  const positiveCount = feedbacks.filter((f) => f.rating === "positive").length;
-  const negativeCount = feedbacks.filter((f) => f.rating === "negative").length;
+  const positiveCount = feedbacks.filter(
+    (f) => f.sentiment === "positive",
+  ).length;
+  const negativeCount = feedbacks.filter(
+    (f) => f.sentiment === "negative",
+  ).length;
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -271,8 +283,8 @@ export default function AdminFeedbackPage() {
               }
               setSelectedFeedbackId(f.id);
               const targetStatus =
-                f.status === "PENDING" ? "ACCEPTED" : f.status;
-              if (targetStatus === "ACCEPTED" || targetStatus === "REJECTED") {
+                f.status === "PENDING" ? "APPROVED" : f.status;
+              if (targetStatus === "APPROVED" || targetStatus === "REJECTED") {
                 setProcessStatus(targetStatus);
               }
               setReplyText(f.adminResponse || "");
@@ -283,11 +295,11 @@ export default function AdminFeedbackPage() {
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
-                  {f.rating === "positive" ? (
+                  {f.sentiment === "positive" ? (
                     <ThumbsUp className="h-4 w-4 text-[#2E7D32]" />
-                  ) : (
+                  ) : f.sentiment === "negative" ? (
                     <ThumbsDown className="h-4 w-4 text-[#E53935]" />
-                  )}
+                  ) : null}
                   <span className="text-[14px] font-[700] text-[#1B1B1B]">
                     {f.farmer}
                   </span>
@@ -300,14 +312,14 @@ export default function AdminFeedbackPage() {
                   <span className="text-[12px] text-[#9E9E9E]">{f.date}</span>
                   <span
                     className={`ml-2 rounded-full px-2.5 py-0.5 text-[11px] font-[600] ${
-                      f.status === "ACCEPTED"
+                      f.status === "APPROVED"
                         ? "bg-[#E6F4EA] text-[#1F6F2E]"
                         : f.status === "REJECTED"
                           ? "bg-[#FFEBEE] text-[#C62828]"
                           : "bg-[#FFF8E1] text-[#F57F17]"
                     }`}
                   >
-                    {f.status === "ACCEPTED"
+                    {f.status === "APPROVED"
                       ? "Đã duyệt"
                       : f.status === "REJECTED"
                         ? "Đã từ chối"
@@ -315,9 +327,37 @@ export default function AdminFeedbackPage() {
                   </span>
                 </div>
 
-                <p className="mb-2 text-[14px] leading-[1.6] font-medium text-[#333333]">
-                  "{f.comment}"
-                </p>
+                {/* Star rating + comment rendered separately */}
+                <div className="mb-2 flex flex-col gap-1">
+                  {f.starRating && (
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span
+                          key={s}
+                          className={`text-[14px] ${
+                            s <= f.starRating!
+                              ? "text-[#FB8C00]"
+                              : "text-[#E0E0E0]"
+                          }`}
+                        >
+                          ★
+                        </span>
+                      ))}
+                      <span className="ml-1 text-[12px] font-[600] text-[#FB8C00]">
+                        {f.starRating}/5
+                      </span>
+                    </div>
+                  )}
+                  {f.comment ? (
+                    <p className="text-[14px] leading-[1.6] font-medium text-[#333333]">
+                      &quot;{f.comment}&quot;
+                    </p>
+                  ) : (
+                    <p className="text-[13px] text-[#9E9E9E] italic">
+                      Chỉ chấm sao, không có nhận xét.
+                    </p>
+                  )}
+                </div>
 
                 {/* Farmer reported actual diseases */}
                 <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[12px]">
@@ -357,7 +397,7 @@ export default function AdminFeedbackPage() {
                     <button
                       onClick={() => {
                         setSelectedFeedbackId(f.id);
-                        setProcessStatus("ACCEPTED");
+                        setProcessStatus("APPROVED");
                         setReplyText(f.adminResponse || "");
                         setReplyModalOpen(true);
                       }}
@@ -381,7 +421,7 @@ export default function AdminFeedbackPage() {
                   <button
                     onClick={() => {
                       setSelectedFeedbackId(f.id);
-                      if (f.status === "ACCEPTED" || f.status === "REJECTED") {
+                      if (f.status === "APPROVED" || f.status === "REJECTED") {
                         setProcessStatus(f.status);
                       }
                       setReplyText(f.adminResponse || "");
@@ -428,8 +468,8 @@ export default function AdminFeedbackPage() {
               </span>
               <button
                 type="button"
-                onClick={() => setProcessStatus("ACCEPTED")}
-                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "ACCEPTED" ? "border border-[#1F6F2E] bg-[#E6F4EA] text-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                onClick={() => setProcessStatus("APPROVED")}
+                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "APPROVED" ? "border border-[#1F6F2E] bg-[#E6F4EA] text-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
               >
                 Duyệt
               </button>
@@ -463,7 +503,7 @@ export default function AdminFeedbackPage() {
               </button>
               <button
                 onClick={submitReply}
-                className={`h-10 cursor-pointer rounded-lg px-4 text-[14px] font-[600] text-white ${processStatus === "ACCEPTED" ? "bg-[#2F9E44] hover:bg-[#1F6F2E]" : "bg-[#E53935] hover:bg-[#C62828]"}`}
+                className={`h-10 cursor-pointer rounded-lg px-4 text-[14px] font-[600] text-white ${processStatus === "APPROVED" ? "bg-[#2F9E44] hover:bg-[#1F6F2E]" : "bg-[#E53935] hover:bg-[#C62828]"}`}
               >
                 Xác nhận
               </button>
