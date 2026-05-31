@@ -52,12 +52,33 @@ export function useProfile() {
       }
       return res.data;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["user-profile"], data);
-      // Also invalidate whoami/auth-me and forum queries just in case profile elements are shared
+    onSuccess: (response: any) => {
+      const newProfileData = response?.data?.data || response?.data || response;
+
+      queryClient.setQueryData(["user-profile"], (oldProfile: any) => {
+        if (!oldProfile) return oldProfile;
+
+        if (oldProfile.role === "ADMIN") {
+          return {
+            ...oldProfile,
+            adminProfile: {
+              ...oldProfile.adminProfile,
+              ...newProfileData,
+            },
+          };
+        } else {
+          return {
+            ...oldProfile,
+            farmerProfile: {
+              ...oldProfile.farmerProfile,
+              ...newProfileData,
+            },
+          };
+        }
+      });
+
       queryClient.invalidateQueries({ queryKey: ["auth-me"] });
       queryClient.invalidateQueries({ queryKey: ["forum-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["forum-comments"] });
     },
     onError: (err: any) => {
       setError(getErrorMessage(err));

@@ -6,8 +6,8 @@ import { diagnosisService } from "@/services/diagnosis.service";
 import { diseaseService } from "@/services/disease.service";
 import { forumService } from "@/services/forum.service";
 import { userService } from "@/services/user.service";
-import { Image, Mentions, message, Modal } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+import { Image, Mentions, message, Modal, Tag } from "antd";
+
 import { getCookie } from "cookies-next";
 import {
   Image as ImageIcon,
@@ -15,7 +15,6 @@ import {
   Loader2,
   Send,
   Sparkles,
-  Tag,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -386,7 +385,7 @@ export default function CreatePostWidget() {
       <div className="relative">
         <Mentions
           value={content}
-          onChange={(val) => setContent(val)}
+          onChange={(val: string) => setContent(val)}
           onSearch={handleMentionSearch}
           placeholder="Nhập nội dung... Gõ @ để nhắc đến ai đó"
           maxLength={5000}
@@ -394,7 +393,7 @@ export default function CreatePostWidget() {
           className="min-h-[100px] w-full resize-none rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] p-3 pb-14 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
           rows={4}
           variant="borderless"
-          filterOption={(input, option) => {
+          filterOption={(input: string, option: any) => {
             const user = userList.find((u) => u.username === option?.value);
             if (!user) return false;
             const fullName =
@@ -499,13 +498,7 @@ export default function CreatePostWidget() {
                 alt={`preview-${idx}`}
                 className="object-cover"
                 style={{ width: "100%", height: "100%" }}
-                preview={{
-                  mask: (
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <ZoomInOutlined /> Xem trước
-                    </div>
-                  ),
-                }}
+                preview={{ mask: "Xem trước" }}
               />
               <button
                 type="button"

@@ -1,9 +1,7 @@
 "use client";
 
-import { Download, ImageIcon, Share2 } from "lucide-react";
-import React from "react";
 import { Image } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+import { Download, ImageIcon, Share2 } from "lucide-react";
 
 interface ResultImagePreviewProps {
   originalImageUrl?: string;
@@ -95,13 +93,7 @@ export function ResultImagePreview({
                 alt={img.label}
                 className="object-cover"
                 style={{ width: "100%", height: "100%" }}
-                preview={{
-                  mask: (
-                    <div className="flex items-center gap-2">
-                      <ZoomInOutlined /> {img.maskText}
-                    </div>
-                  ),
-                }}
+                preview={{ mask: img.maskText }}
               />
               <div
                 className={`absolute bottom-3 left-3 z-10 rounded-md px-2.5 py-1 text-xs font-[700] text-white shadow-xs select-none ${

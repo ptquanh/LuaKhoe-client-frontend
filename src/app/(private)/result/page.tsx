@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/hooks/useAuth";
 import { diagnosisService } from "@/services/diagnosis.service";
 import { DiseaseItem, diseaseService } from "@/services/disease.service";
 import { feedbackService } from "@/services/feedback.service";
@@ -29,6 +30,7 @@ function ResultPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const { user: currentUser } = useAuth();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -377,12 +379,14 @@ function ResultPageContent() {
         />
 
         {/* Feedback Card */}
-        <DiagnosisFeedbackCard
-          onSubmitFeedback={handleFeedbackSubmit}
-          existingFeedback={existingFeedback}
-          diseases={diseases}
-          detectedDiseaseIds={detectedDiseaseIds}
-        />
+        {currentUser && data && currentUser.id === data.userId && (
+          <DiagnosisFeedbackCard
+            onSubmitFeedback={handleFeedbackSubmit}
+            existingFeedback={existingFeedback}
+            diseases={diseases}
+            detectedDiseaseIds={detectedDiseaseIds}
+          />
+        )}
 
         {/* Footer Sources */}
         <div className="rounded-2xl border border-[#E0E0E0] bg-[#F7F7F7] p-5">

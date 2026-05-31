@@ -2,7 +2,6 @@
 
 import { LegacyRagRecommendation } from "@/components/diagnosis/LegacyRagRecommendation";
 import { Collapse, Image, Modal, Progress, Tabs } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
 
 export interface DiagnosisResult {
   confidence: number;
@@ -73,13 +72,7 @@ export default function DiagnosisHistoryModal({
               alt="Ảnh gốc"
               className="object-contain"
               style={{ maxHeight: "380px", maxWidth: "100%" }}
-              preview={{
-                mask: (
-                  <div className="flex items-center gap-2">
-                    <ZoomInOutlined /> Phóng to
-                  </div>
-                ),
-              }}
+              preview={{ mask: "Phóng to" }}
             />
           ) : (
             <div className="py-12 text-center text-[#9E9E9E]">
@@ -100,13 +93,7 @@ export default function DiagnosisHistoryModal({
               alt="Ảnh kết quả AI"
               className="object-contain"
               style={{ maxHeight: "380px", maxWidth: "100%" }}
-              preview={{
-                mask: (
-                  <div className="flex items-center gap-2">
-                    <ZoomInOutlined /> Phóng to
-                  </div>
-                ),
-              }}
+              preview={{ mask: "Phóng to" }}
             />
           ) : (
             <div className="py-12 text-center text-[#9E9E9E]">

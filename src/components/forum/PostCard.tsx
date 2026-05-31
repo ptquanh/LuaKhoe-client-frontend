@@ -4,7 +4,7 @@ import { useDeletePost, useVotePost } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
 import { ForumPost } from "@/types/forum.type";
 import { Dropdown, Image, message, Modal } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+
 import { MessageSquare, MoreHorizontal, Share2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -236,13 +236,7 @@ export default function PostCard({ post }: PostCardProps) {
                 alt="Post attachment"
                 className="object-cover"
                 style={{ width: "100%", height: "100%", maxHeight: "400px" }}
-                preview={{
-                  mask: (
-                    <div className="flex items-center gap-2">
-                      <ZoomInOutlined /> Thu phóng
-                    </div>
-                  ),
-                }}
+                preview={{ mask: "Thu phóng" }}
               />
             </div>
           </Image.PreviewGroup>

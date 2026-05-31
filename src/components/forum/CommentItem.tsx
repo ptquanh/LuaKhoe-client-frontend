@@ -8,7 +8,7 @@ import {
 import { useProfile } from "@/hooks/useProfile";
 import { ForumComment } from "@/types/forum.type";
 import { Dropdown, Image, message, Modal } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
@@ -199,13 +199,7 @@ export default function CommentItem({
                   alt="Comment attachment"
                   className="rounded-lg object-contain"
                   style={{ maxHeight: "200px", maxWidth: "100%" }}
-                  preview={{
-                    mask: (
-                      <div className="flex items-center gap-2">
-                        <ZoomInOutlined /> Phóng to
-                      </div>
-                    ),
-                  }}
+                  preview={{ mask: "Phóng to" }}
                 />
               </div>
             )}

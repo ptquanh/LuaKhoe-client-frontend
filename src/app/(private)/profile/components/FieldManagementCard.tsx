@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Card, Form, Input, message, Modal, Switch } from "antd";
+import { Alert, Card, Input, message, Modal, Switch } from "antd";
 import {
   Check,
   Compass,
@@ -11,7 +11,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 
 import { useUserFields } from "@/hooks/useUserFields";
 import { UserField } from "@/types/auth.type";
@@ -315,7 +315,7 @@ export function FieldManagementCard() {
         onCancel={() => setIsModalOpen(false)}
         footer={null}
         width={650}
-        destroyOnClose
+        destroyOnHidden
         className="font-[Inter,sans-serif]"
       >
         <div className="mt-4 space-y-4">

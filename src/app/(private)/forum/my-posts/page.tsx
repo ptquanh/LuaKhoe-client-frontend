@@ -5,7 +5,6 @@ import { useDeletePost, useMyPosts } from "@/hooks/useForum";
 import { forumService } from "@/services/forum.service";
 import { ForumPost } from "@/types/forum.type";
 import { Button, Image, Input, message, Modal, Select, Spin, Tabs } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
 import {
   AlertTriangle,
   Calendar,
@@ -216,7 +215,7 @@ export default function MyPostsPage() {
       <div className="mb-6">
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => setActiveTab(key as StatusTab)}
+          onChange={(key: string) => setActiveTab(key as StatusTab)}
           className="custom-tabs"
           items={[
             { key: "ALL", label: "Tất cả" },
@@ -309,13 +308,7 @@ export default function MyPostsPage() {
                           alt="Preview"
                           className="object-cover"
                           style={{ width: "100%", height: "100%" }}
-                          preview={{
-                            mask: (
-                              <div className="flex items-center gap-1.5 text-xs">
-                                <ZoomInOutlined /> Xem
-                              </div>
-                            ),
-                          }}
+                          preview={{ mask: "Xem" }}
                         />
                       </div>
                     ))}
@@ -398,7 +391,7 @@ export default function MyPostsPage() {
             Đăng công khai
           </Button>,
         ]}
-        destroyOnClose
+        destroyOnHidden
         width={600}
       >
         <div className="space-y-4 py-4">
@@ -413,7 +406,7 @@ export default function MyPostsPage() {
               <Select
                 id="edit-category-select"
                 value={editCategory}
-                onChange={(val) => setEditCategory(val)}
+                onChange={(val: string) => setEditCategory(val)}
                 className="w-full"
                 options={[
                   { value: "Hỏi đáp", label: "Hỏi đáp" },

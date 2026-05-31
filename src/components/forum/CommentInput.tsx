@@ -1,7 +1,6 @@
 "use client";
 
 import { Image, message } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
 import { Camera, Loader2, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -103,13 +102,7 @@ export default function CommentInput({
             alt="Preview attachment"
             className="object-cover"
             style={{ width: "100%", height: "100%" }}
-            preview={{
-              mask: (
-                <div className="flex items-center gap-1 text-[10px]">
-                  <ZoomInOutlined /> Xem trước
-                </div>
-              ),
-            }}
+            preview={{ mask: "Xem trước" }}
           />
           <button
             type="button"

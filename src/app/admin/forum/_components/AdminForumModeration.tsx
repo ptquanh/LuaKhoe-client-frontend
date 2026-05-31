@@ -1,10 +1,26 @@
 "use client";
 
 import PostStatusBadge from "@/components/forum/PostStatusBadge";
+import { useAdminConfigs } from "@/hooks/useAdminConfigs";
 import { useForumPosts, useModeratePost } from "@/hooks/useForum";
 import { adminService } from "@/services/admin.service";
-import { Button, Image, Input, message, Modal, Spin, Tabs } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+import { SYSTEM_CONFIG_KEY } from "@/types/admin.type";
+import { SafetyCertificateOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  App,
+  Button,
+  Card,
+  Image,
+  Input,
+  InputNumber,
+  Modal,
+  Select,
+  Spin,
+  Switch,
+  Tabs,
+  Typography,
+} from "antd";
+
 import {
   AlertTriangle,
   Calendar,
@@ -22,12 +38,120 @@ const { TextArea } = Input;
 type StatusTab = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
 
 export default function AdminForumModeration() {
+  const { message, modal } = App.useApp();
   const [activeSubTab, setActiveSubTab] = useState<StatusTab>("PENDING");
   const [bannedWords, setBannedWords] = useState<string[]>([
     "chửi thề",
     "thuốc giả",
     "lừa đảo",
   ]);
+
+  const { configs = [], addConfig, updateConfig } = useAdminConfigs();
+
+  const aiEnabledConfig = configs.find(
+    (c) => c.key === SYSTEM_CONFIG_KEY.AI_AUTO_MODERATION_ENABLED,
+  );
+  const postRolesConfig = configs.find(
+    (c) => c.key === SYSTEM_CONFIG_KEY.AI_MODERATION_POST_ROLES,
+  );
+  const commentRolesConfig = configs.find(
+    (c) => c.key === SYSTEM_CONFIG_KEY.AI_MODERATION_COMMENT_ROLES,
+  );
+  const cronEnabledConfig = configs.find(
+    (c) => c.key === SYSTEM_CONFIG_KEY.AI_CRON_MODERATION_ENABLED,
+  );
+  const cronDelayConfig = configs.find(
+    (c) => c.key === SYSTEM_CONFIG_KEY.AI_CRON_DELAY_MINUTES,
+  );
+
+  const parseRoles = (config: any) => {
+    if (!config) return [];
+    try {
+      const parsed = JSON.parse(config.value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return config.value
+        ? config.value.split(",").map((s: string) => s.trim())
+        : [];
+    }
+  };
+
+  const aiConfig = {
+    isEnabled: aiEnabledConfig ? aiEnabledConfig.value === "true" : false,
+    postRoles: parseRoles(postRolesConfig),
+    commentRoles: parseRoles(commentRolesConfig),
+    isCronEnabled: cronEnabledConfig
+      ? cronEnabledConfig.value === "true"
+      : false,
+    cronDelay: cronDelayConfig ? parseInt(cronDelayConfig.value, 10) || 15 : 15,
+  };
+
+  const handleUpdateConfigKey = async (
+    key: SYSTEM_CONFIG_KEY,
+    value: string,
+    description: string,
+    successMessage: string,
+  ) => {
+    try {
+      const existing = configs.find((c) => c.key === key);
+      if (existing) {
+        await updateConfig({
+          key,
+          payload: { value, description },
+        });
+      } else {
+        await addConfig({
+          key,
+          value,
+          description,
+        });
+      }
+      message.success(successMessage);
+    } catch (err) {
+      console.error(`Lỗi khi lưu cấu hình ${key}:`, err);
+      message.error("Có lỗi xảy ra khi cập nhật cấu hình.");
+    }
+  };
+
+  const handleUpdateRealtimeEnabled = (checked: boolean) =>
+    handleUpdateConfigKey(
+      SYSTEM_CONFIG_KEY.AI_AUTO_MODERATION_ENABLED,
+      checked ? "true" : "false",
+      "Trạng thái AI Kiểm duyệt Bài viết & Bình luận trực tiếp",
+      "Cập nhật trạng thái AI Kiểm duyệt thành công!",
+    );
+
+  const handleUpdatePostRoles = (roles: string[]) =>
+    handleUpdateConfigKey(
+      SYSTEM_CONFIG_KEY.AI_MODERATION_POST_ROLES,
+      JSON.stringify(roles),
+      "Các nhóm vai trò bị kiểm duyệt bài viết tự động",
+      "Cập nhật vai trò kiểm duyệt bài viết thành công!",
+    );
+
+  const handleUpdateCommentRoles = (roles: string[]) =>
+    handleUpdateConfigKey(
+      SYSTEM_CONFIG_KEY.AI_MODERATION_COMMENT_ROLES,
+      JSON.stringify(roles),
+      "Các nhóm vai trò bị kiểm duyệt bình luận tự động",
+      "Cập nhật vai trò kiểm duyệt bình luận thành công!",
+    );
+
+  const handleUpdateCronEnabled = (checked: boolean) =>
+    handleUpdateConfigKey(
+      SYSTEM_CONFIG_KEY.AI_CRON_MODERATION_ENABLED,
+      checked ? "true" : "false",
+      "Bật tắt Cron Job AI kiểm duyệt chạy nền",
+      "Cập nhật trạng thái Cron Job thành công!",
+    );
+
+  const handleUpdateCronDelay = (value: number) =>
+    handleUpdateConfigKey(
+      SYSTEM_CONFIG_KEY.AI_CRON_DELAY_MINUTES,
+      String(value),
+      "Số phút trễ trước khi quét các bài viết/bình luận PENDING",
+      "Cập nhật thời gian quét chạy nền thành công!",
+    );
 
   // Modal states for manual rejection reason
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -70,7 +194,7 @@ export default function AdminForumModeration() {
   }, []);
 
   const handleApprove = async (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: "Phê duyệt bài viết",
       content: "Bạn có chắc chắn muốn duyệt đăng bài viết này công khai không?",
       okText: "Duyệt đăng",
@@ -157,6 +281,136 @@ export default function AdminForumModeration() {
 
   return (
     <div className="space-y-6">
+      {/* AI Kiểm duyệt Nội dung tự động */}
+      <Card
+        title={
+          <div className="flex items-center gap-2">
+            <SafetyCertificateOutlined className="mr-2 text-lg text-emerald-600" />
+            <span className="font-semibold text-gray-800">
+              AI Kiểm duyệt Nội dung tự động
+            </span>
+          </div>
+        }
+        extra={
+          <SettingOutlined className="cursor-pointer text-gray-400 transition-colors hover:text-emerald-600" />
+        }
+        className="mb-6 border border-gray-200 bg-emerald-50/10 shadow-sm"
+      >
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Cấu hình Lọc Trực Tiếp (Realtime) */}
+          <div className="border-gray-150 flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="m-0 flex items-center gap-1.5 text-[14px] font-semibold text-emerald-800">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                  </span>
+                  Lọc trực tiếp (Realtime)
+                </h4>
+                <Typography.Text type="secondary" className="text-xs">
+                  AI quét bài và bình luận khi người dùng đăng bài
+                </Typography.Text>
+              </div>
+              <Switch
+                checked={aiConfig.isEnabled}
+                onChange={handleUpdateRealtimeEnabled}
+                checkedChildren="BẬT"
+                unCheckedChildren="TẮT"
+                className={
+                  aiConfig.isEnabled ? "bg-emerald-500" : "bg-gray-300"
+                }
+              />
+            </div>
+
+            <hr className="my-1 border-gray-100" />
+
+            <div>
+              <h5 className="mb-2 text-xs font-semibold text-gray-700">
+                Nhóm bị AI kiểm duyệt Bài viết (Post):
+              </h5>
+              <Select
+                mode="multiple"
+                allowClear
+                className="w-full"
+                placeholder="Chọn nhóm bị kiểm duyệt Post"
+                value={aiConfig.postRoles}
+                onChange={handleUpdatePostRoles}
+                options={[
+                  { label: "Nông dân (FARMER)", value: "FARMER" },
+                  { label: "Quản trị viên (ADMIN)", value: "ADMIN" },
+                ]}
+              />
+            </div>
+
+            <div>
+              <h5 className="mb-2 text-xs font-semibold text-gray-700">
+                Nhóm bị AI kiểm duyệt Bình luận (Comment):
+              </h5>
+              <Select
+                mode="multiple"
+                allowClear
+                className="w-full"
+                placeholder="Chọn nhóm bị kiểm duyệt Comment"
+                value={aiConfig.commentRoles}
+                onChange={handleUpdateCommentRoles}
+                options={[
+                  { label: "Nông dân (FARMER)", value: "FARMER" },
+                  { label: "Quản trị viên (ADMIN)", value: "ADMIN" },
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Cấu hình Quét Chạy Nền (Cron Job) */}
+          <div className="border-gray-155 flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="m-0 flex items-center gap-1.5 text-[14px] font-semibold text-emerald-800">
+                  <Clock className="h-4 w-4 text-emerald-500" />
+                  Quét định kỳ chạy nền (Cron Job)
+                </h4>
+                <Typography.Text type="secondary" className="text-xs">
+                  Tự động quét lại bài đăng/bình luận chờ duyệt quá{" "}
+                  {aiConfig.cronDelay} phút
+                </Typography.Text>
+              </div>
+              <Switch
+                checked={aiConfig.isCronEnabled}
+                onChange={handleUpdateCronEnabled}
+                checkedChildren="BẬT"
+                unCheckedChildren="TẮT"
+                className={
+                  aiConfig.isCronEnabled ? "bg-emerald-500" : "bg-gray-300"
+                }
+              />
+            </div>
+
+            <hr className="my-1 border-gray-100" />
+
+            <div className="flex flex-col gap-2">
+              <h5 className="text-xs font-semibold text-gray-700">
+                Thời gian trễ tối thiểu trước khi quét (phút):
+              </h5>
+              <div className="flex items-center gap-3">
+                <InputNumber
+                  min={1}
+                  max={1440}
+                  value={aiConfig.cronDelay}
+                  onChange={(val) => val && handleUpdateCronDelay(val)}
+                  className="w-32"
+                  addonAfter="phút"
+                />
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                Hệ thống chạy tác vụ ngầm kiểm tra mỗi 5 phút một lần để xử lý
+                các bản ghi đang chờ duyệt quá thời gian thiết lập.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* Tabs list filter */}
       <Tabs
         activeKey={activeSubTab}
@@ -299,13 +553,7 @@ export default function AdminForumModeration() {
                           alt={`Attachment-${idx}`}
                           className="object-cover"
                           style={{ width: "100%", height: "100%" }}
-                          preview={{
-                            mask: (
-                              <div className="flex items-center gap-2">
-                                <ZoomInOutlined /> Xem
-                              </div>
-                            ),
-                          }}
+                          preview={{ mask: "Xem" }}
                         />
                       </div>
                     ))}
@@ -386,7 +634,7 @@ export default function AdminForumModeration() {
         okButtonProps={{ danger: true, style: { fontWeight: 600 } }}
         cancelText="Quay lại"
         cancelButtonProps={{ style: { fontWeight: 600 } }}
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="space-y-3 py-4">
           <p className="text-[13px] text-gray-500 dark:text-gray-400">

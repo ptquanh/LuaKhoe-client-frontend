@@ -1,8 +1,10 @@
 "use client";
 
+import { App, Button, Image, Spin } from "antd";
 import { useMemo, useState } from "react";
-import { Button, Image, message, Modal, Spin } from "antd";
-import { ZoomInOutlined } from "@ant-design/icons";
+
+import CreatePostWidget from "@/components/forum/CreatePostWidget";
+import { useDeletePost, useForumPosts } from "@/hooks/useForum";
 import {
   Calendar,
   ChevronRight,
@@ -13,10 +15,9 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
-import CreatePostWidget from "@/components/forum/CreatePostWidget";
-import { useDeletePost, useForumPosts } from "@/hooks/useForum";
 
 export default function AdminForumFeed() {
+  const { message, modal } = App.useApp();
   const [sort, setSort] = useState<"hot" | "new">("new");
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -32,7 +33,7 @@ export default function AdminForumFeed() {
   }, [data]);
 
   const handleDeletePost = (id: string) => {
-    Modal.confirm({
+    modal.confirm({
       title: "Xóa bài viết",
       content:
         "Bạn có chắc chắn muốn xóa vĩnh viễn bài viết này không? Hành động này không thể hoàn tác.",
@@ -190,13 +191,7 @@ export default function AdminForumFeed() {
                           alt={`Attachment-${idx}`}
                           className="object-cover"
                           style={{ width: "100%", height: "100%" }}
-                          preview={{
-                            mask: (
-                              <div className="flex items-center gap-2">
-                                <ZoomInOutlined /> Phóng to
-                              </div>
-                            ),
-                          }}
+                          preview={{ mask: "Phóng to" }}
                         />
                       </div>
                     ))}
