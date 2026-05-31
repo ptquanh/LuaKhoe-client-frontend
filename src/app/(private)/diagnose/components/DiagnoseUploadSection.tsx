@@ -43,6 +43,7 @@ interface DiagnoseUploadSectionProps {
   modelVersionId?: string;
   setModelVersionId: (val: string | undefined) => void;
   handleReset: () => void;
+  handleFullReset?: () => void;
   handlePredict: () => void;
 }
 
@@ -69,6 +70,7 @@ export function DiagnoseUploadSection({
   modelVersionId,
   setModelVersionId,
   handleReset,
+  handleFullReset,
   handlePredict,
 }: DiagnoseUploadSectionProps) {
   const [isMounted, setIsMounted] = useState(false);

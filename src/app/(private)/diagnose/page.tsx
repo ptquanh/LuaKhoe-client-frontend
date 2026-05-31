@@ -139,18 +139,41 @@ export default function DiagnosePage() {
     reset();
   };
 
-  const handleReset = () => {
-    setFile(null);
-    setDescription("");
-    setFieldDescription("");
+  const restoreDefaultField = () => {
+    if (profile?.role === "FARMER" && fields.length > 0) {
+      const defaultField = fields.find((f) => f.isDefault);
+      if (defaultField) {
+        setGpsLat(Number(defaultField.gpsLat));
+        setGpsLng(Number(defaultField.gpsLng));
+        setFieldId(defaultField.id);
+        return;
+      }
+    }
+    setGpsLat(undefined);
+    setGpsLng(undefined);
+    setFieldId(undefined);
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("temp_gps_lat");
       sessionStorage.removeItem("temp_gps_lng");
       sessionStorage.removeItem("temp_field_id");
     }
-    setGpsLat(undefined);
-    setGpsLng(undefined);
-    setFieldId(undefined);
+  };
+
+  const handleReset = () => {
+    setFile(null);
+    setDescription("");
+    setFieldDescription("");
+    setSelectedTags([]);
+    reset();
+  };
+
+  const handleFullReset = () => {
+    setFile(null);
+    setDescription("");
+    setFieldDescription("");
+    setSelectedTags([]);
+    setFieldParams(FIELD_PARAM_DEFAULTS);
+    restoreDefaultField();
     reset();
   };
 
@@ -233,6 +256,7 @@ export default function DiagnosePage() {
             modelVersionId={modelVersionId}
             setModelVersionId={setModelVersionId}
             handleReset={handleReset}
+            handleFullReset={handleFullReset}
             handlePredict={handlePredict}
           />
         </div>

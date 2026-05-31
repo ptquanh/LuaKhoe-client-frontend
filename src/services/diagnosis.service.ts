@@ -30,7 +30,14 @@ export const diagnosisService = {
       formData.append("gpsLng", payload.gpsLng.toString());
     }
     if (payload.fieldParams) {
-      formData.append("fieldParams", JSON.stringify(payload.fieldParams));
+      const cleanedParams = JSON.parse(
+        JSON.stringify(payload.fieldParams, (_key, val) =>
+          val === null ? undefined : val,
+        ),
+      );
+      if (Object.keys(cleanedParams).length > 0) {
+        formData.append("fieldParams", JSON.stringify(cleanedParams));
+      }
     }
     if (payload.fieldId) {
       formData.append("fieldId", payload.fieldId);

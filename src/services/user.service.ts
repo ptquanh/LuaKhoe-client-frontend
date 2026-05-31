@@ -69,7 +69,7 @@ export const userService = {
     const response = await axiosClient.get<BaseResponse<any[]>>(
       "/users/search",
       {
-        params: { q: query },
+        params: { query },
       },
     );
     return response.data;

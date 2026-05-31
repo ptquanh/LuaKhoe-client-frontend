@@ -281,7 +281,7 @@ function ResultPageContent() {
             </h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {data.results.map((res: any, idx: number) => {
-                const name = res.disease?.name || "Bệnh lúa";
+                const name = res?.disease || "Bệnh lúa";
                 const color = res.color || "#FB8C00";
                 const rawConf = res.confidence ?? 0;
                 const confPercent =
