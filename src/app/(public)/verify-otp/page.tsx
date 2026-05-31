@@ -20,7 +20,7 @@ function VerifyOtpContent() {
   const email = searchParams.get("email") || "";
   const actionParam = searchParams.get("action");
   const action =
-    actionParam === "register"
+    actionParam === "REGISTER"
       ? VERIFY_OTP_ACTION.REGISTER
       : VERIFY_OTP_ACTION.REGISTER;
 

@@ -4,7 +4,7 @@ export interface ForumUser {
   id: string;
   name: string;
   avatarUrl: string;
-  role?: "farmer" | "expert" | "admin";
+  role?: "FARMER" | "EXPERT" | "ADMIN";
   location?: string;
 }
 

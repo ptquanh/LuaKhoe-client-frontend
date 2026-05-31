@@ -55,13 +55,13 @@ export function HistoryCard({ item }: HistoryCardProps) {
   let fbStatusText = "Chưa gửi phản hồi";
   let fbBadgeClass = "bg-[#F3F4F6] text-[#6B7280]";
 
-  if (rawStatus === "pending") {
+  if (rawStatus === "PENDING") {
     fbStatusText = "Chờ phản hồi";
     fbBadgeClass = "bg-[#FFF8E1] text-[#F57F17]";
-  } else if (rawStatus === "accepted") {
+  } else if (rawStatus === "APPROVED") {
     fbStatusText = "Đã duyệt";
     fbBadgeClass = "bg-[#E6F4EA] text-[#2E7D32]";
-  } else if (rawStatus === "rejected") {
+  } else if (rawStatus === "REJECTED") {
     fbStatusText = "Đã từ chối";
     fbBadgeClass = "bg-[#FFEBEE] text-[#C62828]";
   }

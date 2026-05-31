@@ -58,7 +58,7 @@ function LoginContent() {
       const exchangeCode = async () => {
         setError(null);
         try {
-          const res = await authService.socialLoginCallback("google", code);
+          const res = await authService.socialLoginCallback("GOOGLE", code);
           if (res.success && res.data?.accessToken) {
             setCookie(ACCESS_TOKEN, res.data.accessToken, {
               maxAge: 60 * 60 * 24 * 7,

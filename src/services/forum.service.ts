@@ -19,11 +19,11 @@ export const mapUserToForumUser = (user: any): ForumUser => {
   const fullName =
     `${lastName} ${firstName}`.trim() || user.username || "Thành viên Lúa Khỏe";
 
-  let role: "farmer" | "expert" | "admin" = "farmer";
+  let role: "FARMER" | "EXPERT" | "ADMIN" = "FARMER";
   if (user.role === "ADMIN") {
-    role = "admin";
+    role = "ADMIN";
   } else if (user.metadata?.isExpert) {
-    role = "expert";
+    role = "EXPERT";
   }
 
   return {

@@ -4,18 +4,18 @@ export enum ROLE {
 }
 
 export enum ENTITY_STATUS {
-  ACTIVE = "active",
-  SUSPENDED = "suspended",
-  INACTIVE = "inactive",
-  DELETED = "deleted",
+  ACTIVE = "ACTIVE",
+  SUSPENDED = "SUSPENDED",
+  INACTIVE = "INACTIVE",
+  DELETED = "DELETED",
 }
 
 export enum VERIFY_OTP_ACTION {
-  REGISTER = "register",
+  REGISTER = "REGISTER",
 }
 
 export enum SOCIAL_PROVIDER {
-  GOOGLE = "google",
+  GOOGLE = "GOOGLE",
 }
 
 export interface User {

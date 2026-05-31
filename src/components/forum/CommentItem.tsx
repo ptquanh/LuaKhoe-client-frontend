@@ -166,7 +166,7 @@ export default function CommentItem({
                 <span className="text-[14px] font-[600] text-[#1B1B1B] dark:text-gray-100">
                   {comment.author.name}
                 </span>
-                {comment.author.role === "expert" && (
+                {comment.author.role === "EXPERT" && (
                   <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[11px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                     Chuyên gia
                   </span>

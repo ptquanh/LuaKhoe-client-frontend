@@ -138,7 +138,7 @@ export default function AdminForumFeed() {
                       <h4 className="text-[15px] font-semibold text-gray-900 group-hover:text-[#2F9E44] dark:text-white">
                         {post.author?.name}
                       </h4>
-                      {post.author?.role === "admin" && (
+                      {post.author?.role === "ADMIN" && (
                         <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
                           <Shield className="h-3 w-3" aria-hidden="true" /> BQT
                         </span>

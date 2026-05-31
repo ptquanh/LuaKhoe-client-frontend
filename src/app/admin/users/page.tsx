@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
   const handleStatusChange = async () => {
     if (!selectedUser) return;
     setActionLoading(true);
-    const newStatus = modalAction === "ban" ? "suspended" : "active";
+    const newStatus = modalAction === "ban" ? "SUSPENDED" : "ACTIVE";
     try {
       const res = await userService.updateUserStatusForAdmin(selectedUser.id, {
         status: newStatus,
@@ -193,9 +193,9 @@ export default function AdminUsersPage() {
             className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
           >
             <option value="Tất cả">Tất cả trạng thái</option>
-            <option value="active">Hoạt động</option>
-            <option value="inactive">Chưa kích hoạt</option>
-            <option value="suspended">Bị khóa</option>
+            <option value="ACTIVE">Hoạt động</option>
+            <option value="INACTIVE">Chưa kích hoạt</option>
+            <option value="SUSPENDED">Bị khóa</option>
           </select>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function AdminUsersPage() {
               </tr>
             ) : (
               users.map((u, i) => {
-                const isBanned = u.status === "suspended";
+                const isBanned = u.status === "SUSPENDED";
                 return (
                   <tr
                     key={u.id}
@@ -283,14 +283,14 @@ export default function AdminUsersPage() {
                         className={`inline-flex h-6 items-center justify-center rounded-full px-2.5 text-[11px] font-[600] ${
                           isBanned
                             ? "bg-[#FFEBEE] text-[#C62828]"
-                            : u.status === "active"
+                            : u.status === "ACTIVE"
                               ? "bg-[#E6F4EA] text-[#2E7D32]"
                               : "bg-[#F0F2F5] text-[#5C5C5C]"
                         }`}
                       >
                         {isBanned
                           ? "Bị khóa"
-                          : u.status === "active"
+                          : u.status === "ACTIVE"
                             ? "Hoạt động"
                             : "Chưa kích hoạt"}
                       </span>

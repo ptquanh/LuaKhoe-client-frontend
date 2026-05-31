@@ -224,7 +224,7 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await authService.getSocialLoginProviderUrl("google");
+      const res = await authService.getSocialLoginProviderUrl("GOOGLE");
       if (res.success && res.data?.url) {
         window.location.href = res.data.url;
       } else {

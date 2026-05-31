@@ -171,7 +171,7 @@ export default function PostCard({ post }: PostCardProps) {
               <span className="font-[600] text-[#1B1B1B] dark:text-gray-100">
                 {post.author.name}
               </span>
-              {post.author.role === "expert" && (
+              {post.author.role === "EXPERT" && (
                 <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                   Chuyên gia
                 </span>
@@ -284,7 +284,7 @@ export default function PostCard({ post }: PostCardProps) {
                   <span className="text-[13px] font-[600] text-[#1B1B1B] dark:text-gray-200">
                     {post.topComment.author.name}
                   </span>
-                  {post.topComment.author.role === "expert" && (
+                  {post.topComment.author.role === "EXPERT" && (
                     <span className="rounded-full bg-[#2F9E44]/10 px-2 py-0.5 text-[11px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
                       Chuyên gia
                     </span>

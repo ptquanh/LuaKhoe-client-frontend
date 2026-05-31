@@ -102,9 +102,7 @@ export default function PublicProfilePage() {
     currentUser && currentUser.username === profileData.username;
 
   const isAccountActive =
-    profileData.status === "active" ||
-    profileData.status === "ACTIVE" ||
-    profileData.isActive === true;
+    profileData.status === "ACTIVE" || profileData.isActive === true;
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] font-[Inter,sans-serif]">
