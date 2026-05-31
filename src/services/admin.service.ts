@@ -9,9 +9,8 @@ import { BaseResponse } from "@/types/common.type";
 
 export const adminService = {
   getConfigs: async (): Promise<SystemConfig[]> => {
-    const response = await axiosClient.get<BaseResponse<SystemConfig[]>>(
-      "/admin/system-configs/",
-    );
+    const response =
+      await axiosClient.get<BaseResponse<SystemConfig[]>>("/admin/configs/");
     return response.data.data || [];
   },
 
@@ -19,7 +18,7 @@ export const adminService = {
     payload: ConfigCreatePayload,
   ): Promise<{ status: string; message: string }> => {
     const response = await axiosClient.post<BaseResponse<any>>(
-      "/admin/system-configs/",
+      "/admin/configs/",
       payload,
     );
     return {
@@ -33,7 +32,7 @@ export const adminService = {
     payload: ConfigUpdatePayload,
   ): Promise<{ status: string; message: string }> => {
     const response = await axiosClient.put<BaseResponse<any>>(
-      `/admin/system-configs/${key}`,
+      `/admin/configs/${key}`,
       payload,
     );
     return {
@@ -44,7 +43,7 @@ export const adminService = {
 
   getBannedWords: async (): Promise<BaseResponse<any>> => {
     const response = await axiosClient.get<BaseResponse<any>>(
-      "/admin/system-configs/banned-words",
+      "/admin/configs/banned-words",
     );
     return response.data;
   },
