@@ -40,7 +40,7 @@ export default function AdminFeedbackPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterRating, setFilterRating] = useState<
-    "all" | "positive" | "negative"
+    "all" | "positive" | "negative" | "neutral"
   >("all");
 
   // History Modal States
@@ -140,7 +140,7 @@ export default function AdminFeedbackPage() {
     if (!selectedFeedbackId || !processStatus) return;
     try {
       await feedbackService.process(selectedFeedbackId, {
-        status: processStatus.toLowerCase() as any,
+        status: processStatus,
         response: replyText,
       });
       setFeedbacks((prev) =>
@@ -198,6 +198,9 @@ export default function AdminFeedbackPage() {
   const negativeCount = feedbacks.filter(
     (f) => f.sentiment === "negative",
   ).length;
+  const neutralCount = feedbacks.filter(
+    (f) => f.sentiment === "neutral",
+  ).length;
 
   return (
     <div className="mx-auto max-w-[1200px]">
@@ -217,20 +220,38 @@ export default function AdminFeedbackPage() {
       </div>
 
       {/* Summary */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 text-center shadow-sm">
+      <div className="mb-6 grid grid-cols-4 gap-4">
+        <div
+          onClick={() => setFilterRating("all")}
+          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "all" ? "border-[#2F9E44] ring-2 ring-[#2F9E44]/20" : "border-[#E0E0E0]"}`}
+        >
           <p className="text-[24px] font-[700] text-[#1B1B1B]">
             {feedbacks.length}
           </p>
           <p className="text-[13px] text-[#5C5C5C]">Tổng phản hồi</p>
         </div>
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 text-center shadow-sm">
+        <div
+          onClick={() => setFilterRating("positive")}
+          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "positive" ? "border-[#2E7D32] ring-2 ring-[#2E7D32]/20" : "border-[#E0E0E0]"}`}
+        >
           <p className="text-[24px] font-[700] text-[#2E7D32]">
             {positiveCount}
           </p>
           <p className="text-[13px] text-[#5C5C5C]">Tích cực</p>
         </div>
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-4 text-center shadow-sm">
+        <div
+          onClick={() => setFilterRating("neutral")}
+          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "neutral" ? "border-[#FB8C00] ring-2 ring-[#FB8C00]/20" : "border-[#E0E0E0]"}`}
+        >
+          <p className="text-[24px] font-[700] text-[#FB8C00]">
+            {neutralCount}
+          </p>
+          <p className="text-[13px] text-[#5C5C5C]">Trung tính</p>
+        </div>
+        <div
+          onClick={() => setFilterRating("negative")}
+          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "negative" ? "border-[#E53935] ring-2 ring-[#E53935]/20" : "border-[#E0E0E0]"}`}
+        >
           <p className="text-[24px] font-[700] text-[#E53935]">
             {negativeCount}
           </p>
@@ -252,7 +273,7 @@ export default function AdminFeedbackPage() {
         </div>
         <div className="flex items-center gap-1">
           <Filter className="mr-1 h-4 w-4 text-[#5C5C5C]" />
-          {(["all", "positive", "negative"] as const).map((r) => (
+          {(["all", "positive", "neutral", "negative"] as const).map((r) => (
             <button
               key={r}
               onClick={() => setFilterRating(r)}
@@ -262,7 +283,9 @@ export default function AdminFeedbackPage() {
                 ? "Tất cả"
                 : r === "positive"
                   ? "Tích cực"
-                  : "Tiêu cực"}
+                  : r === "neutral"
+                    ? "Trung tính"
+                    : "Tiêu cực"}
             </button>
           ))}
         </div>
@@ -352,9 +375,13 @@ export default function AdminFeedbackPage() {
                     <p className="text-[14px] leading-[1.6] font-medium text-[#333333]">
                       &quot;{f.comment}&quot;
                     </p>
-                  ) : (
+                  ) : f.starRating ? (
                     <p className="text-[13px] text-[#9E9E9E] italic">
                       Chỉ chấm sao, không có nhận xét.
+                    </p>
+                  ) : (
+                    <p className="text-[13px] text-[#9E9E9E] italic">
+                      Chưa có đánh giá chi tiết.
                     </p>
                   )}
                 </div>
