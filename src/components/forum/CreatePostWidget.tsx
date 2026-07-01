@@ -691,8 +691,8 @@ export default function CreatePostWidget() {
               const primaryRes =
                 diagResults.length > 0
                   ? [...diagResults].sort(
-                      (a, b) => b.confidence - a.confidence,
-                    )[0]
+                    (a, b) => b.confidence - a.confidence,
+                  )[0]
                   : null;
               const name =
                 primaryRes?.disease?.name || "Không phát hiện bệnh hại";

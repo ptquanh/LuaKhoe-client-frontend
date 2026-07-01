@@ -1,3 +1,5 @@
+import { MAX_IMAGE_SIZE_MB } from "@/constants/upload";
+
 export const ERROR_MESSAGES: Record<string, string> = {
   // Forum & Moderation
   CONTENT_POLICY_VIOLATION:
@@ -6,7 +8,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   COMMENT_NOT_FOUND: "Bình luận không tồn tại.",
 
   // File Uploads
-  FILE_TOO_LARGE: "Kích thước tệp quá lớn. Vui lòng chọn tệp nhỏ hơn 5MB.",
+  FILE_TOO_LARGE: `Kích thước tệp quá lớn. Vui lòng chọn tệp nhỏ hơn ${MAX_IMAGE_SIZE_MB}MB.`,
   INVALID_FILE_TYPE: "Định dạng tệp không được hỗ trợ.",
 
   // Auth & Permissions
