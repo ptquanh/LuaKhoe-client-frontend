@@ -1,11 +1,3 @@
-import {
-  DENSITY_OPTIONS,
-  GROWTH_OPTIONS,
-  WATER_OPTIONS,
-} from "@/constants/diagnose";
-import { useActiveAiModels } from "@/hooks/useActiveAiModels";
-import { useUserFields } from "@/hooks/useUserFields";
-import { FieldParams } from "@/types/diagnose.type";
 import { message } from "antd";
 import {
   Brain,
@@ -17,6 +9,16 @@ import {
   X,
 } from "lucide-react";
 import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
+
+import {
+  DENSITY_OPTIONS,
+  GROWTH_OPTIONS,
+  WATER_OPTIONS,
+} from "@/constants/diagnose";
+import { MAX_IMAGE_SIZE_MB } from "@/constants/upload";
+import { useActiveAiModels } from "@/hooks/useActiveAiModels";
+import { useUserFields } from "@/hooks/useUserFields";
+import { FieldParams } from "@/types/diagnose.type";
 
 const LazyMapComponent = lazy(() => import("./MapComponent"));
 
@@ -323,7 +325,7 @@ export function DiagnoseUploadSection({
             Kéo thả hoặc chọn file
           </h3>
           <p className="mb-6 text-[14px] text-[#5C5C5C]">
-            Hỗ trợ JPG, PNG, WEBP. Tối đa 10MB
+            Hỗ trợ JPG, PNG, WEBP. Tối đa {MAX_IMAGE_SIZE_MB}MB
           </p>
           <button className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] text-white hover:bg-[#1F6F2E]">
             <Upload className="h-4 w-4" /> Chọn ảnh
