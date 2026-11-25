@@ -1,5 +1,9 @@
 "use client";
 
+import { Dropdown, Image, message, Modal } from "antd";
+import { MoreHorizontal, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import {
   useCreateComment,
   useDeleteComment,
@@ -7,10 +11,7 @@ import {
 } from "@/hooks/useForum";
 import { useProfile } from "@/hooks/useProfile";
 import { ForumComment } from "@/types/forum.type";
-import { Dropdown, Image, message, Modal } from "antd";
 
-import { MoreHorizontal, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
 import CommentInput from "./CommentInput";
 
 interface CommentItemProps {
@@ -158,16 +159,16 @@ export default function CommentItem({
       />
 
       {/* Content Area */}
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <div className="group relative">
-          <div className="rounded-2xl bg-[#F0F2F5] px-4 py-3 dark:bg-gray-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-[600] text-[#1B1B1B] dark:text-gray-100">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-subtle)] px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {comment.author.name}
                 </span>
                 {comment.author.role === "EXPERT" && (
-                  <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[11px] font-[500] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400">
+                  <span className="rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--primary)]">
                     Chuyên gia
                   </span>
                 )}
@@ -182,14 +183,14 @@ export default function CommentItem({
                   <button
                     type="button"
                     aria-label="Thêm tùy chọn"
-                    className="rounded-full p-1 text-[#5C5C5C] opacity-0 transition-all group-hover:opacity-100 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    className="rounded-full p-1 text-[var(--text-secondary)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--bg-hover)]"
                   >
                     <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                   </button>
                 </Dropdown>
               )}
             </div>
-            <p className="mt-1 text-[14px] leading-relaxed text-[#1B1B1B] dark:text-gray-200">
+            <p className="mt-1 text-sm leading-relaxed break-words text-[var(--text-primary)]">
               {comment.content}
             </p>
             {comment.imageUrl && (
@@ -207,28 +208,28 @@ export default function CommentItem({
         </div>
 
         {/* Actions */}
-        <div className="mt-2 flex items-center gap-4 px-2 text-[13px] font-[500] text-[#5C5C5C] dark:text-gray-400">
-          <span>{formattedDate}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-4 px-2 text-[13px] font-medium text-[var(--text-secondary)]">
+          <span className="tabular-nums">{formattedDate}</span>
           <button
             onClick={handleUpvote}
-            className={`flex items-center gap-0.5 transition-colors hover:text-[#2F9E44] dark:hover:text-green-400 ${vote === "UP" ? "font-[600] text-[#2F9E44]" : ""}`}
+            className={`flex items-center gap-1 tabular-nums transition-colors hover:text-[var(--primary)] ${vote === "UP" ? "font-semibold text-[var(--primary)]" : ""}`}
           >
-            <span>👍 Hữu ích</span>
+            <span>Hữu ích</span>
             <span>({displayedUpvotes})</span>
           </button>
 
           <button
             onClick={handleDownvote}
-            className={`flex items-center gap-0.5 transition-colors hover:text-[#E53935] dark:hover:text-red-400 ${vote === "DOWN" ? "font-[600] text-[#E53935]" : ""}`}
+            className={`flex items-center gap-1 tabular-nums transition-colors hover:text-red-500 ${vote === "DOWN" ? "font-semibold text-red-600 dark:text-red-400" : ""}`}
           >
-            <span>👎 Không hữu ích</span>
+            <span>Không hữu ích</span>
             <span>({displayedDownvotes})</span>
           </button>
 
           {!isReply && (
             <button
               onClick={() => setShowReplyInput(!showReplyInput)}
-              className="transition-colors hover:text-[#2F9E44] dark:hover:text-green-400"
+              className="transition-colors hover:text-[var(--primary)]"
             >
               Phản hồi
             </button>
@@ -248,7 +249,7 @@ export default function CommentItem({
 
         {/* Nested Replies */}
         {comment.replies && comment.replies.length > 0 && (
-          <div className="ml-2 border-l-2 border-[#E0E0E0] pl-4 dark:border-gray-800">
+          <div className="ml-2 border-l-2 border-[var(--border)] pl-4">
             {comment.replies.slice(0, visibleRepliesCount).map((reply) => (
               <CommentItem key={reply.id} comment={reply} isReply />
             ))}
@@ -259,7 +260,7 @@ export default function CommentItem({
                 {comment.replies.length > visibleRepliesCount && (
                   <button
                     onClick={() => setVisibleRepliesCount((prev) => prev + 5)}
-                    className="cursor-pointer text-[12px] font-[600] text-[#2F9E44] transition-colors hover:text-[#1F6F2E] hover:underline dark:text-green-400 dark:hover:text-green-300"
+                    className="cursor-pointer text-xs font-semibold text-[var(--primary)] transition-colors hover:underline"
                   >
                     Hiển thị thêm phản hồi (
                     {comment.replies.length - visibleRepliesCount})
@@ -268,7 +269,7 @@ export default function CommentItem({
                 {visibleRepliesCount > 3 && (
                   <button
                     onClick={() => setVisibleRepliesCount(3)}
-                    className="cursor-pointer text-[12px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#1B1B1B] hover:underline dark:text-gray-400 dark:hover:text-gray-200"
+                    className="cursor-pointer text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] hover:underline"
                   >
                     Thu gọn
                   </button>

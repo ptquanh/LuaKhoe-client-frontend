@@ -1,8 +1,5 @@
 "use client";
 
-import CreatePostWidget from "@/components/forum/CreatePostWidget";
-import PostCard from "@/components/forum/PostCard";
-import { useForumPosts } from "@/hooks/useForum";
 import {
   Clock,
   Filter,
@@ -14,6 +11,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+
+import CreatePostWidget from "@/components/forum/CreatePostWidget";
+import PostCard from "@/components/forum/PostCard";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useForumPosts } from "@/hooks/useForum";
 
 export default function ForumPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,45 +60,40 @@ export default function ForumPage() {
   }, [posts, searchQuery]);
 
   return (
-    <div className="mx-auto flex max-w-[800px] flex-col gap-6 pb-20">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-[24px] font-[700] text-[#1B1B1B] dark:text-gray-100">
-            Diễn đàn nông dân
-          </h1>
-          <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-            Nơi giao lưu, hỏi đáp và chia sẻ kinh nghiệm canh tác
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="relative w-full shrink-0 md:w-[300px]">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9E9E9E] dark:text-gray-500">
-            <Search className="h-5 w-5" aria-hidden="true" />
+    <div className="mx-auto flex max-w-[800px] flex-col gap-5 pb-8">
+      <PageHeader
+        title="Diễn đàn nông dân"
+        description="Nơi giao lưu, hỏi đáp và chia sẻ kinh nghiệm canh tác"
+        className="mb-0"
+        actions={
+          <div className="relative w-full shrink-0 sm:w-[280px]">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[var(--text-muted)]">
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm bài viết, kỹ thuật…"
+              aria-label="Tìm kiếm bài viết trên diễn đàn"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] py-2.5 pr-4 pl-10 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-colors focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] focus:outline-none sm:text-sm"
+            />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm bài viết, kỹ thuật…"
-            aria-label="Tìm kiếm bài viết trên diễn đàn"
-            className="w-full rounded-full border border-[#E0E0E0] bg-white py-2.5 pr-4 pl-10 text-[14px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-[#2F9E44] dark:focus:ring-[#2F9E44]"
-          />
-        </div>
-      </div>
+        }
+      />
 
       {/* Segmented Control Navigation */}
-      <div className="flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="flex rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-1">
         <Link
           href="/forum"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white py-2.5 text-center font-bold text-[#2F9E44] shadow-xs focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:bg-gray-700 dark:text-green-400"
+          className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--bg-card)] py-2 text-center text-sm font-bold text-[var(--primary)] shadow-xs focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
         >
           <Globe className="h-4 w-4" aria-hidden="true" />
           <span>Diễn đàn chung</span>
         </Link>
         <Link
           href="/forum/my-posts"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-center font-medium text-gray-600 transition hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:text-green-400"
+          className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg py-2 text-center text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
         >
           <History className="h-4 w-4" aria-hidden="true" />
           <span>Bài viết của tôi</span>
@@ -105,16 +104,16 @@ export default function ForumPage() {
       <CreatePostWidget />
 
       {/* Sort & Filter */}
-      <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto border-b border-[#E0E0E0] pb-3 dark:border-gray-800">
+      <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto border-b border-[var(--border)] pb-3">
         <button
           onClick={() => {
             setSort("hot");
             setSelectedTag(undefined);
           }}
-          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
             sort === "hot" && !selectedTag
-              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
-              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+              : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           }`}
         >
           <Flame className="h-4 w-4" aria-hidden="true" />
@@ -126,10 +125,10 @@ export default function ForumPage() {
             setSort("new");
             setSelectedTag(undefined);
           }}
-          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
             sort === "new" && !selectedTag
-              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
-              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+              : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           }`}
         >
           <Clock className="h-4 w-4" aria-hidden="true" />
@@ -140,10 +139,10 @@ export default function ForumPage() {
           onClick={() => {
             setSelectedTag(selectedTag === "Đạo ôn" ? undefined : "Đạo ôn");
           }}
-          className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[14px] font-[600] transition-colors ${
+          className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
             selectedTag === "Đạo ôn"
-              ? "bg-[#E6F4EA] text-[#2F9E44] dark:bg-green-950/40 dark:text-green-400"
-              : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              ? "bg-[var(--primary-soft)] text-[var(--primary)]"
+              : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
           }`}
         >
           <Filter className="h-4 w-4" aria-hidden="true" />
@@ -154,24 +153,30 @@ export default function ForumPage() {
       {/* Feed List */}
       <div className="flex flex-col gap-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Loader2
-              className="h-10 w-10 animate-spin text-[#2F9E44]"
-              aria-hidden="true"
-            />
-            <p className="mt-3 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-              Đang tải danh sách bài viết…
-            </p>
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5"
+              >
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-40 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center dark:border-gray-800 dark:bg-gray-900">
-            <p className="text-[16px] font-[500] text-red-600">
-              Không thể tải dữ liệu diễn đàn
-            </p>
-            <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-              Vui lòng thử lại sau hoặc kiểm tra kết nối mạng.
-            </p>
-          </div>
+          <EmptyState
+            title="Không thể tải dữ liệu diễn đàn"
+            description="Vui lòng thử lại sau hoặc kiểm tra kết nối mạng."
+          />
         ) : filteredPosts.length > 0 ? (
           <>
             {filteredPosts.map((post) => (
@@ -183,7 +188,7 @@ export default function ForumPage() {
               <button
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#E0E0E0] bg-white py-3 text-[14px] font-[600] text-[#2F9E44] transition-all hover:bg-[#F7F7F7] disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-green-400 dark:hover:bg-gray-800"
+                className="mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] py-3 text-sm font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50"
               >
                 {isFetchingNextPage ? (
                   <>
@@ -200,18 +205,11 @@ export default function ForumPage() {
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-[#E0E0E0] bg-white py-12 text-center dark:border-gray-800 dark:bg-gray-900">
-            <Search
-              className="mb-3 h-10 w-10 text-[#9E9E9E]"
-              aria-hidden="true"
-            />
-            <p className="text-[16px] font-[500] text-[#1B1B1B] dark:text-gray-100">
-              Không tìm thấy bài viết nào
-            </p>
-            <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
-              Thử sử dụng các từ khóa khác xem sao (ví dụ: đạo ôn, ST25…)
-            </p>
-          </div>
+          <EmptyState
+            icon={<Search className="h-6 w-6" aria-hidden="true" />}
+            title="Không tìm thấy bài viết nào"
+            description="Thử sử dụng các từ khóa khác xem sao (ví dụ: đạo ôn, ST25…)"
+          />
         )}
       </div>
     </div>

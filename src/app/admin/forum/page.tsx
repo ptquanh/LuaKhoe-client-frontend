@@ -47,22 +47,19 @@ function ForumManagementDashboard() {
       {/* Header Info */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[28px] font-[700] text-[#1B1B1B] dark:text-white">
+          <h1 className="font-heading text-2xl font-bold text-[var(--text-primary)] sm:text-[28px]">
             Quản lý Diễn đàn
           </h1>
-          <p className="mt-1 text-[14px] text-[#5C5C5C] dark:text-gray-400">
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Quản trị bảng tin bài đăng công khai và kiểm duyệt chất lượng nội
             dung nông nghiệp.
           </p>
         </div>
 
         {/* Sparkles dynamic badge */}
-        <div className="rounded-lg border border-[#2F9E44]/20 bg-[#E6F4EA] px-4 py-2 dark:bg-emerald-950/15">
-          <div className="flex items-center gap-2 text-[#2E7D32] dark:text-emerald-400">
-            <Sparkles
-              className="h-4 w-4 animate-pulse text-[#2F9E44]"
-              aria-hidden="true"
-            />
+        <div className="rounded-xl border border-[var(--primary)]/25 bg-[var(--primary-soft)] px-4 py-2">
+          <div className="flex items-center gap-2 text-[var(--primary)]">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
             <span className="text-[13px] font-semibold">
               Tự động hóa AI đang kích hoạt
             </span>
@@ -71,23 +68,23 @@ function ForumManagementDashboard() {
       </div>
 
       {/* Main Tab Switcher */}
-      <div className="mb-6 flex gap-6 border-b border-[#E0E0E0] dark:border-gray-800">
+      <div className="mb-6 flex gap-6 border-b border-[var(--border)]">
         <button
           onClick={() => handleTabChange("feed")}
-          className={`cursor-pointer border-b-2 pb-2.5 text-[15px] font-[600] transition-all ${
+          className={`min-h-11 cursor-pointer border-b-2 pb-2.5 text-[15px] font-semibold transition-colors ${
             activeMainTab === "feed"
-              ? "border-[#2F9E44] text-[#2F9E44] dark:border-emerald-400 dark:text-emerald-400"
-              : "border-transparent text-[#5C5C5C] hover:text-[#1B1B1B] dark:text-gray-400 dark:hover:text-white"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
           Bảng tin diễn đàn
         </button>
         <button
           onClick={() => handleTabChange("moderation")}
-          className={`cursor-pointer border-b-2 pb-2.5 text-[15px] font-[600] transition-all ${
+          className={`min-h-11 cursor-pointer border-b-2 pb-2.5 text-[15px] font-semibold transition-colors ${
             activeMainTab === "moderation"
-              ? "border-[#2F9E44] text-[#2F9E44] dark:border-emerald-400 dark:text-emerald-400"
-              : "border-transparent text-[#5C5C5C] hover:text-[#1B1B1B] dark:text-gray-400 dark:hover:text-white"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           }`}
         >
           Kiểm duyệt bài viết

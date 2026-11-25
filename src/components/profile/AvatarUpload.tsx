@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { message } from "antd";
 import { Camera, Loader2 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef } from "react";
-import { message } from "antd";
 
 import { userService } from "@/services/user.service";
 
@@ -73,7 +73,7 @@ export function AvatarUpload({ avatarUrl, username }: AvatarUploadProps) {
       {/* Interactive Avatar Frame */}
       <div
         onClick={handleContainerClick}
-        className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-green-500 bg-gray-50 shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg dark:border-green-600 dark:bg-gray-800"
+        className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-[var(--primary)] bg-[var(--bg-subtle)] shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg"
       >
         {/* Actual Image */}
         {avatarUrl ? (
@@ -86,7 +86,7 @@ export function AvatarUpload({ avatarUrl, username }: AvatarUploadProps) {
             className="h-full w-full rounded-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-green-50 text-green-600 dark:bg-gray-800 dark:text-green-400">
+          <div className="flex h-full w-full items-center justify-center bg-[var(--primary-soft)] text-[var(--primary)]">
             <span className="text-2xl font-bold uppercase">
               {username?.charAt(0) || "U"}
             </span>

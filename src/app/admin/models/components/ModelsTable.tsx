@@ -1,5 +1,8 @@
-import { Loader2, Pencil, Trash2 } from "lucide-react";
+import { Modal } from "antd";
+import { Pencil, Trash2 } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { AiModel } from "@/types/ai-model.type";
 
 interface ModelsTableProps {
@@ -20,75 +23,148 @@ export function ModelsTable({
   onEdit,
 }: ModelsTableProps) {
   const handleDeleteClick = (id: string, versionName: string) => {
-    if (
-      confirm(
-        `Bạn có chắc chắn muốn xóa mô hình AI phiên bản "${versionName}" không? Hành động này không thể hoàn tác.`,
-      )
-    ) {
-      onDelete(id);
-    }
+    Modal.confirm({
+      title: "Xóa mô hình AI",
+      content: `Bạn có chắc chắn muốn xóa mô hình AI phiên bản "${versionName}" không? Hành động này không thể hoàn tác.`,
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: () => onDelete(id),
+    });
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
+        {[1, 2, 3].map((row) => (
+          <div key={row} className="flex items-center justify-between gap-4">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-9 w-24 rounded-lg" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (models.length === 0) {
+    return (
+      <EmptyState
+        title="Chưa có mô hình AI nào"
+        description="Hãy tải lên phiên bản mô hình ONNX đầu tiên để bắt đầu phục vụ chẩn đoán."
+      />
+    );
+  }
+
   return (
-    <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
-      <table className="w-full">
-        <thead>
-          <tr className="bg-[#F0F2F5]">
-            <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
-              Version
-            </th>
-            <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
-              File Cloud URL / Path
-            </th>
-            <th className="hidden h-12 px-4 text-center text-[13px] font-[600] text-[#1B1B1B] md:table-cell">
-              Updated At
-            </th>
-            <th className="h-12 w-32 px-4 text-center text-[13px] font-[600] text-[#1B1B1B]">
-              Trạng thái
-            </th>
-            <th className="h-12 w-28 px-4 text-center text-[13px] font-[600] text-[#1B1B1B]">
-              Hành động
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading ? (
-            <tr>
-              <td colSpan={5} className="h-32 text-center text-[#5C5C5C]">
-                <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#2F9E44]" />
-                <p className="mt-2 text-[14px]">Đang tải dữ liệu...</p>
-              </td>
-            </tr>
-          ) : models.length === 0 ? (
-            <tr>
-              <td
-                colSpan={5}
-                className="h-32 text-center text-[14px] text-[#5C5C5C]"
+    <>
+      {/* Mobile card list */}
+      <div className="space-y-3 md:hidden">
+        {models.map((m) => (
+          <div
+            key={m.id}
+            className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-[var(--text-primary)]">
+                  {m.versionName}
+                </span>
+                {m.isActive && (
+                  <span className="rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--primary)]">
+                    Active
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                {new Date(m.updatedAt || m.createdAt).toLocaleDateString(
+                  "vi-VN",
+                )}
+              </span>
+            </div>
+            <p className="mt-2 truncate text-xs text-[var(--text-secondary)]">
+              {m.filePath}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-3">
+              <button
+                onClick={() => onToggleActive(m.id, m.isActive)}
+                disabled={isActivating}
+                className={`flex min-h-10 cursor-pointer items-center justify-center rounded-lg border px-3 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                  m.isActive
+                    ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400"
+                    : "border-[var(--primary)]/30 bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)]/15"
+                }`}
               >
-                Chưa có model nào.
-              </td>
+                {m.isActive ? "Hủy kích hoạt" : "Kích hoạt"}
+              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onEdit(m)}
+                  disabled={isActivating}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/30"
+                  title="Chỉnh sửa thông tin/file"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                {!m.isActive && (
+                  <button
+                    onClick={() => handleDeleteClick(m.id, m.versionName)}
+                    disabled={isActivating}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                    title="Xóa mô hình AI"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] md:block">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+              <th className="h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)]">
+                Version
+              </th>
+              <th className="h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)]">
+                File Cloud URL / Path
+              </th>
+              <th className="h-12 px-4 text-center text-[13px] font-semibold text-[var(--text-primary)]">
+                Updated At
+              </th>
+              <th className="h-12 w-36 px-4 text-center text-[13px] font-semibold text-[var(--text-primary)]">
+                Trạng thái
+              </th>
+              <th className="h-12 w-28 px-4 text-center text-[13px] font-semibold text-[var(--text-primary)]">
+                Hành động
+              </th>
             </tr>
-          ) : (
-            models.map((m, i) => (
+          </thead>
+          <tbody>
+            {models.map((m) => (
               <tr
                 key={m.id}
-                className={`h-12 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
+                className="h-14 border-t border-[var(--border)] transition-colors hover:bg-[var(--bg-hover)]"
               >
-                <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
+                <td className="px-4 text-sm font-medium text-[var(--text-primary)]">
                   {m.versionName}
                   {m.isActive && (
-                    <span className="ml-2 rounded bg-[#E6F4EA] px-1.5 py-0.5 text-[11px] font-[600] text-[#2E7D32]">
+                    <span className="ml-2 rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--primary)]">
                       Active
                     </span>
                   )}
                 </td>
                 <td
-                  className="max-w-[300px] truncate px-4 text-left text-[13px] text-[#5C5C5C]"
+                  className="max-w-[300px] truncate px-4 text-left text-[13px] text-[var(--text-secondary)]"
                   title={m.filePath}
                 >
                   {m.filePath}
                 </td>
-                <td className="hidden px-4 text-center text-[14px] text-[#5C5C5C] md:table-cell">
+                <td className="px-4 text-center text-sm text-[var(--text-secondary)] tabular-nums">
                   {new Date(m.updatedAt || m.createdAt).toLocaleDateString(
                     "vi-VN",
                   )}
@@ -97,11 +173,11 @@ export function ModelsTable({
                   <button
                     onClick={() => onToggleActive(m.id, m.isActive)}
                     disabled={isActivating || isLoading}
-                    className={`mx-auto flex cursor-pointer items-center justify-center rounded border px-2.5 py-1.5 text-[12px] font-[600] transition-all duration-200 ${
+                    className={`mx-auto flex min-h-9 cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       m.isActive
-                        ? "border-[#FFD8D8] bg-[#FFF5F5] text-[#FA5252] hover:border-[#FFA8A8] hover:bg-[#FFE3E3] active:bg-[#FFC9C9]"
-                        : "border-[#D4EDDA] bg-[#E6F4EA] text-[#2E7D32] hover:border-[#C3E6CB] hover:bg-[#D4EDDA] active:bg-[#B7EB8F]"
-                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                        ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400"
+                        : "border-[var(--primary)]/30 bg-[var(--primary-soft)] text-[var(--primary)] hover:bg-[var(--primary)]/15"
+                    }`}
                     title={
                       m.isActive
                         ? "Nhấp để hủy kích hoạt mô hình"
@@ -116,7 +192,7 @@ export function ModelsTable({
                     <button
                       onClick={() => onEdit(m)}
                       disabled={isActivating || isLoading}
-                      className="rounded p-1.5 text-[#1A73E8] transition-colors hover:bg-[#E8F0FE] hover:text-[#1557B0] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-9 w-9 items-center justify-center rounded-lg text-sky-600 transition-colors hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-sky-400 dark:hover:bg-sky-950/30"
                       title="Chỉnh sửa thông tin/file"
                     >
                       <Pencil className="h-4 w-4" />
@@ -126,23 +202,23 @@ export function ModelsTable({
                       <button
                         onClick={() => handleDeleteClick(m.id, m.versionName)}
                         disabled={isActivating || isLoading}
-                        className="rounded p-1.5 text-[#E03131] transition-colors hover:bg-[#FFECEB] hover:text-[#C92A2A] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
                         title="Xóa mô hình AI"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     ) : (
-                      <span className="w-7 text-[12px] text-[#8C8C8C] italic select-none">
+                      <span className="w-7 text-xs text-[var(--text-muted)] italic select-none">
                         Khóa
                       </span>
                     )}
                   </div>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

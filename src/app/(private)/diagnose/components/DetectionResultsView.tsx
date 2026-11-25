@@ -77,11 +77,11 @@ export function DetectionResultsView({
         return (
           <div
             key={i}
-            className="rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm transition-all hover:border-[#FB8C00]/30"
+            className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-xs transition-colors hover:border-amber-500/40"
           >
             <div className="mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-[600] tracking-wider text-[#9E9E9E] uppercase">
+                <span className="text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
                   Phát hiện #{i + 1}
                 </span>
                 {/* Color Legend (Matches bounding box on image) */}
@@ -95,10 +95,10 @@ export function DetectionResultsView({
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 text-[12px] font-[600] text-[#FB8C00]">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
                 {isAdjusted ? (
                   <div
-                    className="flex items-center gap-1 rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[10px] text-[#2F9E44]"
+                    className="flex items-center gap-1 rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[10px] text-[var(--primary)]"
                     title={`Đã điều chỉnh từ ${originalPercent}%`}
                   >
                     <TrendingUp className="h-3 w-3" /> Đã điều chỉnh
@@ -113,17 +113,17 @@ export function DetectionResultsView({
 
             {/* Disease Name */}
             <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-[20px] font-[700] text-[#E65100]">
+              <h2 className="text-xl font-bold text-amber-700 dark:text-amber-400">
                 {detName}
               </h2>
             </div>
 
-            <div className="flex flex-col gap-2 rounded-lg border border-[#F0F2F5] bg-[#FAFAFA] p-2.5">
+            <div className="flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-2.5">
               <div className="flex items-center gap-3">
-                <span className="text-[12px] font-[500] text-[#5C5C5C]">
+                <span className="text-xs font-medium text-[var(--text-secondary)]">
                   Độ tin cậy:
                 </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--bg-card)] shadow-inner">
                   <div
                     className="h-full border-r border-black/10 transition-all duration-500 ease-out"
                     style={{
@@ -132,7 +132,7 @@ export function DetectionResultsView({
                     }}
                   />
                 </div>
-                <span className="text-[13px] font-[700] text-[#1B1B1B]">
+                <span className="text-[13px] font-bold text-[var(--text-primary)] tabular-nums">
                   {detPercent}%
                 </span>
               </div>
@@ -140,10 +140,10 @@ export function DetectionResultsView({
               {det.affectedAreaRatio !== undefined &&
                 det.affectedAreaRatio > 0 && (
                   <div className="flex items-center gap-3">
-                    <span className="text-[12px] font-[500] text-[#5C5C5C]">
+                    <span className="text-xs font-medium text-[var(--text-secondary)]">
                       Diện tích nhiễm:
                     </span>
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-black/5 bg-[#E0E0E0] shadow-inner">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full border border-[var(--border)] bg-[var(--bg-card)] shadow-inner">
                       <div
                         className="h-full border-r border-black/10 transition-all duration-500 ease-out"
                         style={{
@@ -156,7 +156,7 @@ export function DetectionResultsView({
                       />
                     </div>
                     <span
-                      className={`text-[13px] font-[700] ${det.affectedAreaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}
+                      className={`text-[13px] font-bold tabular-nums ${det.affectedAreaRatio > 0.35 ? "text-red-600 dark:text-red-400" : "text-[var(--text-primary)]"}`}
                     >
                       {(det.affectedAreaRatio * 100).toFixed(1)}%{" "}
                       {det.affectedAreaRatio > 0.35 && "(Nguy cấp)"}
@@ -165,9 +165,9 @@ export function DetectionResultsView({
                 )}
 
               {isAdjusted && (
-                <div className="flex justify-between px-1 text-[11px] text-[#5C5C5C]">
+                <div className="flex justify-between px-1 text-[11px] text-[var(--text-secondary)] tabular-nums">
                   <span>Gốc: {originalPercent}%</span>
-                  <span className="font-[600] text-[#2F9E44]">
+                  <span className="font-semibold text-[var(--primary)]">
                     +{detPercent - (originalPercent || 0)}% (tối ưu theo môi
                     trường)
                   </span>
@@ -180,16 +180,16 @@ export function DetectionResultsView({
 
       {/* Overall Severity Assessment */}
       <div
-        className={`flex items-center justify-between rounded-lg border p-3 shadow-sm ${severityStyle.bg} ${severityStyle.border}`}
+        className={`flex items-center justify-between rounded-xl border p-3 shadow-xs ${severityStyle.bg} ${severityStyle.border}`}
       >
         <div className="flex items-center gap-2">
-          <Maximize className="h-4 w-4 text-[#5C5C5C]" />
-          <span className="text-[13px] font-[600] text-[#5C5C5C]">
+          <Maximize className="h-4 w-4 text-[var(--text-secondary)]" />
+          <span className="text-[13px] font-semibold text-[var(--text-secondary)]">
             Đánh giá mức độ tổng thể:
           </span>
         </div>
         <span
-          className={`rounded px-2.5 py-1 text-[13px] font-[800] ${severityStyle.color}`}
+          className={`rounded px-2.5 py-1 text-[13px] font-extrabold ${severityStyle.color}`}
         >
           {severityStyle.label.toUpperCase()}
         </span>

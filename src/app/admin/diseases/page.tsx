@@ -1,6 +1,6 @@
 "use client";
 
-import { DiseaseItem, diseaseService } from "@/services/disease.service";
+import { message, Modal } from "antd";
 import {
   Check,
   ChevronLeft,
@@ -15,12 +15,27 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const severityMap: Record<string, { label: string; bg: string; text: string }> =
-  {
-    high: { label: "Nghiêm trọng", bg: "bg-[#FFEBEE]", text: "text-[#C62828]" },
-    medium: { label: "Trung bình", bg: "bg-[#FFF3E0]", text: "text-[#E65100]" },
-    low: { label: "Nhẹ", bg: "bg-[#E6F4EA]", text: "text-[#2E7D32]" },
-  };
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { DiseaseItem, diseaseService } from "@/services/disease.service";
+
+const severityMap: Record<string, { label: string; badgeClass: string }> = {
+  high: {
+    label: "Nghiêm trọng",
+    badgeClass: "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300",
+  },
+  medium: {
+    label: "Trung bình",
+    badgeClass:
+      "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
+  },
+  low: {
+    label: "Nhẹ",
+    badgeClass:
+      "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  },
+};
 
 const PAGE_SIZE = 10;
 
@@ -119,12 +134,13 @@ export default function AdminDiseasesPage() {
       const res = await diseaseService.uploadImage(file);
       if (res.success && res.data) {
         setForm((prev) => ({ ...prev, imageUrl: res.data!.imageUrl }));
+        message.success("Đã tải ảnh minh họa lên thành công.");
       } else {
-        alert(res.message || "Tải ảnh lên thất bại");
+        message.error(res.message || "Tải ảnh lên thất bại");
       }
     } catch (error) {
       console.error("Lỗi khi tải ảnh lên:", error);
-      alert("Tải ảnh thất bại do lỗi kết nối.");
+      message.error("Tải ảnh thất bại do lỗi kết nối.");
     } finally {
       setUploadingImage(false);
     }
@@ -132,7 +148,7 @@ export default function AdminDiseasesPage() {
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      alert("Vui lòng nhập tên bệnh!");
+      message.warning("Vui lòng nhập tên bệnh!");
       return;
     }
 
@@ -146,173 +162,250 @@ export default function AdminDiseasesPage() {
       }
 
       if (res.success) {
+        message.success(
+          editing ? "Đã cập nhật thông tin bệnh." : "Đã thêm bệnh mới.",
+        );
         setShowModal(false);
         fetchDiseases();
       } else {
-        alert(res.message || "Lưu thất bại");
+        message.error(res.message || "Lưu thất bại");
       }
     } catch (error) {
       console.error("Lỗi lưu thông tin bệnh:", error);
-      alert("Đã xảy ra lỗi khi lưu thông tin bệnh.");
+      message.error("Đã xảy ra lỗi khi lưu thông tin bệnh.");
     } finally {
       setSaveLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bệnh này không?")) return;
-
-    try {
-      const res = await diseaseService.deleteDisease(id);
-      if (res.success) {
-        fetchDiseases();
-      } else {
-        alert(res.message || "Xóa thất bại");
-      }
-    } catch (error) {
-      console.error("Lỗi xóa bệnh:", error);
-    }
+  const handleDelete = (id: string) => {
+    Modal.confirm({
+      title: "Xóa dữ liệu bệnh",
+      content: "Bạn có chắc chắn muốn xóa bệnh này không?",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: async () => {
+        try {
+          const res = await diseaseService.deleteDisease(id);
+          if (res.success) {
+            message.success("Đã xóa bệnh thành công.");
+            fetchDiseases();
+          } else {
+            message.error(res.message || "Xóa thất bại");
+          }
+        } catch (error) {
+          console.error("Lỗi xóa bệnh:", error);
+          message.error("Đã xảy ra lỗi khi xóa bệnh.");
+        }
+      },
+    });
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-[28px] font-[700] text-[#1B1B1B]">
-            Quản lý Bệnh lúa
-          </h1>
-          <p className="mt-1 text-[14px] text-[#5C5C5C]">
-            {loading ? "Đang tải..." : `${total} loại bệnh`}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#5C5C5C]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm bệnh..."
-              className="h-10 w-[220px] rounded-lg border border-[#E0E0E0] pr-4 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
-            />
+      <PageHeader
+        title="Quản lý Bệnh lúa"
+        description={loading ? "Đang tải..." : `${total} loại bệnh`}
+        actions={
+          <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+            <div className="relative min-w-[200px] flex-1 sm:w-[220px] sm:flex-none">
+              <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Tìm bệnh..."
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] pr-4 pl-10 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
+              />
+            </div>
+            <button
+              onClick={handleAdd}
+              className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-hover)]"
+            >
+              <Plus className="h-4 w-4" /> Thêm bệnh
+            </button>
           </div>
-          <button
-            onClick={handleAdd}
-            className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white transition-colors hover:bg-[#1F6F2E]"
-          >
-            <Plus className="h-4 w-4" /> Thêm bệnh
-          </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-[#F0F2F5]">
-              <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
-                Hình ảnh
-              </th>
-              <th className="h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B]">
-                Tên bệnh
-              </th>
-              <th className="hidden h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B] md:table-cell">
-                Tên tiếng Anh / Khoa học
-              </th>
-              <th className="h-12 w-28 px-4 text-center text-[13px] font-[600] text-[#1B1B1B]">
-                Mức độ
-              </th>
-              <th className="hidden h-12 px-4 text-left text-[13px] font-[600] text-[#1B1B1B] lg:table-cell">
-                Triệu chứng
-              </th>
-              <th className="h-12 w-28 px-4 text-center text-[13px] font-[600] text-[#1B1B1B]">
-                Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="h-40 text-center text-[#5C5C5C]">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
-                  <p className="mt-2 text-[14px]">Đang tải danh sách...</p>
-                </td>
-              </tr>
-            ) : diseases.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="h-40 text-center text-[14px] text-[#5C5C5C]"
+      {loading ? (
+        <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
+          {[1, 2, 3, 4].map((row) => (
+            <div key={row} className="flex items-center gap-4">
+              <Skeleton className="h-12 w-16 rounded-lg" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-44" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : diseases.length === 0 ? (
+        <EmptyState
+          icon={<Search className="h-6 w-6" />}
+          title="Không tìm thấy dữ liệu bệnh lúa nào"
+          description="Thử thay đổi từ khóa hoặc thêm dữ liệu bệnh lúa mới."
+        />
+      ) : (
+        <>
+          {/* Mobile card list */}
+          <div className="space-y-3 md:hidden">
+            {diseases.map((d) => {
+              const sev =
+                severityMap[d.severity || "medium"] || severityMap.medium;
+              return (
+                <div
+                  key={d.id}
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4"
                 >
-                  Không tìm thấy dữ liệu bệnh lúa nào.
-                </td>
-              </tr>
-            ) : (
-              diseases.map((d, i) => {
-                const sev =
-                  severityMap[d.severity || "medium"] || severityMap.medium;
-                return (
-                  <tr
-                    key={d.id}
-                    className={`h-16 border-t border-[#E0E0E0] hover:bg-[#F5F7F9] ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}
-                  >
-                    <td className="px-4">
-                      {d.imageUrl ? (
-                        <img
-                          src={d.imageUrl}
-                          alt={d.name}
-                          className="h-10 w-14 rounded border border-[#E0E0E0] object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-14 items-center justify-center rounded border border-[#E0E0E0] bg-[#F9FAFB] text-[10px] text-[#8C8C8C]">
-                          Không ảnh
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-4 text-[14px] font-[500] text-[#1B1B1B]">
-                      {d.name}
-                    </td>
-                    <td className="hidden px-4 text-[14px] text-[#5C5C5C] md:table-cell">
-                      {d.scientificName || "N/A"}
-                    </td>
-                    <td className="px-4 text-center">
-                      <span
-                        className={`inline-block h-5 rounded px-2 text-[11px] leading-[20px] font-[500] ${sev.bg} ${sev.text}`}
-                      >
-                        {sev.label}
-                      </span>
-                    </td>
-                    <td className="hidden max-w-[250px] truncate px-4 text-[13px] text-[#5C5C5C] lg:table-cell">
-                      {d.signs || "N/A"}
-                    </td>
-                    <td className="px-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => handleEdit(d)}
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#2F9E44] hover:bg-[#E6F4EA]"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(d.id)}
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#E53935] hover:bg-[#FFEBEE]"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
+                  <div className="flex gap-3">
+                    {d.imageUrl ? (
+                      <img
+                        src={d.imageUrl}
+                        alt={d.name}
+                        className="h-14 w-20 shrink-0 rounded-lg border border-[var(--border)] object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[10px] text-[var(--text-muted)]">
+                        Không ảnh
                       </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-1.5">
+                        <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                          {d.name}
+                        </h3>
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${sev.badgeClass}`}
+                        >
+                          {sev.label}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                        {d.scientificName || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  {d.signs && (
+                    <p className="mt-2 line-clamp-2 text-xs text-[var(--text-secondary)]">
+                      {d.signs}
+                    </p>
+                  )}
+                  <div className="mt-3 flex justify-end gap-2 border-t border-[var(--border)] pt-3">
+                    <button
+                      onClick={() => handleEdit(d)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--primary)] hover:bg-[var(--primary-soft)]"
+                      aria-label="Sửa bệnh"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(d.id)}
+                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      aria-label="Xóa bệnh"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden overflow-x-auto rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] md:block">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)] bg-[var(--bg-subtle)]">
+                  <th className="h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)]">
+                    Hình ảnh
+                  </th>
+                  <th className="h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)]">
+                    Tên bệnh
+                  </th>
+                  <th className="h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)]">
+                    Tên tiếng Anh / Khoa học
+                  </th>
+                  <th className="h-12 w-28 px-4 text-center text-[13px] font-semibold text-[var(--text-primary)]">
+                    Mức độ
+                  </th>
+                  <th className="hidden h-12 px-4 text-left text-[13px] font-semibold text-[var(--text-primary)] lg:table-cell">
+                    Triệu chứng
+                  </th>
+                  <th className="h-12 w-28 px-4 text-center text-[13px] font-semibold text-[var(--text-primary)]">
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {diseases.map((d) => {
+                  const sev =
+                    severityMap[d.severity || "medium"] || severityMap.medium;
+                  return (
+                    <tr
+                      key={d.id}
+                      className="h-16 border-t border-[var(--border)] transition-colors hover:bg-[var(--bg-hover)]"
+                    >
+                      <td className="px-4">
+                        {d.imageUrl ? (
+                          <img
+                            src={d.imageUrl}
+                            alt={d.name}
+                            className="h-10 w-14 rounded-lg border border-[var(--border)] object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-14 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-subtle)] text-[10px] text-[var(--text-muted)]">
+                            Không ảnh
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 text-sm font-medium text-[var(--text-primary)]">
+                        {d.name}
+                      </td>
+                      <td className="px-4 text-sm text-[var(--text-secondary)]">
+                        {d.scientificName || "N/A"}
+                      </td>
+                      <td className="px-4 text-center">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${sev.badgeClass}`}
+                        >
+                          {sev.label}
+                        </span>
+                      </td>
+                      <td className="hidden max-w-[250px] truncate px-4 text-[13px] text-[var(--text-secondary)] lg:table-cell">
+                        {d.signs || "N/A"}
+                      </td>
+                      <td className="px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleEdit(d)}
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[var(--primary)] hover:bg-[var(--primary-soft)]"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(d.id)}
+                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {!loading && totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-[12px] text-[#5C5C5C]">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-[var(--text-muted)] tabular-nums">
             Hiển thị {(page - 1) * PAGE_SIZE + 1}–
             {Math.min(page * PAGE_SIZE, total)} / {total}
           </p>
@@ -320,7 +413,7 @@ export default function AdminDiseasesPage() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -328,7 +421,7 @@ export default function AdminDiseasesPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`h-8 w-8 cursor-pointer rounded-md text-[14px] font-[500] ${p === page ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                className={`h-10 min-w-10 cursor-pointer rounded-lg px-2 text-sm font-medium tabular-nums ${p === page ? "bg-[var(--primary)] text-white" : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}
               >
                 {p}
               </button>
@@ -336,7 +429,7 @@ export default function AdminDiseasesPage() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -346,34 +439,34 @@ export default function AdminDiseasesPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 px-4 py-6">
-          <div className="my-auto w-full max-w-[560px] rounded-xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#E0E0E0] px-6 py-4">
-              <h3 className="text-[18px] font-[700] text-[#1B1B1B]">
+          <div className="my-auto w-full max-w-[560px] rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">
                 {editing ? "Sửa bệnh" : "Thêm bệnh mới"}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full hover:bg-[#F0F2F5]"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
               >
-                <X className="h-5 w-5 text-[#5C5C5C]" />
+                <X className="h-5 w-5" />
               </button>
             </div>
             <div className="max-h-[70vh] space-y-4 overflow-y-auto px-6 py-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                     Tên bệnh (Tiếng Việt) *
                   </label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                    className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
                     placeholder="Ví dụ: Bệnh đạo ôn"
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                  <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                     Tên tiếng Anh / Khoa học
                   </label>
                   <input
@@ -382,14 +475,14 @@ export default function AdminDiseasesPage() {
                     onChange={(e) =>
                       setForm({ ...form, scientificName: e.target.value })
                     }
-                    className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                    className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
                     placeholder="Ví dụ: Rice Blast"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                   Mức độ nghiêm trọng
                 </label>
                 <select
@@ -397,7 +490,7 @@ export default function AdminDiseasesPage() {
                   onChange={(e) =>
                     setForm({ ...form, severity: e.target.value })
                   }
-                  className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                  className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
                 >
                   <option value="low">Nhẹ (Low)</option>
                   <option value="medium">Trung bình (Medium)</option>
@@ -406,20 +499,20 @@ export default function AdminDiseasesPage() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                   Triệu chứng / Dấu hiệu
                 </label>
                 <textarea
                   value={form.signs}
                   onChange={(e) => setForm({ ...form, signs: e.target.value })}
                   rows={3}
-                  className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                  className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
                   placeholder="Mô tả các triệu chứng của bệnh..."
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                   Phác đồ điều trị
                 </label>
                 <textarea
@@ -428,18 +521,18 @@ export default function AdminDiseasesPage() {
                     setForm({ ...form, treatment: e.target.value })
                   }
                   rows={3}
-                  className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+                  className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
                   placeholder="Cách xử lý, phun thuốc hóa học, chế phẩm sinh học..."
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[13px] font-[600] text-[#1B1B1B]">
+                <label className="mb-1.5 block text-[13px] font-semibold text-[var(--text-primary)]">
                   Hình ảnh minh họa
                 </label>
                 <div className="mt-1 flex items-center gap-4">
                   {form.imageUrl ? (
-                    <div className="relative h-20 w-28 overflow-hidden rounded-lg border border-[#E0E0E0]">
+                    <div className="relative h-20 w-28 overflow-hidden rounded-xl border border-[var(--border)]">
                       <img
                         src={form.imageUrl}
                         alt="Preview"
@@ -450,15 +543,15 @@ export default function AdminDiseasesPage() {
                         onClick={() =>
                           setForm((prev) => ({ ...prev, imageUrl: "" }))
                         }
-                        className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black"
+                        className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ) : (
-                    <label className="flex h-20 w-28 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-[#E0E0E0] bg-[#F9FAFB] transition-colors hover:bg-[#F0F2F5]">
-                      <Upload className="h-5 w-5 text-[#8C8C8C]" />
-                      <span className="mt-1 text-[11px] text-[#8C8C8C]">
+                    <label className="flex h-20 w-28 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--border-strong)] bg-[var(--bg-subtle)] transition-colors hover:bg-[var(--bg-hover)]">
+                      <Upload className="h-5 w-5 text-[var(--text-muted)]" />
+                      <span className="mt-1 text-[11px] text-[var(--text-muted)]">
                         Chọn ảnh
                       </span>
                       <input
@@ -471,26 +564,26 @@ export default function AdminDiseasesPage() {
                   )}
 
                   {uploadingImage && (
-                    <div className="flex items-center gap-1.5 text-[13px] text-[#5C5C5C]">
-                      <Loader2 className="h-4 w-4 animate-spin text-[#2F9E44]" />
+                    <div className="flex items-center gap-1.5 text-[13px] text-[var(--text-secondary)]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[var(--primary)]" />
                       <span>Đang tải ảnh lên...</span>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 border-t border-[#E0E0E0] px-6 py-4">
+            <div className="flex justify-end gap-3 border-t border-[var(--border)] px-6 py-4">
               <button
                 onClick={() => setShowModal(false)}
                 disabled={saveLoading}
-                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:opacity-50"
+                className="min-h-11 cursor-pointer rounded-xl border border-[var(--border)] px-4 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:opacity-50"
               >
                 Hủy
               </button>
               <button
                 onClick={handleSave}
                 disabled={saveLoading || uploadingImage}
-                className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] font-[500] text-white transition-colors hover:bg-[#1F6F2E] disabled:opacity-50"
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50"
               >
                 {saveLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

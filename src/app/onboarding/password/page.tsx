@@ -6,6 +6,8 @@ import { ArrowRight, Check, Eye, EyeOff, Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ROUTES } from "@/constants/routes";
 import { getErrorMessage, useAuth } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
@@ -27,19 +29,15 @@ function PasswordRequirements({ password }: { password?: string }) {
       {requirements.map((req, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-1.5 font-[500] ${
-            req.valid
-              ? "text-green-600"
-              : val
-                ? "text-red-500"
-                : "text-gray-400"
+          className={`flex items-center gap-1.5 font-medium ${
+            req.valid ? "text-success" : val ? "text-error" : "text-text-muted"
           }`}
         >
           {req.valid ? (
-            <Check className="h-4 w-4 shrink-0 text-green-600" />
+            <Check className="text-success h-4 w-4 shrink-0" />
           ) : (
             <X
-              className={`h-4 w-4 shrink-0 ${val ? "text-red-500" : "text-gray-400"}`}
+              className={`h-4 w-4 shrink-0 ${val ? "text-error" : "text-text-muted"}`}
             />
           )}
           <span>{req.label}</span>
@@ -61,7 +59,6 @@ export default function OnboardingPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Evaluate password conditions
   const isLengthValid = password.length >= 8;
   const isUpperValid = /[A-Z]/.test(password);
   const isLowerValid = /[a-z]/.test(password);
@@ -70,7 +67,6 @@ export default function OnboardingPasswordPage() {
     isLengthValid && isUpperValid && isLowerValid && isSpecialValid;
   const passwordsMatch = password === confirmPassword;
 
-  // Redirect if not logged in or already has password
   useEffect(() => {
     if (!isAuthLoading) {
       if (!user) {
@@ -101,12 +97,10 @@ export default function OnboardingPasswordPage() {
       if (res.success) {
         message.success("Thiết lập mật khẩu tài khoản thành công!");
 
-        // Set flag to indicate they came from the 2-step Google flow
         if (typeof window !== "undefined") {
           sessionStorage.setItem("completed_password_step", "true");
         }
 
-        // Update query data synchronously to prevent stale redirect loop
         queryClient.setQueryData(["auth-me"], (oldData: any) => {
           if (oldData) {
             return {
@@ -116,7 +110,6 @@ export default function OnboardingPasswordPage() {
           }
           return oldData;
         });
-        // Invalidate "auth-me" query to refresh user.hasPassword state reactively in the background
         await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         router.push(ROUTES.ONBOARDING_LOCATION);
       } else {
@@ -131,37 +124,37 @@ export default function OnboardingPasswordPage() {
 
   if (isAuthLoading || !user || user.hasPassword) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F7F7F7]">
+      <div className="bg-bg-page flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
-          <p className="mt-2 text-[14px] text-[#5C5C5C]">Đang tải dữ liệu...</p>
+          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+          <p className="text-text-secondary mt-2 text-sm">
+            Đang tải dữ liệu...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#F4F6F8] px-4 py-8 font-[Inter,sans-serif]">
-      <div className="w-full max-w-[500px] rounded-2xl border border-gray-200/50 bg-white p-6 shadow-xl transition-all md:p-8">
+    <main className="bg-bg-page flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="border-border bg-bg-card w-full max-w-[500px] rounded-2xl border p-5 shadow-md transition-all sm:p-8">
         {/* Progress header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <BrandLogo size="sm" subtitle="Onboarding" />
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🌾</span>
-            <span className="text-[16px] font-[700] text-[#1F6F2E]">
-              Lúa Khoẻ Onboarding
+            <span className="bg-accent-light text-accent rounded-full px-3 py-1 text-xs font-semibold tabular-nums">
+              Bước 1 / 2
             </span>
+            <ThemeToggle />
           </div>
-          <span className="rounded-full bg-[#FFF3E0] px-2.5 py-0.5 text-[11px] font-[600] text-[#E65100]">
-            Bước 1 / 2
-          </span>
         </div>
 
         {/* Title */}
         <div className="mb-6">
-          <h2 className="text-[24px] font-[700] tracking-tight text-[#1B1B1B]">
+          <h2 className="font-heading text-text-primary text-2xl font-bold tracking-tight">
             Thiết lập mật khẩu tài khoản
           </h2>
-          <p className="mt-1.5 text-[14px] leading-relaxed text-[#5C5C5C]">
+          <p className="text-text-secondary mt-1.5 text-sm leading-relaxed">
             Tài khoản của bạn hiện chưa có mật khẩu (đăng nhập qua Google). Vui
             lòng thiết lập mật khẩu mới để bảo mật tài khoản tốt hơn và có thể
             đăng nhập trực tiếp.
@@ -171,13 +164,13 @@ export default function OnboardingPasswordPage() {
         {/* Form */}
         <form onSubmit={handleSavePassword} className="space-y-4">
           {passwordError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-[13.5px] font-[500] text-red-800">
+            <div className="border-error/30 bg-error/10 text-error rounded-xl border p-3.5 text-sm font-medium">
               {passwordError}
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[14px] font-[600] text-[#5C5C5C]">
+            <label className="text-text-primary text-sm font-semibold">
               Mật khẩu mới
             </label>
             <div className="relative">
@@ -186,13 +179,14 @@ export default function OnboardingPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Nhập mật khẩu mới"
-                className="h-11 w-full rounded-xl border border-gray-300 pr-10 pl-4 text-[14.5px] outline-none focus:border-[#2F9E44]"
+                className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary h-12 w-full rounded-xl border pr-11 pl-4 text-base outline-none sm:h-11 sm:text-sm"
                 required
               />
               <button
                 type="button"
+                aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer border-none bg-transparent text-gray-400 hover:text-gray-600"
+                className="text-text-muted hover:text-text-primary absolute top-1/2 right-2 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -201,12 +195,11 @@ export default function OnboardingPasswordPage() {
                 )}
               </button>
             </div>
-            {/* Password requirements checker */}
             <PasswordRequirements password={password} />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[14px] font-[600] text-[#5C5C5C]">
+            <label className="text-text-primary text-sm font-semibold">
               Xác nhận mật khẩu
             </label>
             <div className="relative">
@@ -215,20 +208,23 @@ export default function OnboardingPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Nhập lại mật khẩu mới"
-                className="h-11 w-full rounded-xl border border-gray-300 pr-16 pl-4 text-[14.5px] outline-none focus:border-[#2F9E44]"
+                className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary h-12 w-full rounded-xl border pr-16 pl-4 text-base outline-none sm:h-11 sm:text-sm"
                 required
               />
-              <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-2">
+              <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
                 {confirmPassword &&
                   (passwordsMatch ? (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="text-success h-5 w-5" />
                   ) : (
-                    <X className="h-5 w-5 text-red-500" />
+                    <X className="text-error h-5 w-5" />
                   ))}
                 <button
                   type="button"
+                  aria-label={
+                    showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                  }
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="cursor-pointer border-none bg-transparent p-0 text-gray-400 hover:text-gray-600"
+                  className="text-text-muted hover:text-text-primary flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -240,13 +236,13 @@ export default function OnboardingPasswordPage() {
             </div>
           </div>
 
-          <div className="flex justify-end border-t border-gray-100 pt-4">
+          <div className="border-border flex justify-end border-t pt-4">
             <button
               type="submit"
               disabled={
                 isSavingPassword || !areAllRequirementsMet || !passwordsMatch
               }
-              className="flex h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-[#2F9E44] px-6 text-[14px] font-[600] text-white transition-all hover:bg-[#1F6F2E] disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary hover:bg-primary-hover flex min-h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl px-6 text-sm font-semibold text-white transition-all disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {isSavingPassword ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

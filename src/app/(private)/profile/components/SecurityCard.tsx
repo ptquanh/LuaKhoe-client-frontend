@@ -166,11 +166,7 @@ export function SecurityCard({
           htmlType="submit"
           loading={isScreenLoading}
           icon={<KeyRound className="h-4 w-4" />}
-          style={{
-            backgroundColor: "#22c55e",
-            borderColor: "#22c55e",
-          }}
-          className="flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-sm hover:!border-green-600 hover:!bg-green-600"
+          className="flex min-h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-sm"
         >
           Đổi mật khẩu
         </Button>

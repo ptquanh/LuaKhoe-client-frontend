@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  AlertTriangle,
+  CalendarClock,
+  CheckCircle2,
+  MapPin,
+  ShieldAlert,
+} from "lucide-react";
 import React from "react";
 
 interface ResultHeroCardProps {
@@ -7,129 +14,244 @@ interface ResultHeroCardProps {
   severity: string;
   confidence: number;
   isHealthy?: boolean;
+  severityAssessment?: string | null;
+  summary?: string | null;
+  createdAt?: string | null;
+  province?: string | null;
+  detectionsCount?: number;
+  maxAffectedArea?: number;
 }
 
 const severityConfig: Record<
   string,
-  { bg: string; text: string; label: string; border: string }
+  {
+    accentBar: string;
+    badgeBg: string;
+    badgeBorder: string;
+    text: string;
+    ringStroke: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   low: {
-    bg: "bg-[#E6F4EA]",
-    text: "text-[#2E7D32]",
-    label: "Nhẹ",
-    border: "border-[#A5D6A7]",
+    accentBar: "bg-primary",
+    badgeBg: "bg-primary-soft",
+    badgeBorder: "border-primary-border",
+    text: "text-primary",
+    ringStroke: "stroke-primary",
+    label: "Mức độ nhẹ",
+    icon: CheckCircle2,
   },
   medium: {
-    bg: "bg-[#FFF8E1]",
-    text: "text-[#F57F17]",
+    accentBar: "bg-amber-500",
+    badgeBg: "bg-accent-light",
+    badgeBorder: "border-amber-300/60 dark:border-amber-700/50",
+    text: "text-amber-700 dark:text-amber-300",
+    ringStroke: "stroke-amber-500",
     label: "Trung bình",
-    border: "border-[#FFE082]",
+    icon: AlertTriangle,
   },
   high: {
-    bg: "bg-[#FFF3E0]",
-    text: "text-[#E65100]",
-    label: "Nặng",
-    border: "border-[#FFCC80]",
+    accentBar: "bg-orange-500",
+    badgeBg: "bg-orange-500/12",
+    badgeBorder: "border-orange-400/40",
+    text: "text-orange-700 dark:text-orange-300",
+    ringStroke: "stroke-orange-500",
+    label: "Mức độ nặng",
+    icon: AlertTriangle,
   },
   critical: {
-    bg: "bg-[#FFEBEE]",
-    text: "text-[#C62828]",
-    label: "Nghiêm trọng",
-    border: "border-[#EF9A9A]",
+    accentBar: "bg-error",
+    badgeBg: "bg-error/12",
+    badgeBorder: "border-error/30",
+    text: "text-error",
+    ringStroke: "stroke-error",
+    label: "Cấp bách",
+    icon: ShieldAlert,
   },
 };
+
+function formatDateTime(iso?: string | null): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export function ResultHeroCard({
   diseaseName,
   severity,
   confidence,
   isHealthy,
+  severityAssessment,
+  summary,
+  createdAt,
+  province,
+  detectionsCount = 0,
+  maxAffectedArea = 0,
 }: ResultHeroCardProps) {
   const config = isHealthy
     ? {
-        bg: "bg-[#E6F4EA]",
-        text: "text-[#2E7D32]",
-        label: "Khỏe mạnh",
-        border: "border-[#A5D6A7]",
+        accentBar: "bg-primary",
+        badgeBg: "bg-primary-soft",
+        badgeBorder: "border-primary-border",
+        text: "text-primary",
+        ringStroke: "stroke-primary",
+        label: "Lúa khỏe mạnh",
+        icon: CheckCircle2,
       }
     : severityConfig[severity] || severityConfig.medium;
 
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border-2 p-6 shadow-sm transition-all duration-300 hover:shadow-md ${config.bg} ${config.border}`}
-    >
-      {/* Subtle background decoration */}
-      <div className="pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/30 blur-2xl" />
+  const BadgeIcon = config.icon;
+  const formattedTime = formatDateTime(createdAt);
+  const clampedConfidence = Math.max(0, Math.min(100, confidence));
+  const radius = 26;
+  const circumference = 2 * Math.PI * radius;
+  const areaPercent = Number((maxAffectedArea * 100).toFixed(1));
 
-      <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-2.5">
-          <div className="flex items-center gap-3">
+  return (
+    <section className="border-border bg-bg-card relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border shadow-xs">
+      <div className={`h-1.5 w-full ${config.accentBar}`} />
+
+      <div className="flex flex-1 flex-col justify-between p-5 sm:p-6">
+        <div className="space-y-4">
+          {/* Metadata Pills */}
+          <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`inline-flex items-center rounded-full bg-white px-3.5 py-1 text-[13px] font-[700] shadow-sm ${config.text}`}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${config.badgeBg} ${config.badgeBorder} ${config.text}`}
             >
-              <span
-                className="currentColor mr-1.5 h-2 w-2 animate-pulse rounded-full"
-                style={{ backgroundColor: "currentColor" }}
-              />
+              <BadgeIcon className="h-3.5 w-3.5" />
               {config.label.toUpperCase()}
             </span>
-            {!isHealthy && (
-              <span className="rounded-full border border-black/5 bg-white/60 px-3 py-1 text-[13px] font-[500] text-[#5C5C5C]">
-                Độ chính xác AI: {confidence}%
+
+            {formattedTime && (
+              <span className="border-border bg-bg-subtle text-text-secondary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium tabular-nums">
+                <CalendarClock className="text-text-muted h-3.5 w-3.5" />
+                {formattedTime}
+              </span>
+            )}
+
+            {province && (
+              <span className="border-border bg-bg-subtle text-text-secondary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
+                <MapPin className="text-primary h-3.5 w-3.5" />
+                {province}
               </span>
             )}
           </div>
 
-          <h1 className="text-[26px] leading-[1.25] font-[800] tracking-tight text-[#1B1B1B] md:text-[32px]">
-            {diseaseName}
-          </h1>
+          {/* Disease Title + Confidence Donut */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 space-y-1.5">
+              <h1 className="font-heading text-text-primary text-2xl leading-tight font-extrabold tracking-tight sm:text-[30px]">
+                {diseaseName}
+              </h1>
+              {severityAssessment && !isHealthy && (
+                <p className="text-text-secondary text-sm leading-snug font-medium">
+                  {severityAssessment}
+                </p>
+              )}
+            </div>
+
+            {!isHealthy && (
+              <div className="border-border bg-bg-subtle/70 flex shrink-0 items-center gap-3 self-start rounded-2xl border px-4 py-2.5 sm:self-center">
+                <div className="relative h-14 w-14 shrink-0">
+                  <svg
+                    className="h-full w-full -rotate-90"
+                    viewBox="0 0 64 64"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r={radius}
+                      className="stroke-border"
+                      strokeWidth="6.5"
+                      fill="none"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r={radius}
+                      className={config.ringStroke}
+                      strokeWidth="6.5"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={
+                        circumference * (1 - clampedConfidence / 100)
+                      }
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-text-primary text-sm font-extrabold tabular-nums">
+                      {clampedConfidence}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-text-primary text-xs font-bold">
+                    Độ tin cậy AI
+                  </span>
+                  <span className="text-text-muted text-[11px]">
+                    Mức độ khớp mẫu
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Executive Summary Callout */}
+          {(summary || isHealthy) && (
+            <div className="border-primary bg-bg-subtle/60 rounded-r-xl border-l-[3px] px-4 py-3">
+              <p className="text-text-secondary text-sm leading-relaxed">
+                {summary ||
+                  "Mẫu lá lúa không ghi nhận dấu hiệu bệnh lý đáng lo ngại. Tiếp tục duy trì chế độ nước, bón phân cân đối và thăm đồng định kỳ."}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Confidence Donut */}
+        {/* Bottom Telemetry Strip */}
         {!isHealthy && (
-          <div className="flex shrink-0 items-center gap-3.5 self-start rounded-2xl border border-black/5 bg-white/80 px-4 py-3 shadow-sm md:self-center">
-            <div className="relative h-15 w-15 shrink-0">
-              <svg
-                className="h-full w-full -rotate-90 transform"
-                viewBox="0 0 64 64"
-              >
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="25"
-                  stroke="#E0E0E0"
-                  strokeWidth="7"
-                  fill="none"
-                />
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="25"
-                  stroke="#2F9E44"
-                  strokeWidth="7"
-                  fill="none"
-                  strokeDasharray={2 * Math.PI * 25}
-                  strokeDashoffset={2 * Math.PI * 25 * (1 - confidence / 100)}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[14px] font-[800] text-[#2F9E44]">
-                  {confidence}%
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-col justify-center gap-0.5">
-              <span className="text-[14px] font-[700] text-[#1B1B1B]">
+          <div className="border-border mt-5 grid grid-cols-3 gap-3 border-t pt-4">
+            <div>
+              <span className="text-text-muted block text-[11px] font-semibold uppercase">
                 Độ tin cậy
               </span>
-              <span className="text-[12px] text-[#757575]">
-                Mô hình AI phân tích
+              <span className="text-text-primary mt-0.5 block text-base font-extrabold tabular-nums sm:text-lg">
+                {clampedConfidence}%
+              </span>
+            </div>
+            <div>
+              <span className="text-text-muted block text-[11px] font-semibold uppercase">
+                Diện tích nhiễm
+              </span>
+              <span
+                className={`mt-0.5 block text-base font-extrabold tabular-nums sm:text-lg ${
+                  maxAffectedArea > 0.35 ? "text-error" : "text-text-primary"
+                }`}
+              >
+                {maxAffectedArea > 0 ? `${areaPercent}%` : "Chưa đo"}
+              </span>
+            </div>
+            <div>
+              <span className="text-text-muted block text-[11px] font-semibold uppercase">
+                Vùng phát hiện
+              </span>
+              <span className="text-text-primary mt-0.5 block text-base font-extrabold tabular-nums sm:text-lg">
+                {detectionsCount || 1} vùng
               </span>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

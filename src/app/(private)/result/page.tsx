@@ -1,30 +1,38 @@
 "use client";
 
-import {
-  AlertTriangle,
-  ArrowLeft,
-  CheckCircle2,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft, ScanLine } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
-import { diagnosisService } from "@/services/diagnosis.service";
-import { DiseaseItem, diseaseService } from "@/services/disease.service";
-import { feedbackService } from "@/services/feedback.service";
 import { DiagnosisResponse } from "@/types/diagnose.type";
-import { FeedbackItem } from "@/types/feedback.type";
 
 import { DiagnosisFeedbackCard } from "./components/DiagnosisFeedbackCard";
 import { NutritionAdjustmentCard } from "./components/NutritionAdjustmentCard";
 import { PreventionMeasuresCard } from "./components/PreventionMeasuresCard";
+import {
+  ResultErrorState,
+  ResultSkeleton,
+  ResultSourcesCard,
+  ResultSupplementBanner,
+} from "./components/ResultAuxCards";
+import { ResultContextCard } from "./components/ResultContextCard";
+import {
+  DetectionResultItem,
+  ResultDetectionsCard,
+} from "./components/ResultDetectionsCard";
 import { ResultHeroCard } from "./components/ResultHeroCard";
 import { ResultImagePreview } from "./components/ResultImagePreview";
 import { TreatmentProtocolCard } from "./components/TreatmentProtocolCard";
 import { UrgentActionsCard } from "./components/UrgentActionsCard";
+import { useDiagnosisResult } from "./components/useDiagnosisResult";
+
+const HEALTHY_DEFAULT_TIPS = [
+  "Thăm đồng định kỳ 3–5 ngày/lần để phát hiện sớm dấu hiệu sâu bệnh mới phát sinh.",
+  "Duy trì mực nước ruộng hợp lý theo từng giai đoạn sinh trưởng, tránh ngập úng kéo dài.",
+  "Bón phân cân đối N-P-K theo bảng so màu lá, hạn chế bón thừa đạm vào giai đoạn làm đòng.",
+];
 
 function ResultPageContent() {
   const router = useRouter();
@@ -32,155 +40,25 @@ function ResultPageContent() {
   const id = searchParams.get("id");
   const { user: currentUser } = useAuth();
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<DiagnosisResponse | null>(null);
-  const [existingFeedback, setExistingFeedback] = useState<FeedbackItem | null>(
-    null,
-  );
-  const [diseases, setDiseases] = useState<DiseaseItem[]>([]);
+  const {
+    loading,
+    error,
+    data,
+    existingFeedback,
+    diseases,
+    checkedActions,
+    toggleCheck,
+    handleFeedbackSubmit,
+  } = useDiagnosisResult(id);
 
-  const [checkedActions, setCheckedActions] = useState<boolean[]>([]);
-
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      setError("Không tìm thấy ID chẩn đoán.");
-      return;
-    }
-
-    const fetchDiagnosisAndFeedback = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [res, fbRes, diseasesRes] = await Promise.all([
-          diagnosisService.getById(id),
-          feedbackService.getMyFeedbacks().catch(() => null),
-          diseaseService.getDiseases().catch(() => null),
-        ]);
-
-        if (res.success && res.data) {
-          setData(res.data);
-          const urgentCount =
-            res.data.rag_recommendation?.immediate_actions?.length || 0;
-          setCheckedActions(new Array(urgentCount).fill(false));
-        } else {
-          setError(res.message || "Không thể tải dữ liệu chẩn đoán.");
-        }
-
-        if (fbRes?.success && fbRes.data) {
-          const found = fbRes.data.find((item) => item.diagnosisId === id);
-          if (found) {
-            setExistingFeedback(found);
-          }
-        }
-
-        if (diseasesRes?.success && diseasesRes.data) {
-          setDiseases(diseasesRes.data);
-        }
-      } catch (err: any) {
-        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDiagnosisAndFeedback();
-  }, [id]);
-
-  const toggleCheck = (index: number) => {
-    setCheckedActions((prev) =>
-      prev.map((val, i) => (i === index ? !val : val)),
-    );
-  };
-
-  // Extract detected disease IDs from diagnosis results
-  const detectedDiseaseIds =
-    data?.results?.map((r) => r.diseaseId).filter(Boolean) || [];
-
-  const handleFeedbackSubmit = async (
-    rating: number,
-    comment: string,
-    actualDiseaseIds?: string[],
-  ) => {
-    if (!id) return;
-    try {
-      const content = comment.trim() || undefined;
-      const finalActualDiseaseIds = actualDiseaseIds || [];
-
-      const res = await feedbackService.submit({
-        diagnosisId: id,
-        rating,
-        content,
-        actualDiseaseIds: finalActualDiseaseIds,
-      });
-
-      // Re-map actualDiseases for optimistic local state update
-      const submittedActualDiseases = finalActualDiseaseIds.map((diseaseId) => {
-        const foundDisease = diseases.find((d) => d.id === diseaseId);
-        return {
-          id: Math.random().toString(),
-          feedbackId: res.data?.id || "temp",
-          diseaseId,
-          disease: {
-            id: diseaseId,
-            name: foundDisease?.name || "Bệnh đã chọn",
-          },
-        };
-      });
-
-      setExistingFeedback({
-        id: res.data?.id || Date.now().toString(),
-        diagnosisId: id,
-        userId: "current",
-        rating,
-        content,
-        actualDiseases: submittedActualDiseases,
-        status: content ? "PENDING" : "APPROVED",
-        createdAt: new Date().toISOString(),
-      });
-    } catch (err) {
-      console.error("Lỗi gửi phản hồi:", err);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-[#FB8C00]" />
-        <p className="text-[15px] font-[500] text-[#5C5C5C]">
-          Đang tải dữ liệu chẩn đoán chi tiết...
-        </p>
-      </div>
-    );
-  }
+  if (loading) return <ResultSkeleton />;
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-[900px] pt-6 pb-20">
-        <button
-          onClick={() => router.push(ROUTES.DIAGNOSE)}
-          className="mb-6 flex cursor-pointer items-center gap-1 text-[14px] text-[#5C5C5C] hover:text-[#1B1B1B]"
-        >
-          <ArrowLeft className="h-4 w-4" /> Quay lại
-        </button>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-red-500" />
-          <h2 className="text-[18px] font-[700] text-red-800">
-            Không tải được chẩn đoán
-          </h2>
-          <p className="text-[14px] text-red-600">
-            {error || "Dữ liệu không tồn tại hoặc đã bị xóa."}
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-2 rounded-lg bg-red-600 px-4 py-2 text-[14px] font-[500] text-white hover:bg-red-700"
-          >
-            Thử lại
-          </button>
-        </div>
-      </div>
+      <ResultErrorState
+        error={error}
+        onBack={() => router.push(ROUTES.DIAGNOSE)}
+      />
     );
   }
 
@@ -198,207 +76,187 @@ function ResultPageContent() {
       : Math.round(data.confidence * 100)
     : 0;
 
+  const detections = (data.results || []) as DetectionResultItem[];
+  const detectedDiseaseIds =
+    data.results?.map((r) => r.diseaseId).filter(Boolean) || [];
+  const maxAffectedArea = detections.reduce(
+    (max, item) => Math.max(max, Number(item.affectedAreaRatio || 0)),
+    0,
+  );
   const urgentActions = rag?.immediate_actions || [];
+  const canSubmitFeedback = Boolean(
+    currentUser && data && currentUser.id === data.userId,
+  );
 
-  const previewImg =
-    data.annotated_image || data.resultImageUrl || data.originalImageUrl || "";
+  const quickJumpLinks = [
+    { href: "#overview", label: "Tổng quan" },
+    ...(detections.length > 0
+      ? [{ href: "#detections", label: "Phát hiện" }]
+      : []),
+    ...(urgentActions.length > 0
+      ? [{ href: "#urgent", label: "Xử lý ngay" }]
+      : []),
+    { href: "#protocol", label: "Phác đồ" },
+    { href: "#nutrition", label: "Dinh dưỡng" },
+    { href: "#prevention", label: "Phòng ngừa" },
+    ...(canSubmitFeedback ? [{ href: "#feedback", label: "Đánh giá" }] : []),
+  ];
 
-  const coreData = data || {};
-  const diseaseList = coreData.results || coreData.detections || [];
+  const aiModelVersion =
+    (data as DiagnosisResponse & { aiModel?: { versionName?: string } }).aiModel
+      ?.versionName || null;
 
   return (
-    <div className="mx-auto max-w-[900px] px-4 pt-4 pb-20 md:px-0">
-      <button
-        onClick={() => router.push(ROUTES.HISTORY)}
-        className="mb-6 flex cursor-pointer items-center gap-1 text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#1B1B1B]"
-      >
-        <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
-      </button>
+    <div className="mx-auto max-w-[1180px] pb-8">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => router.push(ROUTES.HISTORY)}
+          className="text-text-secondary hover:text-text-primary flex min-h-10 cursor-pointer items-center gap-1.5 text-sm font-semibold transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" /> Quay lại lịch sử
+        </button>
 
-      <div className="space-y-6">
-        {/* Hero Card */}
-        <ResultHeroCard
-          diseaseName={diseaseName}
-          severity={severityKey}
-          confidence={confVal}
-          isHealthy={isHealthy}
-        />
+        <button
+          type="button"
+          onClick={() => router.push(ROUTES.DIAGNOSE)}
+          className="border-border bg-bg-card text-text-primary hover:border-primary hover:text-primary flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold shadow-xs transition-colors sm:text-sm"
+        >
+          <ScanLine className="h-4 w-4" /> Chẩn đoán mới
+        </button>
+      </div>
 
-        {/* Supplementary Image Scoring Banner */}
-        {data.supplementImageUrl && (
-          <div className="animate-in fade-in slide-in-from-top-2 relative overflow-hidden rounded-2xl border border-green-200 bg-gradient-to-r from-green-50/90 to-emerald-50/90 p-6 shadow-md transition-all duration-300 hover:shadow-lg">
-            {/* Background absolute elements for a premium design */}
-            <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-green-200/20 blur-xl" />
-            <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-emerald-200/20 blur-xl" />
+      {!isHealthy && (
+        <nav
+          aria-label="Điều hướng nhanh kết quả"
+          className="scrollbar-hide border-border bg-bg-page/90 sticky top-14 z-30 -mx-4 mb-5 flex items-center gap-2 overflow-x-auto border-b px-4 py-2.5 backdrop-blur-md sm:top-16 sm:mx-0 sm:rounded-xl sm:border sm:px-3"
+        >
+          {quickJumpLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="border-border bg-bg-card text-text-secondary hover:border-primary hover:text-primary shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors"
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+      )}
 
-            <div className="relative z-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 animate-pulse items-center justify-center rounded-xl bg-green-600 text-white shadow-md shadow-green-200">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <div className="flex-1 space-y-1.5">
-                  <h4 className="flex flex-wrap items-center gap-2 text-[16px] font-[800] text-green-900">
-                    Tối ưu hóa độ chính xác (Re-scoring)
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-[700] text-green-700">
-                      <CheckCircle2 className="h-3 w-3" /> Đã hiệu chỉnh
-                    </span>
-                  </h4>
-                  <p className="text-[13.5px] leading-relaxed font-[500] text-green-800">
-                    Hệ thống đã tự động chấm điểm lại kết quả bằng thuật toán{" "}
-                    <strong>Weighted Re-scoring</strong> dựa trên ảnh cận cảnh
-                    bạn đã gửi.
-                  </p>
-
-                  {/* Thumbnail display of supplementary image if present */}
-                  <div className="animate-in fade-in mt-3 flex items-center gap-3 duration-300">
-                    <div className="relative h-14 w-14 overflow-hidden rounded-lg border border-green-200 shadow-sm transition-transform hover:scale-105">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={data.supplementImageUrl}
-                        alt="Ảnh cận cảnh bổ sung"
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <span className="text-[12.5px] font-[500] text-green-700 italic">
-                      Ảnh cận cảnh đã được đính kèm vào lịch sử bệnh án.
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* All Detections detailed list for multiple diseases */}
-        {!isHealthy && data.results && data.results.length > 0 && (
-          <div className="animate-in fade-in slide-in-from-top-2 rounded-2xl border border-[#E0E0E0] bg-white p-5 shadow-sm duration-300">
-            <h3 className="mb-4 flex items-center gap-2 border-b border-[#F0F0F0] pb-2 text-[16px] font-[700] text-[#1B1B1B]">
-              <span className="text-[#FB8C00]">🔍</span> Chi tiết vùng bệnh chẩn
-              đoán ({data.results.length})
-            </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {data.results.map((res: any, idx: number) => {
-                const name = res?.disease || "Bệnh lúa";
-                const color = res.color || "#FB8C00";
-                const rawConf = res.confidence ?? 0;
-                const confPercent =
-                  rawConf <= 1
-                    ? Math.round(rawConf * 100)
-                    : Math.round(rawConf);
-                const areaRatio = res.affectedAreaRatio ?? 0;
-
-                return (
-                  <div
-                    key={res.id || idx}
-                    className="flex flex-col gap-2 rounded-xl border border-[#F0F2F5] bg-[#FAFAFA] p-4 shadow-sm transition-colors hover:border-[#FB8C00]/30"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-3.5 w-3.5 rounded-sm border border-black/10 shadow-sm"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="text-[15px] font-[700] text-[#1B1B1B]">
-                          {name}
-                        </span>
-                      </div>
-                      <span className="text-[12px] font-[600] text-[#757575]">
-                        Phát hiện #{idx + 1}
-                      </span>
-                    </div>
-
-                    <div className="mt-1 flex items-center justify-between text-[13px] text-[#5C5C5C]">
-                      <span>Độ tin cậy AI:</span>
-                      <span className="font-[700] text-[#1B1B1B]">
-                        {confPercent}%
-                      </span>
-                    </div>
-
-                    {areaRatio > 0 && (
-                      <div className="flex items-center justify-between text-[13px] text-[#5C5C5C]">
-                        <span>Diện tích nhiễm:</span>
-                        <span
-                          className={`font-[700] ${areaRatio > 0.35 ? "text-[#C62828]" : "text-[#1B1B1B]"}`}
-                        >
-                          {(areaRatio * 100).toFixed(1)}%{" "}
-                          {areaRatio > 0.35 && "(Nguy cấp)"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Urgent Actions */}
-        {!isHealthy && urgentActions.length > 0 && (
-          <UrgentActionsCard
-            urgentActions={urgentActions}
-            checkedActions={checkedActions}
-            onToggleAction={toggleCheck}
+      <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
+        <div id="overview" className="scroll-mt-32 lg:col-span-7">
+          <ResultHeroCard
+            diseaseName={diseaseName}
+            severity={severityKey}
+            confidence={confVal}
+            isHealthy={isHealthy}
+            severityAssessment={rag?.severity_assessment}
+            summary={rag?.summary}
+            createdAt={data.createdAt}
+            province={data.province}
+            detectionsCount={detections.length}
+            maxAffectedArea={maxAffectedArea}
           />
-        )}
-
-        {/* Treatment Protocol */}
-        {!isHealthy && (
-          <TreatmentProtocolCard
-            chemicalSteps={rag?.treatment_protocol?.chemical}
-            biologicalSteps={rag?.treatment_protocol?.biological}
-            cultivationSteps={
-              rag?.treatment_protocol?.cultural ||
-              (rag?.treatment_protocol as any)?.cultivation
-            }
-          />
-        )}
-
-        {/* Nutrition Adjustment */}
-        {!isHealthy && (
-          <NutritionAdjustmentCard npkAdjustment={rag?.npk_adjustment} />
-        )}
-
-        {/* Prevention Measures */}
-        {!isHealthy && (
-          <PreventionMeasuresCard
-            preventionMeasures={rag?.prevention_measures}
-          />
-        )}
-
-        {/* Image Preview */}
-        <ResultImagePreview
-          originalImageUrl={data.originalImageUrl}
-          resultImageUrl={
-            data.resultImageUrl || data.annotated_image || undefined
-          }
-          supplementImageUrl={data.supplementImageUrl || undefined}
-          diseaseName={diseaseName}
-        />
-
-        {/* Feedback Card */}
-        {currentUser && data && currentUser.id === data.userId && (
-          <DiagnosisFeedbackCard
-            onSubmitFeedback={handleFeedbackSubmit}
-            existingFeedback={existingFeedback}
-            diseases={diseases}
-            detectedDiseaseIds={detectedDiseaseIds}
-          />
-        )}
-
-        {/* Footer Sources */}
-        <div className="rounded-2xl border border-[#E0E0E0] bg-[#F7F7F7] p-5">
-          <p className="mb-2 text-[13px] leading-[1.6] text-[#757575]">
-            <span className="font-[700] text-[#5C5C5C]">Nguồn tham khảo:</span>{" "}
-            {rag?.sources_used?.length
-              ? rag.sources_used.join(", ")
-              : "Hệ thống chuyên gia Lúa Khỏe, IRRI Rice Knowledge Bank"}
-          </p>
-          <p className="text-[13px] leading-[1.6] text-[#757575]">
-            <span className="font-[700] text-[#5C5C5C]">Lưu ý:</span>{" "}
-            {rag?.confidence_note ||
-              "Độ tin cậy cao. Nếu triệu chứng không cải thiện sau 7 ngày, hãy liên hệ khuyến nông địa phương."}
-          </p>
         </div>
+
+        <div id="images" className="scroll-mt-32 lg:col-span-5">
+          <ResultImagePreview
+            originalImageUrl={data.originalImageUrl}
+            resultImageUrl={
+              data.resultImageUrl || data.annotated_image || undefined
+            }
+            supplementImageUrl={data.supplementImageUrl || undefined}
+            diseaseName={diseaseName}
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          {data.supplementImageUrl && <ResultSupplementBanner />}
+
+          {!isHealthy ? (
+            <>
+              {detections.length > 0 && (
+                <div id="detections" className="scroll-mt-32">
+                  <ResultDetectionsCard results={detections} />
+                </div>
+              )}
+
+              {urgentActions.length > 0 && (
+                <div id="urgent" className="scroll-mt-32">
+                  <UrgentActionsCard
+                    urgentActions={urgentActions}
+                    checkedActions={checkedActions}
+                    onToggleAction={toggleCheck}
+                  />
+                </div>
+              )}
+
+              <div id="protocol" className="scroll-mt-32">
+                <TreatmentProtocolCard
+                  chemicalSteps={rag?.treatment_protocol?.chemical}
+                  biologicalSteps={rag?.treatment_protocol?.biological}
+                  cultivationSteps={
+                    rag?.treatment_protocol?.cultural ||
+                    (
+                      rag?.treatment_protocol as
+                        | { cultivation?: string | string[] }
+                        | undefined
+                    )?.cultivation
+                  }
+                />
+              </div>
+
+              <div id="nutrition" className="scroll-mt-32">
+                <NutritionAdjustmentCard npkAdjustment={rag?.npk_adjustment} />
+              </div>
+
+              <div id="prevention" className="scroll-mt-32">
+                <PreventionMeasuresCard
+                  preventionMeasures={rag?.prevention_measures}
+                />
+              </div>
+            </>
+          ) : (
+            <PreventionMeasuresCard
+              title="Khuyến nghị duy trì lúa khỏe"
+              subtitle="Các bước chăm sóc định kỳ để giữ ruộng lúa ổn định và phòng ngừa sớm"
+              preventionMeasures={
+                rag?.prevention_measures?.length
+                  ? rag.prevention_measures
+                  : HEALTHY_DEFAULT_TIPS
+              }
+            />
+          )}
+        </div>
+
+        <aside className="space-y-6 lg:sticky lg:top-28 lg:col-span-4">
+          <ResultContextCard
+            province={data.province}
+            createdAt={data.createdAt}
+            weatherData={data.weatherData}
+            envDescription={data.envDescription}
+            fieldDescription={data.fieldDescription}
+            aiModelVersion={aiModelVersion}
+          />
+
+          {canSubmitFeedback && (
+            <div id="feedback" className="scroll-mt-32">
+              <DiagnosisFeedbackCard
+                onSubmitFeedback={handleFeedbackSubmit}
+                existingFeedback={existingFeedback}
+                diseases={diseases}
+                detectedDiseaseIds={detectedDiseaseIds}
+              />
+            </div>
+          )}
+
+          <ResultSourcesCard
+            sourcesUsed={rag?.sources_used}
+            confidenceNote={rag?.confidence_note}
+          />
+        </aside>
       </div>
     </div>
   );
@@ -406,16 +264,7 @@ function ResultPageContent() {
 
 export default function ResultPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[#FB8C00]" />
-          <p className="text-[15px] font-[500] text-[#5C5C5C]">
-            Đang chuẩn bị giao diện kết quả...
-          </p>
-        </div>
-      }
-    >
+    <Suspense fallback={<ResultSkeleton />}>
       <ResultPageContent />
     </Suspense>
   );

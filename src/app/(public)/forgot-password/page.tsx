@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,19 +30,15 @@ function PasswordRequirements({ password }: { password?: string }) {
       {requirements.map((req, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-1.5 font-[500] ${
-            req.valid
-              ? "text-green-600"
-              : val
-                ? "text-red-500"
-                : "text-gray-400"
+          className={`flex items-center gap-1.5 font-medium ${
+            req.valid ? "text-success" : val ? "text-error" : "text-text-muted"
           }`}
         >
           {req.valid ? (
-            <Check className="h-4 w-4 shrink-0 text-green-600" />
+            <Check className="text-success h-4 w-4 shrink-0" />
           ) : (
             <X
-              className={`h-4 w-4 shrink-0 ${val ? "text-red-500" : "text-gray-400"}`}
+              className={`h-4 w-4 shrink-0 ${val ? "text-error" : "text-text-muted"}`}
             />
           )}
           <span>{req.label}</span>
@@ -61,7 +59,6 @@ export default function ForgotPasswordPage() {
   const [formReset] = Form.useForm();
   const newPasswordValue = Form.useWatch("newPassword", formReset);
 
-  // Step 1: Submit email to request OTP
   const handleEmailSubmit = async (values: { email: string }) => {
     setError(null);
     await forgotPassword({ email: values.email }, () => {
@@ -71,7 +68,6 @@ export default function ForgotPasswordPage() {
     });
   };
 
-  // Step 2: Submit OTP and New Password to reset
   const handleResetSubmit = async (values: any) => {
     setError(null);
     if (values.newPassword !== values.confirmNewPassword) {
@@ -94,23 +90,25 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 sm:px-6">
-      <div className="w-full max-w-[480px] rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+    <main className="bg-bg-page relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="border-border bg-bg-card w-full max-w-[480px] rounded-2xl border p-6 shadow-xs sm:p-8">
         {/* Header / Logo */}
         <div className="mb-6">
-          <div className="mb-6 flex items-center gap-2">
-            <span className="text-2xl">🌱</span>
-            <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
-          </div>
-          <Title level={2} className="mb-1! text-gray-800!">
+          <Link href={ROUTES.HOME} className="mb-6 inline-block">
+            <BrandLogo size="md" />
+          </Link>
+          <Title level={2} className="font-heading text-text-primary! mb-1!">
             Quên mật khẩu
           </Title>
-          <Text className="text-gray-500">
+          <Text className="text-text-secondary!">
             Khôi phục mật khẩu tài khoản của bạn
           </Text>
         </div>
 
-        {/* Steps indicator */}
         <Steps
           current={currentStep}
           size="small"
@@ -123,7 +121,7 @@ export default function ForgotPasswordPage() {
             message={error}
             type="error"
             showIcon
-            className="mb-6 rounded-lg font-medium"
+            className="mb-6 rounded-xl font-medium"
           />
         )}
 
@@ -137,7 +135,7 @@ export default function ForgotPasswordPage() {
           >
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">
+                <span className="text-text-primary font-medium">
                   Email khôi phục
                 </span>
               }
@@ -150,7 +148,7 @@ export default function ForgotPasswordPage() {
             >
               <Input
                 placeholder="Nhập email tài khoản"
-                className="h-11 rounded-lg"
+                className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
               />
             </Form.Item>
 
@@ -160,11 +158,7 @@ export default function ForgotPasswordPage() {
                 htmlType="submit"
                 block
                 loading={isLoading}
-                style={{
-                  backgroundColor: "#22c55e",
-                  borderColor: "#22c55e",
-                }}
-                className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+                className="h-12 rounded-xl text-base font-semibold shadow-xs"
               >
                 Gửi mã OTP
               </Button>
@@ -178,13 +172,15 @@ export default function ForgotPasswordPage() {
             size="large"
             requiredMark={false}
           >
-            <div className="mb-6 rounded-lg border border-green-100 bg-green-50/50 p-4 text-sm text-green-800">
+            <div className="border-primary-border bg-primary-light/60 text-text-primary mb-6 rounded-xl border p-4 text-sm">
               Mã xác nhận OTP đã được gửi về email:{" "}
-              <strong className="font-semibold">{email}</strong>
+              <strong className="text-primary font-semibold">{email}</strong>
             </div>
 
             <Form.Item
-              label={<span className="font-medium text-gray-700">Mã OTP</span>}
+              label={
+                <span className="text-text-primary font-medium">Mã OTP</span>
+              }
               name="otpCode"
               rules={[
                 { required: true, message: "Vui lòng nhập mã OTP" },
@@ -197,7 +193,9 @@ export default function ForgotPasswordPage() {
 
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">Mật khẩu mới</span>
+                <span className="text-text-primary font-medium">
+                  Mật khẩu mới
+                </span>
               }
               name="newPassword"
               rules={[
@@ -222,7 +220,7 @@ export default function ForgotPasswordPage() {
             >
               <Input.Password
                 placeholder="Nhập mật khẩu mới"
-                className="h-11 rounded-lg"
+                className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
               />
             </Form.Item>
 
@@ -230,7 +228,7 @@ export default function ForgotPasswordPage() {
 
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">
+                <span className="text-text-primary font-medium">
                   Xác nhận mật khẩu mới
                 </span>
               }
@@ -254,7 +252,7 @@ export default function ForgotPasswordPage() {
             >
               <Input.Password
                 placeholder="Nhập lại mật khẩu mới"
-                className="h-11 rounded-lg"
+                className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
               />
             </Form.Item>
 
@@ -264,11 +262,7 @@ export default function ForgotPasswordPage() {
                 htmlType="submit"
                 block
                 loading={isLoading}
-                style={{
-                  backgroundColor: "#22c55e",
-                  borderColor: "#22c55e",
-                }}
-                className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+                className="h-12 rounded-xl text-base font-semibold shadow-xs"
               >
                 Đặt lại mật khẩu
               </Button>
@@ -279,7 +273,7 @@ export default function ForgotPasswordPage() {
         <div className="mt-6 text-center">
           <Link
             href={ROUTES.LOGIN}
-            className="font-medium text-green-600 hover:text-green-700"
+            className="text-primary hover:text-primary-hover font-semibold"
           >
             Quay lại Đăng nhập
           </Link>

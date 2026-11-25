@@ -1,10 +1,6 @@
 "use client";
 
-import PostStatusBadge from "@/components/forum/PostStatusBadge";
-import { useDeletePost, useMyPosts } from "@/hooks/useForum";
-import { forumService } from "@/services/forum.service";
-import { ForumPost } from "@/types/forum.type";
-import { Button, Image, Input, message, Modal, Select, Spin, Tabs } from "antd";
+import { Button, Image, Input, message, Modal, Select, Tabs } from "antd";
 import {
   AlertTriangle,
   Calendar,
@@ -16,9 +12,18 @@ import {
   Send,
   Tag,
   Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import PostStatusBadge from "@/components/forum/PostStatusBadge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { useDeletePost, useMyPosts } from "@/hooks/useForum";
+import { forumService } from "@/services/forum.service";
+import { ForumPost } from "@/types/forum.type";
 
 const { TextArea } = Input;
 
@@ -164,47 +169,41 @@ export default function MyPostsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[800px] flex-col gap-6 pt-6 pb-20">
+    <div className="mx-auto flex max-w-[800px] flex-col gap-5 pb-8">
       {/* Header */}
-      <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-[24px] font-[700] text-[#1B1B1B] dark:text-gray-100">
-            Bài viết của tôi
-          </h1>
-          <p className="text-[14px] text-[#5C5C5C] dark:text-gray-400">
-            Xem lịch sử đăng bài, quản lý bản nháp và theo dõi trạng thái kiểm
-            duyệt bài viết.
-          </p>
-        </div>
-
-        {/* Search Input */}
-        <div className="relative w-full shrink-0 md:w-[250px]">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#9E9E9E]">
-            <Search className="h-4 w-4" aria-hidden="true" />
+      <PageHeader
+        title="Bài viết của tôi"
+        description="Xem lịch sử đăng bài, quản lý bản nháp và theo dõi trạng thái kiểm duyệt bài viết."
+        className="mb-0"
+        actions={
+          <div className="relative w-full shrink-0 sm:w-[260px]">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[var(--text-muted)]">
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm kiếm bài viết…"
+              aria-label="Tìm kiếm bài viết của tôi"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] py-2 pr-4 pl-10 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-colors focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] focus:outline-none sm:text-sm"
+            />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm bài viết…"
-            aria-label="Tìm kiếm bài viết của tôi"
-            className="w-full rounded-full border border-[#E0E0E0] bg-white py-2 pr-4 pl-9 text-[13px] text-[#1B1B1B] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-          />
-        </div>
-      </div>
+        }
+      />
 
       {/* Segmented Control Navigation */}
-      <div className="mb-6 flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+      <div className="flex rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-1">
         <Link
           href="/forum"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-center font-medium text-gray-600 transition hover:text-[#2F9E44] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:text-gray-400 dark:hover:text-green-400"
+          className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg py-2 text-center text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
         >
           <Globe className="h-4 w-4" aria-hidden="true" />
           <span>Diễn đàn chung</span>
         </Link>
         <Link
           href="/forum/my-posts"
-          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white py-2.5 text-center font-bold text-[#2F9E44] shadow-xs focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none dark:bg-gray-700 dark:text-green-400"
+          className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--bg-card)] py-2 text-center text-sm font-bold text-[var(--primary)] shadow-xs focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
         >
           <History className="h-4 w-4" aria-hidden="true" />
           <span>Bài viết của tôi</span>
@@ -212,7 +211,7 @@ export default function MyPostsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6">
+      <div>
         <Tabs
           activeKey={activeTab}
           onChange={(key: string) => setActiveTab(key as StatusTab)}
@@ -229,42 +228,49 @@ export default function MyPostsPage() {
 
       {/* Loading state */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Spin size="large" description="Đang tải bài viết…" />
+        <div className="flex flex-col gap-4">
+          {[1, 2].map((item) => (
+            <div
+              key={item}
+              className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5"
+            >
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          ))}
         </div>
       ) : posts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white py-16 text-center dark:border-gray-800 dark:bg-gray-900">
-          <MessageSquare
-            className="h-10 w-10 text-gray-300 dark:text-gray-700"
-            aria-hidden="true"
-          />
-          <h3 className="mt-4 text-[15px] font-semibold text-gray-900 dark:text-white">
-            Không tìm thấy bài viết nào
-          </h3>
-          <p className="mt-1 text-[13px] text-[#5C5C5C]">
-            Bà con chưa có bài viết nào thuộc mục này.
-          </p>
-        </div>
+        <EmptyState
+          icon={<MessageSquare className="h-6 w-6" aria-hidden="true" />}
+          title="Không tìm thấy bài viết nào"
+          description="Bà con chưa có bài viết nào thuộc mục này."
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {posts.map((post) => (
             <div
               key={post.id}
-              className="group overflow-hidden rounded-xl border border-[#E0E0E0] bg-white p-5 transition-all hover:border-[#2F9E44]/30 dark:border-gray-800 dark:bg-gray-900"
+              className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 transition-colors hover:border-[var(--primary)]/40"
             >
               {/* Header Info */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex gap-2.5 text-[12px] text-gray-500">
-                  <span className="flex items-center gap-1">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+                  <span className="flex items-center gap-1 tabular-nums">
                     <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                     {new Date(post.createdAt).toLocaleDateString("vi-VN")}
                   </span>
-                  <span>•</span>
                   {post.category && (
-                    <span className="inline-flex items-center gap-1 font-semibold text-emerald-600">
-                      <Tag className="h-3 w-3" aria-hidden="true" />
-                      {post.category}
-                    </span>
+                    <>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-[var(--primary)]">
+                        <Tag className="h-3 w-3" aria-hidden="true" />
+                        {post.category}
+                      </span>
+                    </>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
@@ -276,7 +282,7 @@ export default function MyPostsPage() {
               </div>
 
               {/* Content body */}
-              <p className="mt-3 text-[14px] leading-relaxed whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+              <p className="mt-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-[var(--text-primary)]">
                 {post.content}
               </p>
 
@@ -286,7 +292,7 @@ export default function MyPostsPage() {
                   {post.tags.map((t, idx) => (
                     <span
                       key={idx}
-                      className="inline-block rounded border border-gray-100 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-600"
+                      className="inline-block rounded-md border border-[var(--border)] bg-[var(--bg-subtle)] px-2 py-0.5 text-xs font-medium text-[var(--text-secondary)]"
                     >
                       {t}
                     </span>
@@ -297,11 +303,11 @@ export default function MyPostsPage() {
               {/* Attached images */}
               {post.images && post.images.length > 0 && (
                 <Image.PreviewGroup>
-                  <div className="mt-3 grid grid-cols-4 gap-2">
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {post.images.map((imgUrl, idx) => (
                       <div
                         key={idx}
-                        className="relative aspect-video w-full overflow-hidden rounded-lg border"
+                        className="relative aspect-video w-full overflow-hidden rounded-lg border border-[var(--border)]"
                       >
                         <Image
                           src={imgUrl || undefined}
@@ -318,9 +324,9 @@ export default function MyPostsPage() {
 
               {/* Reject reason overlay */}
               {post.status === "REJECTED" && post.flaggedReason && (
-                <div className="mt-3 flex items-start gap-1.5 rounded-lg border border-rose-100/50 bg-rose-50/50 p-3 text-[12px] text-rose-800">
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50/70 p-3 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
                   <AlertTriangle
-                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-500"
+                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500"
                     aria-hidden="true"
                   />
                   <div>
@@ -331,12 +337,12 @@ export default function MyPostsPage() {
               )}
 
               {/* Footer controls */}
-              <div className="mt-4 flex items-center justify-end gap-2.5 border-t border-dashed border-gray-100 pt-3 dark:border-gray-800">
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2.5 border-t border-dashed border-[var(--border)] pt-3">
                 {post.status === "DRAFT" && (
                   <button
                     type="button"
                     onClick={() => handleEditClick(post)}
-                    className="flex items-center gap-1 rounded-lg bg-[#E6F4EA] px-3 py-1.5 text-[12px] font-bold text-[#2F9E44] transition hover:bg-[#D4EDDA] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none"
+                    className="flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--primary-soft)] px-3.5 py-2 text-xs font-bold text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/15 focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
                   >
                     <Edit className="h-3.5 w-3.5" aria-hidden="true" /> Chỉnh
                     sửa & Đăng bài
@@ -345,7 +351,7 @@ export default function MyPostsPage() {
                 <button
                   type="button"
                   onClick={() => handleDeletePost(post.id)}
-                  className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-[12px] font-bold text-rose-600 transition hover:bg-rose-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 focus-visible:outline-none"
+                  className="flex min-h-10 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none dark:text-red-400 dark:hover:bg-red-950/30"
                 >
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Xóa bài
                   viết
@@ -359,9 +365,9 @@ export default function MyPostsPage() {
       {/* Edit Draft Modal */}
       <Modal
         title={
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-3 text-[#2F9E44]">
+          <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 text-[var(--primary)]">
             <Edit className="h-5 w-5" aria-hidden="true" />
-            <span className="text-[16px] font-bold">
+            <span className="text-base font-bold">
               Chỉnh sửa bản nháp bài viết
             </span>
           </div>
@@ -372,12 +378,7 @@ export default function MyPostsPage() {
           <Button key="cancel" onClick={() => setEditingPost(null)}>
             Hủy
           </Button>,
-          <Button
-            key="save"
-            loading={isSaving}
-            onClick={handleSaveDraftOnly}
-            className="border-[#2F9E44] text-[#2F9E44] hover:text-[#1F6F2E]"
-          >
+          <Button key="save" loading={isSaving} onClick={handleSaveDraftOnly}>
             Lưu bản nháp
           </Button>,
           <Button
@@ -385,7 +386,6 @@ export default function MyPostsPage() {
             type="primary"
             loading={isSaving}
             onClick={handlePublishDraft}
-            className="bg-[#2F9E44] hover:bg-[#1F6F2E]"
             icon={<Send className="h-3.5 w-3.5" aria-hidden="true" />}
           >
             Đăng công khai
@@ -399,7 +399,7 @@ export default function MyPostsPage() {
             <div className="flex-1">
               <label
                 htmlFor="edit-category-select"
-                className="mb-1.5 block text-[13px] font-[600] text-gray-700"
+                className="mb-1.5 block text-[13px] font-semibold text-[var(--text-secondary)]"
               >
                 Thể loại bài đăng
               </label>
@@ -420,7 +420,7 @@ export default function MyPostsPage() {
           <div>
             <label
               htmlFor="edit-content-input"
-              className="mb-1.5 block text-[13px] font-[600] text-gray-700"
+              className="mb-1.5 block text-[13px] font-semibold text-[var(--text-secondary)]"
             >
               Nội dung bài viết
             </label>
@@ -430,6 +430,7 @@ export default function MyPostsPage() {
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               placeholder="Nhập nội dung chia sẻ hoặc thắc mắc của bà con…"
+              className="text-base sm:text-sm"
             />
           </div>
 
@@ -437,7 +438,7 @@ export default function MyPostsPage() {
           <div>
             <label
               htmlFor="edit-tags-input"
-              className="mb-1.5 block text-[13px] font-[600] text-gray-700"
+              className="mb-1.5 block text-[13px] font-semibold text-[var(--text-secondary)]"
             >
               Nhãn chủ đề (Ấn Enter để lưu nhãn)
             </label>
@@ -447,21 +448,22 @@ export default function MyPostsPage() {
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleAddTag}
               placeholder="Ví dụ: bạc lá, bón phân…"
+              className="text-base sm:text-sm"
             />
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {editTags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 rounded border border-emerald-500/10 bg-emerald-50 px-2 py-1 text-xs font-semibold text-[#2F9E44]"
+                  className="inline-flex items-center gap-1 rounded-md border border-[var(--primary)]/20 bg-[var(--primary-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--primary)]"
                 >
                   {tag}
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}
                     aria-label={`Xóa nhãn ${tag}`}
-                    className="font-extrabold hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none"
+                    className="rounded p-0.5 hover:text-red-600 focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
                   >
-                    ✕
+                    <X className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </span>
               ))}

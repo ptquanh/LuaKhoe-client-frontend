@@ -5,6 +5,8 @@ import { Check, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 import { RegisterPayload } from "@/types/auth.type";
@@ -28,19 +30,15 @@ function PasswordRequirements({ password }: { password?: string }) {
       {requirements.map((req, idx) => (
         <div
           key={idx}
-          className={`flex items-center gap-1.5 font-[500] ${
-            req.valid
-              ? "text-green-600"
-              : val
-                ? "text-red-500"
-                : "text-gray-400"
+          className={`flex items-center gap-1.5 font-medium ${
+            req.valid ? "text-success" : val ? "text-error" : "text-text-muted"
           }`}
         >
           {req.valid ? (
-            <Check className="h-4 w-4 shrink-0 text-green-600" />
+            <Check className="text-success h-4 w-4 shrink-0" />
           ) : (
             <X
-              className={`h-4 w-4 shrink-0 ${val ? "text-red-500" : "text-gray-400"}`}
+              className={`h-4 w-4 shrink-0 ${val ? "text-error" : "text-text-muted"}`}
             />
           )}
           <span>{req.label}</span>
@@ -74,18 +72,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 sm:px-6">
-      <div className="w-full max-w-[480px] rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+    <main className="bg-bg-page relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="border-border bg-bg-card w-full max-w-[480px] rounded-2xl border p-6 shadow-xs sm:p-8">
         {/* Header / Logo */}
-        <div className="mb-8">
-          <div className="mb-6 flex items-center gap-2">
-            <span className="text-2xl">🌱</span>
-            <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
-          </div>
-          <Title level={2} className="mb-1! text-gray-800!">
+        <div className="mb-7">
+          <Link href={ROUTES.HOME} className="mb-6 inline-block">
+            <BrandLogo size="md" />
+          </Link>
+          <Title level={2} className="font-heading text-text-primary! mb-1!">
             Tạo tài khoản
           </Title>
-          <Text className="text-gray-500">
+          <Text className="text-text-secondary!">
             Đăng ký tài khoản để bắt đầu chẩn đoán bệnh lúa
           </Text>
         </div>
@@ -95,7 +96,7 @@ export default function RegisterPage() {
             message={error}
             type="error"
             showIcon
-            className="mb-6 rounded-lg font-medium"
+            className="mb-6 rounded-xl font-medium"
           />
         )}
 
@@ -110,7 +111,9 @@ export default function RegisterPage() {
         >
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Tên đăng nhập</span>
+              <span className="text-text-primary font-medium">
+                Tên đăng nhập
+              </span>
             }
             name="username"
             rules={[
@@ -121,12 +124,12 @@ export default function RegisterPage() {
           >
             <Input
               placeholder="Nhập tên đăng nhập"
-              className="h-11 rounded-lg"
+              className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
             />
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-gray-700">Email</span>}
+            label={<span className="text-text-primary font-medium">Email</span>}
             name="email"
             rules={[
               { required: true, message: "Vui lòng nhập địa chỉ email" },
@@ -136,12 +139,14 @@ export default function RegisterPage() {
           >
             <Input
               placeholder="email@example.com"
-              className="h-11 rounded-lg"
+              className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
             />
           </Form.Item>
 
           <Form.Item
-            label={<span className="font-medium text-gray-700">Mật khẩu</span>}
+            label={
+              <span className="text-text-primary font-medium">Mật khẩu</span>
+            }
             name="password"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
@@ -165,15 +170,14 @@ export default function RegisterPage() {
           >
             <Input.Password
               placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
-              className="h-11 rounded-lg"
+              className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
             />
           </Form.Item>
-          {/* Password requirements panel */}
           <PasswordRequirements password={passwordValue} />
 
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">
+              <span className="text-text-primary font-medium">
                 Nhập lại mật khẩu
               </span>
             }
@@ -197,7 +201,7 @@ export default function RegisterPage() {
           >
             <Input.Password
               placeholder="Nhập lại mật khẩu"
-              className="h-11 rounded-lg"
+              className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
             />
           </Form.Item>
 
@@ -216,18 +220,18 @@ export default function RegisterPage() {
             ]}
             className="mb-6"
           >
-            <Checkbox className="text-gray-500">
+            <Checkbox className="text-text-secondary">
               Tôi đồng ý với{" "}
               <Link
                 href="#"
-                className="font-medium text-green-600 underline underline-offset-2 hover:text-green-700"
+                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2"
               >
                 điều khoản sử dụng
               </Link>{" "}
               và{" "}
               <Link
                 href="#"
-                className="font-medium text-green-600 underline underline-offset-2 hover:text-green-700"
+                className="text-primary hover:text-primary-hover font-medium underline underline-offset-2"
               >
                 chính sách bảo mật
               </Link>
@@ -240,11 +244,7 @@ export default function RegisterPage() {
               htmlType="submit"
               block
               loading={isLoading}
-              style={{
-                backgroundColor: "#22c55e",
-                borderColor: "#22c55e",
-              }}
-              className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+              className="h-12 rounded-xl text-base font-semibold shadow-xs"
             >
               Đăng ký
             </Button>

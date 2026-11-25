@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+
 const FAQS = [
   {
     q: "Lúa Khoẻ có miễn phí không?",
@@ -23,13 +25,13 @@ const FAQS = [
 
 export default function HomeFAQ() {
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="bg-[var(--bg-page)] py-20">
       <div className="mx-auto max-w-3xl px-6">
         <div className="mb-14 text-center">
-          <h2 className="mb-2 text-3xl font-bold text-gray-800">
+          <h2 className="mb-2 text-3xl font-bold text-[var(--text-primary)]">
             Câu Hỏi Thường Gặp
           </h2>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-secondary)]">
             Giải đáp thắc mắc phổ biến về Lúa Khoẻ
           </p>
         </div>
@@ -37,15 +39,16 @@ export default function HomeFAQ() {
           {FAQS.map((f) => (
             <details
               key={f.q}
-              className="group rounded-2xl border border-gray-100 bg-white px-6 py-4"
+              className="group rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] px-6 py-4"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-gray-800">
+              <summary className="flex cursor-pointer list-none items-center justify-between font-medium text-[var(--text-primary)]">
                 {f.q}
-                <span className="text-gray-400 transition-transform group-open:rotate-180">
-                  ▼
-                </span>
+                <ChevronDown
+                  className="h-4 w-4 text-[var(--text-muted)] transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-gray-500">
+              <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
                 {f.a}
               </p>
             </details>

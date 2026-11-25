@@ -1,18 +1,22 @@
-import { diagnosisService } from "@/services/diagnosis.service";
 import {
   CameraOutlined,
   CheckCircleOutlined,
   ScanOutlined,
 } from "@ant-design/icons";
-import { Image as AntdImage, Upload as AntdUpload, Button, Modal } from "antd";
+import { Button, Image as AntdImage, Modal, Upload as AntdUpload } from "antd";
 import {
   CheckCircle2,
   ChevronRight,
+  Lightbulb,
   Loader2,
   Maximize2,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { ROUTES } from "@/constants/routes";
+import { diagnosisService } from "@/services/diagnosis.service";
 
 import { AdvisorySectionView } from "./AdvisorySectionView";
 import { DetectionResultsView } from "./DetectionResultsView";
@@ -30,6 +34,7 @@ export function DiagnoseResultSection({
   result,
   onResultUpdate,
 }: DiagnoseResultSectionProps) {
+  const router = useRouter();
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
@@ -49,7 +54,6 @@ export function DiagnoseResultSection({
   // Re-scoring text message animation
   useEffect(() => {
     if (!isUploading) {
-      setReScoreTextIdx(0);
       return;
     }
 
@@ -58,7 +62,7 @@ export function DiagnoseResultSection({
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [isUploading]);
+  }, [isUploading, reScoreTexts.length]);
 
   const {
     hasResult,
@@ -144,31 +148,29 @@ export function DiagnoseResultSection({
   };
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-[#E0E0E0] bg-white">
-      <div className="border-b border-[#E0E0E0] p-5">
-        <h3 className="text-[18px] font-[600] text-[#1B1B1B]">
+    <div className="border-border bg-bg-card flex h-full flex-col rounded-2xl border shadow-xs">
+      <div className="border-border border-b p-5">
+        <h3 className="font-heading text-text-primary text-lg font-semibold">
           Kết quả chẩn đoán
         </h3>
       </div>
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         {!hasResult ? (
           <EmptyResultView />
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {shouldShowSupplementBanner && (
-              <div className="animate-in fade-in slide-in-from-top-2 mb-6 w-full overflow-hidden rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50/50 p-4 shadow-sm duration-300 sm:p-5">
-                {/* Đổi từ row sang col hoàn toàn */}
+              <div className="animate-in fade-in slide-in-from-top-2 border-warning/35 bg-accent-light/50 mb-6 w-full overflow-hidden rounded-2xl border p-4 shadow-xs duration-300 sm:p-5">
                 <div className="flex flex-col gap-4">
-                  {/* Phần Icon và Chữ (Full width) */}
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                    <div className="bg-accent-light text-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                       <ScanOutlined className="animate-pulse text-xl" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="m-0 text-base font-semibold text-gray-800">
+                      <h3 className="font-heading text-text-primary m-0 text-base font-semibold">
                         Cần thêm dữ liệu để chốt chẩn đoán
                       </h3>
-                      <p className="mt-1 mb-0 text-sm leading-relaxed text-gray-600">
+                      <p className="text-text-secondary mt-1 mb-0 text-sm leading-relaxed">
                         {isMultiDisease
                           ? "AI phát hiện nhiều dấu hiệu bệnh đan xen trên lá. Hãy cung cấp 1 ảnh chụp thật gần để xác minh kết quả chính xác nhất."
                           : "Ảnh chụp chưa đủ độ chi tiết. Vui lòng tải thêm 1 ảnh cận cảnh vết bệnh để AI phân tích lại."}
@@ -176,14 +178,13 @@ export function DiagnoseResultSection({
                     </div>
                   </div>
 
-                  {/* Phần Nút bấm (Nằm dưới, căn thụt lề cho thẳng hàng với chữ) */}
                   <div className="ml-0 sm:ml-13">
                     <Button
                       type="primary"
                       size="large"
                       icon={<CameraOutlined />}
                       onClick={() => setIsUploadModalVisible(true)}
-                      className="border-none bg-[#16a34a] shadow-md hover:bg-[#15803d]"
+                      className="min-h-11 shadow-xs"
                       shape="round"
                     >
                       Tải ảnh cận cảnh
@@ -196,7 +197,7 @@ export function DiagnoseResultSection({
             {/* Horizontal Scroll of Diagnostic Images */}
             {imageList.length > 0 && (
               <div className="animate-in fade-in mb-6 duration-300">
-                <h3 className="mb-3 text-lg font-semibold text-gray-800">
+                <h3 className="font-heading text-text-primary mb-3 text-base font-semibold sm:text-lg">
                   Hình ảnh chẩn đoán
                 </h3>
                 <AntdImage.PreviewGroup>
@@ -206,7 +207,7 @@ export function DiagnoseResultSection({
                         key={index}
                         className="flex flex-none snap-center flex-col items-center"
                       >
-                        <div className="relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm sm:h-56 sm:w-56">
+                        <div className="border-border bg-bg-subtle relative flex h-48 w-48 items-center justify-center overflow-hidden rounded-xl border shadow-xs sm:h-56 sm:w-56">
                           <AntdImage
                             src={img.url}
                             alt={img.title}
@@ -215,7 +216,7 @@ export function DiagnoseResultSection({
                             preview={{ mask: "Thu phóng" }}
                           />
                         </div>
-                        <span className="mt-2 rounded-full border border-green-100 bg-green-50 px-3 py-1 text-sm font-medium text-gray-600">
+                        <span className="border-primary-border bg-primary-light text-primary mt-2 rounded-full border px-3 py-1 text-xs font-semibold">
                           {img.title}
                         </span>
                       </div>
@@ -232,9 +233,9 @@ export function DiagnoseResultSection({
 
             {/* Metadata (Location & Field Params) */}
             {(province || fieldParams) && (
-              <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-[#F8F9FA] p-4 shadow-sm">
-                <div className="mb-3 flex items-center gap-2 border-b border-[#E0E0E0] pb-2 text-[14px] font-[600] text-[#1B1B1B]">
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2F9E44] text-white">
+              <div className="border-border bg-bg-subtle/70 mb-6 rounded-xl border p-4">
+                <div className="border-border text-text-primary mb-3 flex items-center gap-2 border-b pb-2 text-sm font-semibold">
+                  <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full text-white">
                     <Maximize2 className="h-3 w-3" />
                   </div>
                   Thông tin thực địa
@@ -242,14 +243,14 @@ export function DiagnoseResultSection({
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {province && (
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] font-[500] tracking-wider text-[#5C5C5C] uppercase">
+                      <span className="text-text-secondary text-[11px] font-medium tracking-wider uppercase">
                         Vùng miền
                       </span>
-                      <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                      <span className="text-text-primary text-sm font-semibold">
                         {province}
                       </span>
                       {gpsLat && gpsLng && (
-                        <span className="text-[10px] text-[#5C5C5C]">
+                        <span className="text-text-secondary text-[11px] tabular-nums">
                           ({gpsLat.toFixed(4)}, {gpsLng.toFixed(4)})
                         </span>
                       )}
@@ -257,23 +258,23 @@ export function DiagnoseResultSection({
                   )}
                   {fieldParams && (
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] font-[500] tracking-wider text-[#5C5C5C] uppercase">
+                      <span className="text-text-secondary text-[11px] font-medium tracking-wider uppercase">
                         Tình trạng ruộng
                       </span>
                       <div className="mt-1 flex flex-wrap gap-1.5">
-                        <span className="rounded-md border border-[#E0E0E0] bg-white px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                        <span className="border-border bg-bg-card text-text-primary rounded-md border px-2 py-0.5 text-xs font-medium">
                           {fieldParams.growth}
                         </span>
-                        <span className="rounded-md border border-[#E0E0E0] bg-white px-2 py-0.5 text-[11px] font-[500] text-[#1B1B1B]">
+                        <span className="border-border bg-bg-card text-text-primary rounded-md border px-2 py-0.5 text-xs font-medium">
                           Nước: {fieldParams.water}
                         </span>
                         {fieldParams.leafhopper && (
-                          <span className="rounded-md border border-[#FFE0B2] bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[600] text-[#E65100]">
+                          <span className="bg-accent-light text-accent rounded-md px-2 py-0.5 text-xs font-semibold">
                             Có rầy nâu
                           </span>
                         )}
                         {fieldParams.fog && (
-                          <span className="rounded-md border border-[#BBDEFB] bg-[#E3F2FD] px-2 py-0.5 text-[11px] font-[600] text-[#1565C0]">
+                          <span className="bg-info/15 text-info rounded-md px-2 py-0.5 text-xs font-semibold">
                             Sương mù
                           </span>
                         )}
@@ -306,11 +307,17 @@ export function DiagnoseResultSection({
                   ragRecommendation={ragRecommendation}
                 />
 
-                <div className="mt-6 flex justify-end">
-                  <button className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#2F9E44] px-4 text-[14px] font-[500] text-[#2F9E44] transition-colors hover:bg-[#E6F4EA]">
-                    Xem chi tiết phác đồ <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
+                {id && (
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`${ROUTES.RESULT}?id=${id}`)}
+                      className="border-primary text-primary hover:bg-primary-light flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors sm:w-auto"
+                    >
+                      Xem chi tiết phác đồ <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -324,21 +331,24 @@ export function DiagnoseResultSection({
           onClick={() => setZoomedImage(null)}
         >
           <div
-            className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl bg-white p-2 shadow-2xl"
+            className="bg-bg-card relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl p-2 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-[#E0E0E0] px-4 py-3">
-              <h4 className="text-[16px] font-[600] text-[#1B1B1B]">
+            <div className="border-border flex items-center justify-between border-b px-4 py-3">
+              <h4 className="font-heading text-text-primary text-base font-semibold">
                 Ảnh phân tích chi tiết
               </h4>
               <button
-                className="rounded-full p-1.5 text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5]"
+                type="button"
+                aria-label="Đóng xem ảnh"
+                className="text-text-secondary hover:bg-bg-hover flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors"
                 onClick={() => setZoomedImage(null)}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="flex max-h-[calc(90vh-100px)] items-center justify-center overflow-auto p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={zoomedImage}
                 alt="Zoomed Annotated"
@@ -359,7 +369,7 @@ export function DiagnoseResultSection({
           }
         }}
         title={
-          <span className="text-lg font-bold text-gray-800">
+          <span className="font-heading text-text-primary text-lg font-bold">
             Tải ảnh cận cảnh (Macro)
           </span>
         }
@@ -368,22 +378,22 @@ export function DiagnoseResultSection({
         width={500}
       >
         <div className="space-y-4 py-4">
-          {/* Hướng dẫn chụp ảnh */}
-          <div className="animate-in fade-in mb-5 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 duration-300">
-            <p className="mb-2 flex items-center gap-1.5 font-semibold">
-              💡 Mẹo chụp ảnh để AI nhận diện tốt nhất:
+          <div className="animate-in fade-in border-primary-border bg-primary-light/60 text-text-primary mb-5 rounded-xl border p-3.5 text-sm duration-300">
+            <p className="text-primary mb-2 flex items-center gap-1.5 font-semibold">
+              <Lightbulb className="h-4 w-4 shrink-0" />
+              Mẹo chụp ảnh để AI nhận diện tốt nhất:
             </p>
-            <ul className="mb-0 flex list-none flex-col gap-1.5 pl-0">
-              <li className="flex items-center text-green-900">
-                <CheckCircleOutlined className="mr-2 shrink-0 text-green-500" />
+            <ul className="text-text-secondary mb-0 flex list-none flex-col gap-1.5 pl-0">
+              <li className="flex items-center">
+                <CheckCircleOutlined className="text-primary mr-2 shrink-0" />
                 Đưa camera sát vết bệnh (cách 10-15cm).
               </li>
-              <li className="flex items-center text-green-900">
-                <CheckCircleOutlined className="mr-2 shrink-0 text-green-500" />
+              <li className="flex items-center">
+                <CheckCircleOutlined className="text-primary mr-2 shrink-0" />
                 Chạm vào màn hình để lấy nét rõ vết xước/đốm.
               </li>
-              <li className="flex items-center text-green-900">
-                <CheckCircleOutlined className="mr-2 shrink-0 text-green-500" />
+              <li className="flex items-center">
+                <CheckCircleOutlined className="text-primary mr-2 shrink-0" />
                 Đảm bảo đủ ánh sáng, không bị bóng râm che khuất.
               </li>
             </ul>
@@ -391,8 +401,8 @@ export function DiagnoseResultSection({
 
           {isUploading ? (
             <div className="flex flex-col items-center justify-center space-y-3 py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-[#16a34a]" />
-              <p className="animate-pulse text-[14px] font-[600] text-green-700">
+              <Loader2 className="text-primary h-8 w-8 animate-spin" />
+              <p className="text-primary animate-pulse text-sm font-semibold">
                 {reScoreTexts[reScoreTextIdx]}
               </p>
             </div>
@@ -403,33 +413,33 @@ export function DiagnoseResultSection({
               showUploadList={false}
               customRequest={handleAntdUpload}
               accept="image/*"
-              className="rounded-xl bg-gray-50 transition-colors hover:border-green-500 hover:bg-green-50"
+              className="bg-bg-subtle rounded-xl transition-colors"
             >
               <p className="ant-upload-drag-icon flex justify-center p-4">
                 <CameraOutlined
-                  className="text-green-600 opacity-80"
+                  className="text-primary opacity-85"
                   style={{ fontSize: "36px" }}
                 />
               </p>
-              <p className="ant-upload-text font-medium text-gray-700">
+              <p className="ant-upload-text text-text-primary font-medium">
                 Nhấp hoặc kéo thả ảnh vào đây
               </p>
-              <p className="ant-upload-hint text-gray-500">
+              <p className="ant-upload-hint text-text-secondary">
                 Hỗ trợ định dạng JPG, PNG
               </p>
             </AntdUpload.Dragger>
           )}
 
           {uploadError && (
-            <div className="animate-in fade-in mt-4 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 p-3 text-[12.5px] text-red-700">
-              <X className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+            <div className="animate-in fade-in border-error/30 bg-error/10 text-error mt-4 flex items-start gap-2 rounded-xl border p-3 text-xs font-medium">
+              <X className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{uploadError}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="mt-4 flex animate-pulse items-start gap-2 rounded-lg border border-green-100 bg-green-50 p-3 text-[12.5px] text-green-700">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+            <div className="border-primary-border bg-primary-light text-primary mt-4 flex animate-pulse items-start gap-2 rounded-xl border p-3 text-xs font-medium">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}

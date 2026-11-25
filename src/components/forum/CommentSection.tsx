@@ -1,12 +1,14 @@
 "use client";
 
-import { ACCESS_TOKEN } from "@/constants/auth";
-import { useCreateComment, useForumComments } from "@/hooks/useForum";
-import { useProfile } from "@/hooks/useProfile";
 import { getCookie } from "cookies-next";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import { ACCESS_TOKEN } from "@/constants/auth";
+import { useCreateComment, useForumComments } from "@/hooks/useForum";
+import { useProfile } from "@/hooks/useProfile";
+
 import CommentInput from "./CommentInput";
 import CommentItem from "./CommentItem";
 
@@ -57,15 +59,15 @@ export default function CommentSection({ postId }: CommentSectionProps) {
   const visibleComments = comments.slice(0, visibleCount);
 
   return (
-    <div className="mt-6 rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm md:p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h3 className="mb-6 text-[18px] font-[600] text-[#1B1B1B] dark:text-gray-100">
+    <div className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-sm md:p-6">
+      <h3 className="mb-6 text-lg font-semibold text-[var(--text-primary)] tabular-nums">
         Bình luận ({comments.length})
       </h3>
 
       {/* Comment Input */}
       <div className="mb-8">
         {!mounted ? (
-          <div className="h-20 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+          <div className="h-20 w-full animate-pulse rounded-xl bg-[var(--bg-subtle)]" />
         ) : getCookie(ACCESS_TOKEN) ? (
           <CommentInput
             onSubmit={handleSubmit}
@@ -74,12 +76,12 @@ export default function CommentSection({ postId }: CommentSectionProps) {
             isPending={createCommentMutation.isPending}
           />
         ) : (
-          <div className="rounded-lg bg-gray-50 p-4 text-center dark:bg-gray-800">
-            <p className="text-[14px] text-[#5C5C5C] dark:text-gray-400">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-4 text-center">
+            <p className="text-sm text-[var(--text-secondary)]">
               Vui lòng{" "}
               <Link
                 href="/login"
-                className="font-semibold text-[#2F9E44] hover:underline dark:text-green-400"
+                className="font-semibold text-[var(--primary)] hover:underline"
               >
                 đăng nhập
               </Link>{" "}
@@ -94,12 +96,12 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         {isLoading ? (
           <div className="flex justify-center py-6">
             <Loader2
-              className="h-6 w-6 animate-spin text-[#2F9E44]"
+              className="h-6 w-6 animate-spin text-[var(--primary)]"
               aria-hidden="true"
             />
           </div>
         ) : isError ? (
-          <p className="text-center text-[14px] text-red-500">
+          <p className="text-center text-sm text-red-500">
             Không thể tải danh sách bình luận.
           </p>
         ) : visibleComments.length > 0 ? (
@@ -107,7 +109,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
             <CommentItem key={comment.id} comment={comment} />
           ))
         ) : (
-          <p className="py-4 text-center text-[14px] text-[#5C5C5C] dark:text-gray-400">
+          <p className="py-4 text-center text-sm text-[var(--text-secondary)]">
             Chưa có bình luận nào. Hãy là người đầu tiên chia sẻ ý kiến!
           </p>
         )}
@@ -115,11 +117,11 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
       {/* Show More / Hide Buttons */}
       {comments.length > 3 && (
-        <div className="mt-4 flex items-center gap-4 border-t border-[#F0F2F5] pt-3 dark:border-gray-800">
+        <div className="mt-4 flex items-center gap-4 border-t border-[var(--border)] pt-3">
           {comments.length > visibleCount && (
             <button
               onClick={() => setVisibleCount((prev) => prev + 5)}
-              className="cursor-pointer text-[14px] font-[600] text-[#2F9E44] transition-colors hover:text-[#1F6F2E] hover:underline dark:text-green-400 dark:hover:text-green-300"
+              className="cursor-pointer text-sm font-semibold text-[var(--primary)] transition-colors hover:underline"
             >
               Hiển thị thêm bình luận ({comments.length - visibleCount})
             </button>
@@ -127,7 +129,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
           {visibleCount > 3 && (
             <button
               onClick={() => setVisibleCount(3)}
-              className="cursor-pointer text-[14px] font-[500] text-[#5C5C5C] transition-colors hover:text-[#1B1B1B] hover:underline dark:text-gray-400 dark:hover:text-gray-200"
+              className="cursor-pointer text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] hover:underline"
             >
               Thu gọn
             </button>

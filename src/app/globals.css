@@ -1,41 +1,99 @@
 @import "tailwindcss";
 
-:root {
-  /* === Brand Colors === */
-  --primary: #2f9e44;
-  --primary-dark: #1f6f2e;
-  --primary-light: #e6f4ea;
-  --primary-bg: #e6f4ea;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  /* === Neutrals === */
-  --text-primary: #1b1b1b;
-  --text-secondary: #5c5c5c;
-  --text-muted: #9e9e9e;
-  --text-light: #757575;
-  --border: #e0e0e0;
-  --bg-page: #f7f7f7;
+:root {
+  /* === Brand Colors (Organic Precision AgriTech) === */
+  --primary: #1f7a3e;
+  --primary-dark: #165c2e;
+  --primary-hover: #186632;
+  --primary-light: #eaf6ee;
+  --primary-soft: #eaf6ee;
+  --primary-bg: #eaf6ee;
+  --primary-border: #c5e5cf;
+
+  /* === Warm Harvest Accent === */
+  --accent: #d97706;
+  --accent-light: #fef3c7;
+
+  /* === Neutrals (Warm Organic Light) === */
+  --text-primary: #142118;
+  --text-secondary: #4b5e51;
+  --text-muted: #76887b;
+  --text-light: #647569;
+  --border: #dce4dc;
+  --border-strong: #c4d1c5;
+  --bg-page: #f6f8f5;
   --bg-card: #ffffff;
-  --bg-hover: #f0f2f5;
+  --bg-subtle: #eff3ee;
+  --bg-hover: #ebf1eb;
 
   /* === Severity Colors === */
-  --severity-low-bg: #e6f4ea;
-  --severity-low-text: #2e7d32;
-  --severity-medium-bg: #fff8e1;
-  --severity-medium-text: #f57f17;
-  --severity-high-bg: #fff3e0;
-  --severity-high-text: #e65100;
-  --severity-critical-bg: #ffebee;
-  --severity-critical-text: #c62828;
+  --severity-low-bg: #eaf6ee;
+  --severity-low-text: #1f7a3e;
+  --severity-medium-bg: #fef3c7;
+  --severity-medium-text: #b45309;
+  --severity-high-bg: #ffedd5;
+  --severity-high-text: #c2410c;
+  --severity-critical-bg: #fee2e2;
+  --severity-critical-text: #b91c1c;
 
   /* === Status Colors === */
-  --error: #e53935;
-  --warning: #fb8c00;
-  --success: #2f9e44;
-  --info: #1976d2;
+  --error: #dc2626;
+  --warning: #d97706;
+  --success: #1f7a3e;
+  --info: #0284c7;
 
   /* === Background === */
   --background: #ffffff;
-  --foreground: #1b1b1b;
+  --foreground: #142118;
+}
+
+.dark {
+  /* === Brand Colors (Dark Mode) === */
+  --primary: #34b352;
+  --primary-dark: #259140;
+  --primary-hover: #2da34a;
+  --primary-light: rgba(52, 179, 82, 0.16);
+  --primary-soft: rgba(52, 179, 82, 0.16);
+  --primary-bg: rgba(52, 179, 82, 0.16);
+  --primary-border: rgba(52, 179, 82, 0.35);
+
+  /* === Warm Harvest Accent === */
+  --accent: #f59e0b;
+  --accent-light: rgba(245, 158, 11, 0.16);
+
+  /* === Neutrals (Deep Forest Dark) === */
+  --text-primary: #ecf3ee;
+  --text-secondary: #a6b8ac;
+  --text-muted: #7c9083;
+  --text-light: #93a699;
+  --border: #283a2f;
+  --border-strong: #374f40;
+  --bg-page: #0e1511;
+  --bg-card: #16201a;
+  --bg-subtle: #1d2a22;
+  --bg-hover: #24342a;
+
+  /* === Severity Colors === */
+  --severity-low-bg: rgba(52, 179, 82, 0.16);
+  --severity-low-text: #6ee787;
+  --severity-medium-bg: rgba(245, 158, 11, 0.18);
+  --severity-medium-text: #fcd34d;
+  --severity-high-bg: rgba(249, 115, 22, 0.18);
+  --severity-high-text: #fdba74;
+  --severity-critical-bg: rgba(239, 68, 68, 0.18);
+  --severity-critical-text: #fca5a5;
+
+  /* === Status Colors === */
+  --error: #f87171;
+  --warning: #fbbf24;
+  --success: #34b352;
+  --info: #38bdf8;
+
+  /* === Background === */
+  --background: #0e1511;
+  --foreground: #ecf3ee;
 }
 
 @theme inline {
@@ -43,25 +101,45 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-light: var(--primary-light);
+  --color-primary-soft: var(--primary-soft);
   --color-primary-bg: var(--primary-bg);
+  --color-primary-border: var(--primary-border);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
+  --color-text-light: var(--text-light);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-bg-page: var(--bg-page);
   --color-bg-card: var(--bg-card);
+  --color-bg-subtle: var(--bg-subtle);
   --color-bg-hover: var(--bg-hover);
   --color-error: var(--error);
   --color-warning: var(--warning);
   --color-success: var(--success);
+  --color-info: var(--info);
   --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  --font-heading:
+    var(--font-be-vietnam-pro), "Be Vietnam Pro", var(--font-inter), system-ui,
+    sans-serif;
   --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 /* === Base === */
 body {
-  background: var(--background);
+  background: var(--bg-page);
   color: var(--foreground);
   font-family:
     var(--font-inter),
@@ -71,6 +149,18 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+/* === Safe Area Utility === */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* === Scrollbar Hiding === */
@@ -149,28 +239,42 @@ body {
 /* === Custom Horizontal Image Slider Scrollbar === */
 .custom-image-slider {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: #c4d1c5 #eff3ee;
   transition: scrollbar-color 0.3s ease;
 }
+.dark .custom-image-slider {
+  scrollbar-color: #374f40 #1d2a22;
+}
 .custom-image-slider::-webkit-scrollbar {
-  height: 8px; /* Độ dày của thanh trượt ngang */
+  height: 8px;
 }
 .custom-image-slider::-webkit-scrollbar-track {
-  background: #f1f5f9; /* Màu nền rãnh trượt (slate-100) */
+  background: var(--bg-subtle);
   border-radius: 10px;
 }
 .custom-image-slider::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* Màu thanh nắm mặc định (slate-300) */
+  background: var(--border-strong);
   border-radius: 10px;
-  border: 2px solid #f1f5f9; /* Tạo khoảng trống giúp thanh trượt thanh thoát */
+  border: 2px solid var(--bg-subtle);
   transition: background 0.3s ease;
 }
 .custom-image-slider::-webkit-scrollbar-thumb:hover {
-  background: #2f9e44; /* Màu xanh lá nông nghiệp thương hiệu khi hover trực tiếp */
+  background: var(--primary);
 }
 .custom-image-slider:hover::-webkit-scrollbar-thumb {
-  background: #86efac; /* Màu xanh lá cây sáng nổi bật khi hover trên vùng slider */
+  background: var(--primary-border);
 }
 .custom-image-slider:hover::-webkit-scrollbar-thumb:hover {
-  background: #2f9e44; /* Vẫn giữ màu xanh lá đậm khi hover chính xác vào thumb */
+  background: var(--primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

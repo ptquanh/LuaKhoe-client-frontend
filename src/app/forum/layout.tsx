@@ -1,16 +1,11 @@
 "use client";
 
-import SharedHeader from "@/components/layout/SharedHeader";
+import { AppShell } from "@/components/layout/AppShell";
 
 export default function ForumLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-[#F7F7F7] font-[Inter,sans-serif]">
-      <SharedHeader />
-      <main className="mx-auto max-w-[1200px] px-6 py-6">{children}</main>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }

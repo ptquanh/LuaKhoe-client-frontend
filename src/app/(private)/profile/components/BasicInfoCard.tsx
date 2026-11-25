@@ -10,9 +10,9 @@ interface BasicInfoCardProps {
 export function BasicInfoCard({ user, profileError }: BasicInfoCardProps) {
   return (
     <Card
-      className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md"
+      className="rounded-2xl border-[var(--border)] bg-[var(--bg-card)] shadow-sm transition-colors duration-200 hover:shadow-md"
       title={
-        <span className="text-lg font-bold text-gray-800">
+        <span className="text-lg font-bold text-[var(--text-primary)]">
           Thông tin cơ bản
         </span>
       }
@@ -30,21 +30,33 @@ export function BasicInfoCard({ user, profileError }: BasicInfoCardProps) {
         <Col xs={24} sm={12}>
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Họ & tên đệm</span>
+              <span className="font-medium text-[var(--text-secondary)]">
+                Họ & tên đệm
+              </span>
             }
             name="lastName"
             rules={[{ required: true, message: "Vui lòng nhập Họ" }]}
           >
-            <Input placeholder="Nguyễn Văn" className="rounded-lg" />
+            <Input
+              placeholder="Nguyễn Văn"
+              className="rounded-xl text-base sm:text-sm"
+            />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12}>
           <Form.Item
-            label={<span className="font-medium text-gray-700">Tên</span>}
+            label={
+              <span className="font-medium text-[var(--text-secondary)]">
+                Tên
+              </span>
+            }
             name="firstName"
             rules={[{ required: true, message: "Vui lòng nhập Tên" }]}
           >
-            <Input placeholder="A" className="rounded-lg" />
+            <Input
+              placeholder="A"
+              className="rounded-xl text-base sm:text-sm"
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -53,24 +65,30 @@ export function BasicInfoCard({ user, profileError }: BasicInfoCardProps) {
         <Col xs={24} sm={12}>
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Tên đăng nhập</span>
+              <span className="font-medium text-[var(--text-secondary)]">
+                Tên đăng nhập
+              </span>
             }
           >
             <Input
               value={user?.username}
               disabled
-              className="cursor-not-allowed rounded-lg bg-gray-50 text-gray-500"
+              className="cursor-not-allowed rounded-xl text-base sm:text-sm"
             />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12}>
           <Form.Item
-            label={<span className="font-medium text-gray-700">Email</span>}
+            label={
+              <span className="font-medium text-[var(--text-secondary)]">
+                Email
+              </span>
+            }
           >
             <Input
               value={user?.email}
               disabled
-              className="cursor-not-allowed rounded-lg bg-gray-50 text-gray-500"
+              className="cursor-not-allowed rounded-xl text-base sm:text-sm"
             />
           </Form.Item>
         </Col>
@@ -80,11 +98,16 @@ export function BasicInfoCard({ user, profileError }: BasicInfoCardProps) {
         <Col xs={24} sm={12}>
           <Form.Item
             label={
-              <span className="font-medium text-gray-700">Số điện thoại</span>
+              <span className="font-medium text-[var(--text-secondary)]">
+                Số điện thoại
+              </span>
             }
             name="phone"
           >
-            <Input placeholder="0987654321" className="rounded-lg" />
+            <Input
+              placeholder="0987654321"
+              className="rounded-xl text-base sm:text-sm"
+            />
           </Form.Item>
         </Col>
       </Row>

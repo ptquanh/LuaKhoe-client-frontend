@@ -5,6 +5,7 @@ import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { PageHeader } from "@/components/ui/PageHeader";
 import { FIELD_PARAM_DEFAULTS } from "@/constants/diagnose";
 import { useAuth } from "@/hooks/useAuth";
 import { useDiagnose } from "@/hooks/useDiagnose";
@@ -207,15 +208,11 @@ export default function DiagnosePage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1200px] pb-20">
-      <div className="mb-6">
-        <h1 className="text-[28px] font-[700] text-[#1B1B1B]">
-          Chẩn đoán bệnh lúa
-        </h1>
-        <p className="mt-1 text-[14px] text-[#5C5C5C]">
-          Tải lên ảnh lá lúa để AI phân tích và chẩn đoán bệnh
-        </p>
-      </div>
+    <div className="mx-auto max-w-[1200px] pb-6">
+      <PageHeader
+        title="Chẩn đoán bệnh lúa"
+        description="Chụp hoặc tải ảnh lá lúa để AI phân tích và đề xuất phác đồ điều trị"
+      />
 
       {!file && (
         <DiagnoseGuidelines
@@ -225,14 +222,14 @@ export default function DiagnosePage() {
       )}
 
       {error && (
-        <div className="mb-6 flex items-start gap-3 rounded-xl border border-[#FB8C00] bg-[#FFF8E1] p-4">
-          <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#FB8C00]" />
-          <p className="text-[14px] font-[500] text-[#F57C00]">{error}</p>
+        <div className="border-warning/40 bg-accent-light/50 text-accent mb-6 flex items-start gap-3 rounded-xl border p-4">
+          <Info className="mt-0.5 h-5 w-5 shrink-0" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
-        <div className="h-fit max-h-[calc(100vh-3rem)] overflow-y-auto pr-1 md:sticky md:top-6">
+        <div className="h-fit md:sticky md:top-20 md:max-h-[calc(100vh-6rem)] md:overflow-y-auto md:pr-1">
           <DiagnoseUploadSection
             file={file}
             onFileSelect={handleFileSelect}

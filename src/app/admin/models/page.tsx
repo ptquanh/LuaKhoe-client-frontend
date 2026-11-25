@@ -79,13 +79,11 @@ export default function AdminModelsPage() {
 
       {/* Yellow Warning Banner for Zero Active Models */}
       {!isLoading && activeModelCount === 0 && (
-        <div className="mb-4 flex items-start gap-3 rounded-lg border border-[#FFE8CC] bg-[#FFF9DB] p-4 text-[#D9480F]">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-[#F59F00]" />
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-800/70 dark:bg-amber-950/40 dark:text-amber-200">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
           <div>
-            <h5 className="text-[14px] font-[600] text-[#D9480F]">
-              Cảnh báo hệ thống
-            </h5>
-            <p className="mt-1 text-[13px] leading-relaxed text-[#E67E22]">
+            <h5 className="text-sm font-semibold">Cảnh báo hệ thống</h5>
+            <p className="mt-1 text-[13px] leading-relaxed opacity-90">
               Hiện không có mô hình AI nào ở trạng thái hoạt động. Các yêu cầu
               chẩn đoán tự động trên ứng dụng LuaKhoe sẽ tạm thời phản hồi lỗi
               bảo trì. Vui lòng kích hoạt ít nhất một phiên bản!

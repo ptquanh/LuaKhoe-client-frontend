@@ -1,7 +1,8 @@
 "use client";
 
-import { LegacyRagRecommendation } from "@/components/diagnosis/LegacyRagRecommendation";
 import { Collapse, Image, Modal, Progress, Tabs } from "antd";
+
+import { LegacyRagRecommendation } from "@/components/diagnosis/LegacyRagRecommendation";
 
 export interface DiagnosisResult {
   confidence: number;
@@ -53,7 +54,7 @@ export default function DiagnosisHistoryModal({
           },
         }}
       >
-        <div className="py-8 text-center text-[#9E9E9E]">
+        <div className="py-8 text-center text-[var(--text-muted)]">
           Đang tải thông tin...
         </div>
       </Modal>
@@ -65,7 +66,7 @@ export default function DiagnosisHistoryModal({
       key: "original",
       label: "Ảnh gốc",
       children: (
-        <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[#E0E0E0] bg-[#FAFAFA]">
+        <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)]">
           {diagnosisData.originalImageUrl || diagnosisData.imageUrl ? (
             <Image
               src={diagnosisData.originalImageUrl || diagnosisData.imageUrl}
@@ -75,7 +76,7 @@ export default function DiagnosisHistoryModal({
               preview={{ mask: "Phóng to" }}
             />
           ) : (
-            <div className="py-12 text-center text-[#9E9E9E]">
+            <div className="py-12 text-center text-[var(--text-muted)]">
               Không có ảnh gốc
             </div>
           )}
@@ -86,7 +87,7 @@ export default function DiagnosisHistoryModal({
       key: "result",
       label: "Ảnh kết quả AI",
       children: (
-        <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[#E0E0E0] bg-[#FAFAFA]">
+        <div className="flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)]">
           {diagnosisData.resultImageUrl ? (
             <Image
               src={diagnosisData.resultImageUrl}
@@ -96,7 +97,7 @@ export default function DiagnosisHistoryModal({
               preview={{ mask: "Phóng to" }}
             />
           ) : (
-            <div className="py-12 text-center text-[#9E9E9E]">
+            <div className="py-12 text-center text-[var(--text-muted)]">
               Không có ảnh kết quả (Không phát hiện bệnh hoặc chưa vẽ box)
             </div>
           )}
@@ -108,7 +109,7 @@ export default function DiagnosisHistoryModal({
   return (
     <Modal
       title={
-        <span className="text-[18px] font-[700] text-[#1B1B1B]">
+        <span className="text-lg font-bold text-[var(--text-primary)]">
           Lịch sử Chẩn đoán & Gợi ý RAG
         </span>
       }
@@ -132,20 +133,26 @@ export default function DiagnosisHistoryModal({
             <Tabs defaultActiveKey="original" items={imageTabItems} />
           </Image.PreviewGroup>
 
-          <div className="space-y-2 rounded-lg border border-[#F0F2F5] bg-[#FAFAFA] p-4 text-[13px] text-[#5C5C5C]">
-            <p>
-              <strong className="text-[#333333]">Thời gian quét:</strong>{" "}
+          <div className="space-y-2 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-4 text-[13px] text-[var(--text-secondary)]">
+            <p className="tabular-nums">
+              <strong className="text-[var(--text-primary)]">
+                Thời gian quét:
+              </strong>{" "}
               {new Date(diagnosisData.createdAt).toLocaleString("vi-VN")}
             </p>
             {diagnosisData.province && (
               <p>
-                <strong className="text-[#333333]">Địa điểm:</strong>{" "}
+                <strong className="text-[var(--text-primary)]">
+                  Địa điểm:
+                </strong>{" "}
                 {diagnosisData.province}
               </p>
             )}
             {diagnosisData.envDescription && (
               <p>
-                <strong className="text-[#333333]">Môi trường:</strong>{" "}
+                <strong className="text-[var(--text-primary)]">
+                  Môi trường:
+                </strong>{" "}
                 {diagnosisData.envDescription}
               </p>
             )}
@@ -156,7 +163,7 @@ export default function DiagnosisHistoryModal({
         <div className="space-y-5">
           {/* AI Confidences List */}
           <div>
-            <h4 className="mb-3 text-[15px] font-[600] text-[#1B1B1B]">
+            <h4 className="mb-3 text-[15px] font-semibold text-[var(--text-primary)]">
               Kết quả dự đoán AI:
             </h4>
             {diagnosisData.results && diagnosisData.results.length > 0 ? (
@@ -171,10 +178,10 @@ export default function DiagnosisHistoryModal({
                   return (
                     <div key={res.disease?.id || idx} className="space-y-1">
                       <div className="flex justify-between text-[13px]">
-                        <span className="font-[600] text-[#333333]">
+                        <span className="font-semibold text-[var(--text-primary)]">
                           {res.disease?.name || "Bệnh hại lúa"}
                         </span>
-                        <span className="font-[600] text-[#2E7D32]">
+                        <span className="font-semibold text-[var(--primary)] tabular-nums">
                           {displayPercent}%
                         </span>
                       </div>
@@ -195,7 +202,7 @@ export default function DiagnosisHistoryModal({
                 })}
               </div>
             ) : (
-              <p className="text-[13px] text-[#9E9E9E]">
+              <p className="text-[13px] text-[var(--text-muted)]">
                 Không phát hiện bệnh cụ thể nào.
               </p>
             )}
@@ -204,7 +211,7 @@ export default function DiagnosisHistoryModal({
           {/* RAG detailed collapse panel */}
           {diagnosisData.results && diagnosisData.results.length > 0 && (
             <div className="space-y-3">
-              <h4 className="mb-2 text-[15px] font-[600] text-[#1B1B1B]">
+              <h4 className="mb-2 text-[15px] font-semibold text-[var(--text-primary)]">
                 Gợi ý dinh dưỡng & Điều trị chi tiết:
               </h4>
               <Collapse
@@ -220,10 +227,10 @@ export default function DiagnosisHistoryModal({
                     key: String(idx),
                     label: (
                       <div className="flex w-full items-center justify-between pr-4">
-                        <span className="font-[700] text-[#1B1B1B]">
+                        <span className="font-bold text-[var(--text-primary)]">
                           {res.disease?.name || "Bệnh hại lúa"}
                         </span>
-                        <span className="rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[600] text-[#2E7D32]">
+                        <span className="rounded-full bg-[var(--primary-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--primary)] tabular-nums">
                           Độ tin cậy: {displayPercent}%
                         </span>
                       </div>
@@ -232,11 +239,11 @@ export default function DiagnosisHistoryModal({
                       <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
                         {/* Basic Treatment */}
                         {res.disease?.treatment && (
-                          <div className="rounded-lg border border-dashed border-[#2F9E44]/30 bg-[#E6F4EA]/20 p-3">
-                            <strong className="mb-1 block text-[12.5px] text-[#2E7D32]">
+                          <div className="rounded-xl border border-dashed border-[var(--primary-border)] bg-[var(--primary-soft)]/50 p-3">
+                            <strong className="mb-1 block text-xs text-[var(--primary)]">
                               Phác đồ khuyến nghị cơ bản:
                             </strong>
-                            <p className="text-[13px] leading-[1.5] whitespace-pre-line text-[#424242]">
+                            <p className="text-[13px] leading-relaxed whitespace-pre-line text-[var(--text-primary)]">
                               {res.disease.treatment}
                             </p>
                           </div>
@@ -248,7 +255,7 @@ export default function DiagnosisHistoryModal({
                             recommendation={res.advisory}
                           />
                         ) : (
-                          <p className="text-[12px] text-[#9E9E9E] italic">
+                          <p className="text-xs text-[var(--text-muted)] italic">
                             Không có hướng dẫn tư vấn RAG chi tiết cho bệnh hại
                             này.
                           </p>

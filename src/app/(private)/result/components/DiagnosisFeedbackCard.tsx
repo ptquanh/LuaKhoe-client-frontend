@@ -1,16 +1,24 @@
 "use client";
 
-import { CheckCircle2, MessageSquareHeart, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  CheckCircle2,
+  Lightbulb,
+  MessageSquareHeart,
+  Send,
+  Star,
+} from "lucide-react";
+import { useState } from "react";
 
 import { DiseaseItem } from "@/services/disease.service";
 import { FeedbackItem } from "@/types/feedback.type";
 
 interface DiagnosisFeedbackCardProps {
   onSubmitFeedback: (
+    /* eslint-disable no-unused-vars */
     rating: number,
     comment: string,
     actualDiseaseIds: string[],
+    /* eslint-enable no-unused-vars */
   ) => void;
   existingFeedback?: FeedbackItem | null;
   diseases: DiseaseItem[];
@@ -18,11 +26,11 @@ interface DiagnosisFeedbackCardProps {
 }
 
 const STAR_LABELS: Record<number, string> = {
-  1: "⭐ Sai hoàn toàn",
-  2: "⭐ Chưa chính xác",
-  3: "⭐ Bình thường",
-  4: "⭐ Tốt, hữu ích",
-  5: "⭐ Rất tuyệt vời",
+  1: "Sai hoàn toàn",
+  2: "Chưa chính xác",
+  3: "Bình thường",
+  4: "Tốt, hữu ích",
+  5: "Rất tuyệt vời",
 };
 
 export function DiagnosisFeedbackCard({
@@ -37,18 +45,12 @@ export function DiagnosisFeedbackCard({
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [selectedDiseaseIds, setSelectedDiseaseIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (existingFeedback) {
-      setSubmitted(true);
-      // Use normalized fields directly — no more string parsing
-      if (existingFeedback.rating) {
-        setRating(existingFeedback.rating);
-      }
-      setFeedbackText(existingFeedback.content || "");
-    }
-  }, [existingFeedback]);
+  const activeRating = existingFeedback?.rating || rating;
+  const activeFeedbackText = existingFeedback
+    ? existingFeedback.content || ""
+    : feedbackText;
+  const isSubmitted = Boolean(existingFeedback) || submitted;
 
-  // Smart Sorting: AI-detected diseases first, then A-Z
   const sortedDiseases = [...diseases].sort((a, b) => {
     const aDetected = detectedDiseaseIds.includes(a.id);
     const bDetected = detectedDiseaseIds.includes(b.id);
@@ -74,84 +76,82 @@ export function DiagnosisFeedbackCard({
     );
   };
 
+  const statusUpper = existingFeedback?.status?.toUpperCase();
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-sm transition-all hover:shadow-md">
-      {/* Header */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFF8E1] text-[#F57F17]">
-          <MessageSquareHeart className="h-5 w-5" />
+    <section className="border-border bg-bg-card overflow-hidden rounded-2xl border p-5 shadow-xs">
+      <div className="border-border mb-4 flex items-center gap-3 border-b pb-3.5">
+        <div className="bg-accent-light text-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+          <MessageSquareHeart className="h-4.5 w-4.5" />
         </div>
         <div>
-          <h3 className="text-[18px] font-[700] text-[#1B1B1B]">
-            Đánh giá chất lượng chẩn đoán AI
+          <h3 className="font-heading text-text-primary text-base font-bold">
+            Đánh giá kết quả AI
           </h3>
-          <p className="text-[13px] text-[#757575]">
-            Ý kiến của bạn giúp hệ thống AI ngày càng chính xác hơn
+          <p className="text-text-secondary text-xs">
+            Phản hồi của bạn giúp mô hình nhận diện ngày càng chuẩn hơn
           </p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3.5">
         {/* Star Rating Row */}
-        <div className="flex items-center gap-2 rounded-xl border border-black/5 bg-[#F7F7F7]/60 p-3.5">
-          <div className="flex items-center gap-1.5">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                disabled={!!existingFeedback}
-                onClick={() => handleStarClick(star)}
-                onMouseEnter={() => !existingFeedback && setHoverRating(star)}
-                onMouseLeave={() => !existingFeedback && setHoverRating(0)}
-                className={`p-1 transition-transform focus:outline-none ${
-                  existingFeedback
-                    ? "cursor-default"
-                    : "cursor-pointer hover:scale-115"
-                }`}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className={`h-8 w-8 transition-colors ${
-                    star <= (hoverRating || rating)
-                      ? "fill-[#FB8C00] text-[#FB8C00]"
-                      : "fill-none text-[#E0E0E0]"
+        <div className="border-border bg-bg-subtle/60 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5">
+          <div className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const isLit = star <= (hoverRating || activeRating);
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  disabled={Boolean(existingFeedback)}
+                  aria-label={`Đánh giá ${star} sao`}
+                  onClick={() => handleStarClick(star)}
+                  onMouseEnter={() => !existingFeedback && setHoverRating(star)}
+                  onMouseLeave={() => !existingFeedback && setHoverRating(0)}
+                  className={`flex min-h-10 min-w-10 items-center justify-center rounded-lg transition-transform focus:outline-none ${
+                    existingFeedback
+                      ? "cursor-default"
+                      : "cursor-pointer hover:scale-110"
                   }`}
-                  stroke="currentColor"
-                  strokeWidth={star <= (hoverRating || rating) ? 0 : 1.5}
                 >
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-              </button>
-            ))}
+                  <Star
+                    className={`h-6 w-6 transition-colors ${
+                      isLit
+                        ? "fill-amber-500 text-amber-500"
+                        : "text-border-strong fill-none"
+                    }`}
+                  />
+                </button>
+              );
+            })}
           </div>
-          {rating > 0 && (
-            <span className="ml-3 text-[15px] font-[700] text-[#FB8C00]">
-              {STAR_LABELS[rating]}
+          {activeRating > 0 && (
+            <span className="text-accent text-xs font-bold sm:text-sm">
+              {STAR_LABELS[activeRating]}
             </span>
           )}
         </div>
 
-        {/* Form — always visible once a star is selected, hidden after submit */}
-        {rating > 0 && !submitted && !existingFeedback && (
-          <div className="animate-in slide-in-from-top-2 flex flex-col gap-4 duration-300">
-            {/* Hint for low ratings */}
-            {rating <= 3 && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5">
-                <p className="text-[13.5px] leading-[1.5] font-[500] text-amber-900">
-                  💡 Chuyên gia nông nghiệp sẽ xem xét lại ảnh chẩn đoán để căn
-                  chỉnh lại mô hình AI. Vui lòng mô tả chi tiết điểm chưa chính
-                  xác:
+        {/* Interactive Form */}
+        {activeRating > 0 && !isSubmitted && !existingFeedback && (
+          <div className="animate-in slide-in-from-top-2 flex flex-col gap-3.5 duration-200">
+            {activeRating <= 3 && (
+              <div className="border-warning/35 bg-accent-light/50 text-text-primary flex items-start gap-2.5 rounded-xl border p-3 text-xs leading-relaxed font-medium">
+                <Lightbulb className="text-accent mt-0.5 h-4 w-4 shrink-0" />
+                <p>
+                  Chuyên gia sẽ xem xét lại mẫu ảnh này để hiệu chỉnh mô hình.
+                  Vui lòng chọn bệnh thực tế hoặc mô tả thêm bên dưới:
                 </p>
               </div>
             )}
 
-            {/* Disease pills */}
             {sortedDiseases.length > 0 && (
               <div className="flex flex-col gap-2">
-                <span className="text-[13.5px] font-[600] text-[#5C5C5C]">
-                  Chọn (các) bệnh thực tế bạn phát hiện trên ruộng (nếu có):
+                <span className="text-text-secondary text-xs font-semibold">
+                  Bệnh thực tế trên ruộng (nếu khác kết quả AI):
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {sortedDiseases.map((d) => {
                     const isDetected = detectedDiseaseIds.includes(d.id);
                     const isSelected = selectedDiseaseIds.includes(d.id);
@@ -160,22 +160,20 @@ export function DiagnosisFeedbackCard({
                         key={d.id}
                         type="button"
                         onClick={() => toggleDisease(d.id)}
-                        className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-4 py-2 text-[13px] font-[600] shadow-sm transition-all duration-150 ${
+                        className={`flex min-h-8 cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition-colors ${
                           isSelected
-                            ? "border-[#FB8C00] bg-[#FB8C00] text-white"
+                            ? "border-amber-500 bg-amber-500 text-white"
                             : isDetected
-                              ? "border-dashed border-[#FB8C00] bg-white text-[#FB8C00] hover:bg-[#FFF3E0]"
-                              : "border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F5F5F5]"
+                              ? "bg-bg-card text-accent hover:bg-accent-light/40 border-dashed border-amber-500"
+                              : "border-border bg-bg-card text-text-secondary hover:bg-bg-hover"
                         }`}
                       >
                         {isDetected && !isSelected && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#FB8C00]" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                         )}
-                        {d.name}
+                        <span>{d.name}</span>
                         {isDetected && (
-                          <span className="text-[10px] font-[500] opacity-80">
-                            (AI đoán)
-                          </span>
+                          <span className="text-[10px] opacity-80">(AI)</span>
                         )}
                       </button>
                     );
@@ -184,69 +182,69 @@ export function DiagnosisFeedbackCard({
               </div>
             )}
 
-            {/* Textarea — always shown */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-[600] text-[#5C5C5C]">
+              <label className="text-text-secondary text-xs font-semibold">
                 Nhận xét thêm{" "}
-                <span className="font-[400] text-[#9E9E9E]">(Tùy chọn)</span>
+                <span className="text-text-muted font-normal">(Tùy chọn)</span>
               </label>
               <textarea
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Ví dụ: Phát hiện thêm bệnh X ở góc phải, phác đồ điều trị chưa phù hợp với giống lúa địa phương..."
+                placeholder="Ví dụ: Phát hiện thêm bệnh ở mép lá, hoặc phác đồ hiệu quả sau 3 ngày..."
                 rows={3}
-                className="w-full resize-none rounded-xl border border-[#E0E0E0] px-4 py-3 text-[14px] leading-[1.6] text-[#1B1B1B] transition-colors focus:border-[#2F9E44] focus:outline-none"
+                className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary w-full resize-none rounded-xl border px-3.5 py-2.5 text-sm leading-relaxed transition-colors focus:outline-none"
               />
             </div>
 
-            {/* Submit button — enabled as long as rating > 0 */}
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex h-10 w-fit cursor-pointer items-center gap-2 rounded-xl bg-[#2F9E44] px-5 text-[14px] font-[600] text-white shadow-sm transition-colors hover:bg-[#1F6F2E]"
+              className="bg-primary hover:bg-primary-hover flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white shadow-xs transition-colors"
             >
               <Send className="h-4 w-4" /> Gửi đánh giá
             </button>
           </div>
         )}
 
-        {/* Existing feedback display */}
+        {/* Submitted / Persisted Feedback */}
         {existingFeedback && (
-          <div className="animate-in slide-in-from-top-2 mt-2 rounded-xl border border-[#E0E0E0] bg-[#F8F9FA] p-4 duration-300">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-[14px] font-[600] text-[#1B1B1B]">
-                Nội dung phản hồi của bạn:
+          <div className="border-border bg-bg-subtle/60 space-y-2.5 rounded-xl border p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-text-primary text-xs font-bold">
+                Phản hồi đã ghi nhận
               </span>
               <span
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-[600] ${
-                  existingFeedback.status?.toUpperCase() === "APPROVED"
-                    ? "bg-[#E6F4EA] text-[#1F6F2E]"
-                    : existingFeedback.status?.toUpperCase() === "REJECTED"
-                      ? "bg-[#FFEBEE] text-[#C62828]"
-                      : "bg-[#FFF8E1] text-[#F57F17]"
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  statusUpper === "APPROVED"
+                    ? "bg-primary-soft text-primary"
+                    : statusUpper === "REJECTED"
+                      ? "bg-error/15 text-error"
+                      : "bg-accent-light text-accent"
                 }`}
               >
-                {existingFeedback.status?.toUpperCase() === "APPROVED"
+                {statusUpper === "APPROVED"
                   ? "Đã duyệt"
-                  : existingFeedback.status?.toUpperCase() === "REJECTED"
+                  : statusUpper === "REJECTED"
                     ? "Đã từ chối"
                     : "Chờ xử lý"}
               </span>
             </div>
-            <p className="mb-1 text-[14px] leading-[1.6] text-[#5C5C5C] italic">
-              &quot;{feedbackText || "Đánh giá chất lượng chẩn đoán AI"}&quot;
+
+            <p className="text-text-secondary text-xs leading-relaxed italic sm:text-sm">
+              &quot;
+              {activeFeedbackText || "Đánh giá chất lượng chẩn đoán AI"}&quot;
             </p>
 
             {existingFeedback.actualDiseases &&
               existingFeedback.actualDiseases.length > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[13px]">
-                  <span className="font-[600] text-[#757575]">
-                    Bệnh thực tế đã báo:
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
+                  <span className="text-text-secondary font-semibold">
+                    Bệnh thực tế:
                   </span>
                   {existingFeedback.actualDiseases.map((ad) => (
                     <span
                       key={ad.id}
-                      className="rounded bg-[#FFE0B2] px-2.5 py-0.5 font-[600] text-[#E65100]"
+                      className="bg-accent-light text-accent rounded-md px-2 py-0.5 text-[11px] font-semibold"
                     >
                       {ad.disease?.name}
                     </span>
@@ -255,11 +253,11 @@ export function DiagnosisFeedbackCard({
               )}
 
             {existingFeedback.adminResponse && (
-              <div className="mt-3 rounded-lg border border-dashed border-[#2F9E44]/20 bg-[#E6F4EA]/40 p-3.5 text-[13px]">
-                <p className="mb-1 font-[700] text-[#1F6F2E]">
-                  Cán bộ chuyên môn phản hồi:
+              <div className="border-primary-border bg-primary-soft/55 mt-2 rounded-xl border border-dashed p-3 text-xs">
+                <p className="text-primary mb-1 font-bold">
+                  Phản hồi từ cán bộ chuyên môn:
                 </p>
-                <p className="text-[#2E7D32] italic">
+                <p className="text-text-primary italic">
                   &quot;{existingFeedback.adminResponse}&quot;
                 </p>
               </div>
@@ -267,17 +265,16 @@ export function DiagnosisFeedbackCard({
           </div>
         )}
 
-        {/* Success state after local submit */}
-        {submitted && !existingFeedback && (
-          <div className="animate-in slide-in-from-top-2 rounded-xl border border-[#2F9E44]/30 bg-[#E6F4EA] p-4 duration-300">
-            <p className="flex items-center gap-2.5 text-[15px] font-[600] text-[#1F6F2E]">
-              <CheckCircle2 className="h-5 w-5 text-[#2F9E44]" />
-              Cảm ơn đóng góp của bạn! Chúng tôi đã ghi nhận phản hồi để nâng
-              cấp AI.
+        {/* Optimistic Local Success */}
+        {isSubmitted && !existingFeedback && (
+          <div className="border-primary-border bg-primary-soft/60 rounded-xl border p-3.5">
+            <p className="text-primary flex items-center gap-2 text-xs font-semibold sm:text-sm">
+              <CheckCircle2 className="h-4.5 w-4.5 shrink-0" />
+              Cảm ơn đóng góp của bạn! Hệ thống đã ghi nhận đánh giá.
             </p>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

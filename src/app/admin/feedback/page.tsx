@@ -6,13 +6,17 @@ import {
   Flag,
   Loader2,
   Search,
+  Star,
   ThumbsDown,
   ThumbsUp,
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { feedbackService } from "@/services/feedback.service";
+
 import DiagnosisHistoryModal, {
   DiagnosisData,
 } from "./_components/DiagnosisHistoryModal";
@@ -204,80 +208,80 @@ export default function AdminFeedbackPage() {
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px] font-[700] text-[#1B1B1B]">Phản hồi AI</h1>
-          <p className="mt-1 text-[14px] text-[#5C5C5C]">
-            Quản lý phản hồi từ nông dân về kết quả chẩn đoán
-          </p>
-        </div>
-        {loading && (
-          <div className="flex items-center gap-2 text-[#5C5C5C]">
-            <Loader2 className="h-5 w-5 animate-spin text-[#2F9E44]" />
-            <span className="text-[14px]">Đang tải...</span>
-          </div>
-        )}
-      </div>
+      <PageHeader
+        title="Phản hồi AI"
+        description="Quản lý phản hồi từ nông dân về kết quả chẩn đoán"
+        actions={
+          loading ? (
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <Loader2 className="h-5 w-5 animate-spin text-[var(--primary)]" />
+              <span>Đang tải...</span>
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* Summary */}
-      <div className="mb-6 grid grid-cols-4 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <div
           onClick={() => setFilterRating("all")}
-          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "all" ? "border-[#2F9E44] ring-2 ring-[#2F9E44]/20" : "border-[#E0E0E0]"}`}
+          className={`cursor-pointer rounded-2xl border bg-[var(--bg-card)] p-4 text-center shadow-xs transition-all hover:shadow-md ${filterRating === "all" ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20" : "border-[var(--border)]"}`}
         >
-          <p className="text-[24px] font-[700] text-[#1B1B1B]">
+          <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">
             {feedbacks.length}
           </p>
-          <p className="text-[13px] text-[#5C5C5C]">Tổng phản hồi</p>
+          <p className="text-[13px] text-[var(--text-secondary)]">
+            Tổng phản hồi
+          </p>
         </div>
         <div
           onClick={() => setFilterRating("positive")}
-          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "positive" ? "border-[#2E7D32] ring-2 ring-[#2E7D32]/20" : "border-[#E0E0E0]"}`}
+          className={`cursor-pointer rounded-2xl border bg-[var(--bg-card)] p-4 text-center shadow-xs transition-all hover:shadow-md ${filterRating === "positive" ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-[var(--border)]"}`}
         >
-          <p className="text-[24px] font-[700] text-[#2E7D32]">
+          <p className="text-2xl font-bold text-emerald-600 tabular-nums dark:text-emerald-400">
             {positiveCount}
           </p>
-          <p className="text-[13px] text-[#5C5C5C]">Tích cực</p>
+          <p className="text-[13px] text-[var(--text-secondary)]">Tích cực</p>
         </div>
         <div
           onClick={() => setFilterRating("neutral")}
-          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "neutral" ? "border-[#FB8C00] ring-2 ring-[#FB8C00]/20" : "border-[#E0E0E0]"}`}
+          className={`cursor-pointer rounded-2xl border bg-[var(--bg-card)] p-4 text-center shadow-xs transition-all hover:shadow-md ${filterRating === "neutral" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-[var(--border)]"}`}
         >
-          <p className="text-[24px] font-[700] text-[#FB8C00]">
+          <p className="text-2xl font-bold text-amber-600 tabular-nums dark:text-amber-400">
             {neutralCount}
           </p>
-          <p className="text-[13px] text-[#5C5C5C]">Trung tính</p>
+          <p className="text-[13px] text-[var(--text-secondary)]">Trung tính</p>
         </div>
         <div
           onClick={() => setFilterRating("negative")}
-          className={`cursor-pointer rounded-xl border bg-white p-4 text-center shadow-sm transition-all hover:shadow-md ${filterRating === "negative" ? "border-[#E53935] ring-2 ring-[#E53935]/20" : "border-[#E0E0E0]"}`}
+          className={`cursor-pointer rounded-2xl border bg-[var(--bg-card)] p-4 text-center shadow-xs transition-all hover:shadow-md ${filterRating === "negative" ? "border-red-500 ring-2 ring-red-500/20" : "border-[var(--border)]"}`}
         >
-          <p className="text-[24px] font-[700] text-[#E53935]">
+          <p className="text-2xl font-bold text-red-600 tabular-nums dark:text-red-400">
             {negativeCount}
           </p>
-          <p className="text-[13px] text-[#5C5C5C]">Tiêu cực</p>
+          <p className="text-[13px] text-[var(--text-secondary)]">Tiêu cực</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative max-w-[300px] flex-1">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#5C5C5C]" />
+        <div className="relative min-w-[220px] flex-1 sm:max-w-[320px]">
+          <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm kiếm nông dân, bệnh, nội dung..."
-            className="h-10 w-full rounded-lg border border-[#E0E0E0] pr-4 pl-10 text-[14px] focus:border-[#2F9E44] focus:outline-none"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] pr-4 pl-10 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
           />
         </div>
-        <div className="flex items-center gap-1">
-          <Filter className="mr-1 h-4 w-4 text-[#5C5C5C]" />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Filter className="mr-1 h-4 w-4 text-[var(--text-muted)]" />
           {(["all", "positive", "neutral", "negative"] as const).map((r) => (
             <button
               key={r}
               onClick={() => setFilterRating(r)}
-              className={`h-8 cursor-pointer rounded-lg px-3 text-[13px] font-[500] transition-colors ${filterRating === r ? "bg-[#2F9E44] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+              className={`min-h-10 cursor-pointer rounded-xl px-3.5 text-[13px] font-medium transition-colors ${filterRating === r ? "bg-[var(--primary)] text-white" : "border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}
             >
               {r === "all"
                 ? "Tất cả"
@@ -313,33 +317,41 @@ export default function AdminFeedbackPage() {
               setReplyText(f.adminResponse || "");
               setReplyModalOpen(true);
             }}
-            className={`cursor-pointer rounded-xl border bg-white p-4 transition-all duration-200 hover:border-[#2F9E44] hover:shadow-md ${f.flagged ? "border-[#FB8C00] bg-[#FFF8E1]" : "border-[#E0E0E0]"}`}
+            className={`cursor-pointer rounded-2xl border p-4 transition-all duration-200 hover:border-[var(--primary)] hover:shadow-md ${
+              f.flagged
+                ? "border-amber-300 bg-amber-50/40 dark:border-amber-700/70 dark:bg-amber-950/20"
+                : "border-[var(--border)] bg-[var(--bg-card)]"
+            }`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
+            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
+              <div className="min-w-0 flex-1">
                 <div className="mb-2 flex flex-wrap items-center gap-2">
                   {f.sentiment === "positive" ? (
-                    <ThumbsUp className="h-4 w-4 text-[#2E7D32]" />
+                    <ThumbsUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   ) : f.sentiment === "negative" ? (
-                    <ThumbsDown className="h-4 w-4 text-[#E53935]" />
+                    <ThumbsDown className="h-4 w-4 text-red-600 dark:text-red-400" />
                   ) : null}
-                  <span className="text-[14px] font-[700] text-[#1B1B1B]">
+                  <span className="text-sm font-bold text-[var(--text-primary)]">
                     {f.farmer}
                   </span>
-                  <span className="text-[12px] text-[#9E9E9E]">·</span>
-                  <span className="text-[13px] font-[500] text-[#5C5C5C]">
+                  <span className="text-xs text-[var(--text-muted)]">·</span>
+                  <span className="text-[13px] font-medium text-[var(--text-secondary)]">
                     Chẩn đoán AI:{" "}
-                    <strong className="text-[#2E7D32]">{f.disease}</strong>
+                    <strong className="text-[var(--primary)]">
+                      {f.disease}
+                    </strong>
                   </span>
-                  <span className="text-[12px] text-[#9E9E9E]">·</span>
-                  <span className="text-[12px] text-[#9E9E9E]">{f.date}</span>
+                  <span className="text-xs text-[var(--text-muted)]">·</span>
+                  <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                    {f.date}
+                  </span>
                   <span
-                    className={`ml-2 rounded-full px-2.5 py-0.5 text-[11px] font-[600] ${
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                       f.status === "APPROVED"
-                        ? "bg-[#E6F4EA] text-[#1F6F2E]"
+                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
                         : f.status === "REJECTED"
-                          ? "bg-[#FFEBEE] text-[#C62828]"
-                          : "bg-[#FFF8E1] text-[#F57F17]"
+                          ? "bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                          : "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
                     }`}
                   >
                     {f.status === "APPROVED"
@@ -355,66 +367,66 @@ export default function AdminFeedbackPage() {
                   {f.starRating && (
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
-                        <span
+                        <Star
                           key={s}
-                          className={`text-[14px] ${
+                          className={`h-3.5 w-3.5 ${
                             s <= f.starRating!
-                              ? "text-[#FB8C00]"
-                              : "text-[#E0E0E0]"
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-[var(--border-strong)]"
                           }`}
-                        >
-                          ★
-                        </span>
+                        />
                       ))}
-                      <span className="ml-1 text-[12px] font-[600] text-[#FB8C00]">
+                      <span className="ml-1 text-xs font-semibold text-amber-600 tabular-nums dark:text-amber-400">
                         {f.starRating}/5
                       </span>
                     </div>
                   )}
                   {f.comment ? (
-                    <p className="text-[14px] leading-[1.6] font-medium text-[#333333]">
+                    <p className="text-sm leading-relaxed font-medium text-[var(--text-primary)]">
                       &quot;{f.comment}&quot;
                     </p>
                   ) : f.starRating ? (
-                    <p className="text-[13px] text-[#9E9E9E] italic">
+                    <p className="text-[13px] text-[var(--text-muted)] italic">
                       Chỉ chấm sao, không có nhận xét.
                     </p>
                   ) : (
-                    <p className="text-[13px] text-[#9E9E9E] italic">
+                    <p className="text-[13px] text-[var(--text-muted)] italic">
                       Chưa có đánh giá chi tiết.
                     </p>
                   )}
                 </div>
 
                 {/* Farmer reported actual diseases */}
-                <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[12px]">
-                  <span className="font-[600] text-[#757575]">
+                <div className="mb-1 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="font-semibold text-[var(--text-muted)]">
                     Thực tế ruộng:
                   </span>
-                  <span className="rounded bg-[#FFE0B2] px-2.5 py-0.5 font-[600] text-[#E65100]">
+                  <span className="rounded-md bg-amber-100/80 px-2.5 py-0.5 font-semibold text-amber-900 dark:bg-amber-950/50 dark:text-amber-300">
                     {f.actualDiseases}
                   </span>
                 </div>
 
                 {/* Admin response reply */}
                 {f.adminResponse && (
-                  <div className="mt-3 rounded-lg border border-dashed border-[#E0E0E0] bg-[#FAFAFA] p-3 text-[13px] transition-colors hover:border-[#2F9E44] hover:bg-[#F0F2F5]">
-                    <p className="mb-1 font-[700] text-[#5C5C5C]">
+                  <div className="mt-3 rounded-xl border border-dashed border-[var(--border)] bg-[var(--bg-subtle)] p-3 text-[13px] transition-colors hover:border-[var(--primary)]">
+                    <p className="mb-1 font-bold text-[var(--text-secondary)]">
                       Cán bộ chuyên môn phản hồi (Nhấn để chỉnh sửa):
                     </p>
-                    <p className="text-[#333333] italic">"{f.adminResponse}"</p>
+                    <p className="text-[var(--text-primary)] italic">
+                      &quot;{f.adminResponse}&quot;
+                    </p>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {f.diagnosis && (
                   <button
                     onClick={() => {
                       setSelectedDiagnosis(f.diagnosis || null);
                       setIsModalOpen(true);
                     }}
-                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#1976D2] px-3 text-[12px] font-[600] text-[#1976D2] transition-colors hover:bg-[#E3F2FD]"
+                    className="flex min-h-9 cursor-pointer items-center gap-1 rounded-lg border border-sky-500/40 px-3 text-xs font-semibold text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-950/30"
                   >
                     Xem Lịch sử
                   </button>
@@ -428,7 +440,7 @@ export default function AdminFeedbackPage() {
                         setReplyText(f.adminResponse || "");
                         setReplyModalOpen(true);
                       }}
-                      className="flex h-8 cursor-pointer items-center gap-1 rounded-md bg-[#2F9E44] px-3 text-[12px] font-[600] text-white transition-colors hover:bg-[#1F6F2E]"
+                      className="flex min-h-9 cursor-pointer items-center gap-1 rounded-lg bg-[var(--primary)] px-3 text-xs font-semibold text-white transition-colors hover:bg-[var(--primary-hover)]"
                     >
                       <CheckCircle className="h-3.5 w-3.5" /> Duyệt & Phản hồi
                     </button>
@@ -439,7 +451,7 @@ export default function AdminFeedbackPage() {
                         setReplyText(f.adminResponse || "");
                         setReplyModalOpen(true);
                       }}
-                      className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#E53935] px-3 text-[12px] font-[600] text-[#E53935] transition-colors hover:bg-[#FFEBEE]"
+                      className="flex min-h-9 cursor-pointer items-center gap-1 rounded-lg border border-red-300 px-3 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
                       <XCircle className="h-3.5 w-3.5" /> Từ chối
                     </button>
@@ -454,14 +466,14 @@ export default function AdminFeedbackPage() {
                       setReplyText(f.adminResponse || "");
                       setReplyModalOpen(true);
                     }}
-                    className="flex h-8 cursor-pointer items-center gap-1 rounded-md border border-[#2F9E44] px-3 text-[12px] font-[600] text-[#2F9E44] transition-colors hover:bg-[#E6F4EA]"
+                    className="flex min-h-9 cursor-pointer items-center gap-1 rounded-lg border border-[var(--primary)]/40 px-3 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)]"
                   >
                     Sửa phản hồi
                   </button>
                 )}
                 <button
                   onClick={() => toggleFlag(f.id)}
-                  className={`flex h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md px-2.5 text-[12px] font-[500] transition-colors ${f.flagged ? "bg-[#FB8C00] text-white" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#FFF3E0]"}`}
+                  className={`flex min-h-9 shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-xs font-medium transition-colors ${f.flagged ? "bg-amber-500 text-white" : "border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}
                 >
                   <Flag className="h-3.5 w-3.5" />
                   {f.flagged ? "Đang theo dõi" : "Theo dõi"}
@@ -471,39 +483,41 @@ export default function AdminFeedbackPage() {
           </div>
         ))}
         {filtered.length === 0 && (
-          <div className="rounded-xl border border-[#E0E0E0] bg-white py-12 text-center text-[#5C5C5C]">
-            Không tìm thấy phản hồi nào phù hợp.
-          </div>
+          <EmptyState
+            icon={<Search className="h-6 w-6" />}
+            title="Không tìm thấy phản hồi nào phù hợp"
+            description="Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm."
+          />
         )}
       </div>
 
       {/* Reply Modal */}
       {replyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="animate-in fade-in zoom-in-95 w-full max-w-[500px] rounded-2xl border border-[#E0E0E0] bg-white p-6 shadow-2xl duration-200">
-            <h3 className="mb-2 text-[18px] font-[700] text-[#1B1B1B]">
+          <div className="w-full max-w-[500px] rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-2xl">
+            <h3 className="mb-2 text-lg font-bold text-[var(--text-primary)]">
               Phản hồi & Xử lý ý kiến nông dân
             </h3>
-            <p className="mb-4 text-[13px] text-[#5C5C5C]">
+            <p className="mb-4 text-[13px] text-[var(--text-secondary)]">
               Cập nhật nội dung tư vấn kỹ thuật hoặc thay đổi trạng thái duyệt
               cho phản hồi này.
             </p>
 
-            <div className="mb-4 flex items-center gap-3">
-              <span className="text-[13px] font-[600] text-[#5C5C5C]">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="text-[13px] font-semibold text-[var(--text-secondary)]">
                 Trạng thái xử lý:
               </span>
               <button
                 type="button"
                 onClick={() => setProcessStatus("APPROVED")}
-                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "APPROVED" ? "border border-[#1F6F2E] bg-[#E6F4EA] text-[#1F6F2E] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-semibold transition-colors ${processStatus === "APPROVED" ? "border border-[var(--primary)] bg-[var(--primary-soft)] text-[var(--primary)] shadow-xs" : "border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}
               >
                 Duyệt
               </button>
               <button
                 type="button"
                 onClick={() => setProcessStatus("REJECTED")}
-                className={`h-8 cursor-pointer rounded-lg px-3 text-[12px] font-[600] transition-all duration-150 ${processStatus === "REJECTED" ? "border border-[#C62828] bg-[#FFEBEE] text-[#C62828] shadow-sm" : "border border-[#E0E0E0] text-[#5C5C5C] hover:bg-[#F0F2F5]"}`}
+                className={`min-h-9 cursor-pointer rounded-lg px-3 text-xs font-semibold transition-colors ${processStatus === "REJECTED" ? "border border-red-400 bg-red-50 text-red-700 shadow-xs dark:border-red-700 dark:bg-red-950/50 dark:text-red-300" : "border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"}`}
               >
                 Từ chối
               </button>
@@ -514,7 +528,7 @@ export default function AdminFeedbackPage() {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Ví dụ: Cần hạn chế bón phân đạm, tháo cạn nước ruộng và phun hoạt chất..."
-              className="mb-6 w-full resize-none rounded-xl border border-[#E0E0E0] p-4 text-[13px] focus:border-[#2F9E44] focus:ring-2 focus:ring-[#2F9E44]/10 focus:outline-none"
+              className="mb-6 w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15 focus:outline-none sm:text-sm"
             />
             <div className="flex justify-end gap-3">
               <button
@@ -524,13 +538,13 @@ export default function AdminFeedbackPage() {
                   setReplyText("");
                   setProcessStatus(null);
                 }}
-                className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] font-[500] text-[#5C5C5C] hover:bg-[#F0F2F5]"
+                className="min-h-11 cursor-pointer rounded-xl border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
               >
                 Hủy
               </button>
               <button
                 onClick={submitReply}
-                className={`h-10 cursor-pointer rounded-lg px-4 text-[14px] font-[600] text-white ${processStatus === "APPROVED" ? "bg-[#2F9E44] hover:bg-[#1F6F2E]" : "bg-[#E53935] hover:bg-[#C62828]"}`}
+                className={`min-h-11 cursor-pointer rounded-xl px-4 text-sm font-semibold text-white ${processStatus === "APPROVED" ? "bg-[var(--primary)] hover:bg-[var(--primary-hover)]" : "bg-red-600 hover:bg-red-700"}`}
               >
                 Xác nhận
               </button>

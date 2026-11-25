@@ -10,6 +10,8 @@ import {
   Users,
 } from "lucide-react";
 
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { adminService } from "@/services/admin.service";
 import { formatConfidenceToPercent } from "@/utils/format";
 
@@ -21,12 +23,29 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2F9E44]" />
-          <p className="mt-2 text-[14px] text-[#5C5C5C]">
-            Đang tải dữ liệu dashboard...
-          </p>
+      <div className="mx-auto max-w-[1200px] space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5"
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-7 w-24" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl lg:col-span-2" />
         </div>
       </div>
     );
@@ -92,12 +111,10 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1200px]">
-      <div className="mb-6">
-        <h1 className="text-[28px] font-[700] text-[#1B1B1B]">Dashboard</h1>
-        <p className="mt-1 text-[14px] text-[#5C5C5C]">
-          Tổng quan hệ thống Lúa Khoẻ AI
-        </p>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        description="Tổng quan hệ thống Lúa Khoẻ AI"
+      />
 
       {/* Stats Grid */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -106,21 +123,25 @@ export default function AdminDashboardPage() {
           return (
             <div
               key={s.label}
-              className="rounded-xl border border-[#E0E0E0] bg-white p-5 transition-shadow hover:shadow-md"
+              className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 shadow-xs transition-shadow hover:shadow-md"
             >
               <div className="mb-3 flex items-center justify-between">
                 <div
-                  className="flex h-10 w-10 items-center justify-center rounded-lg"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl"
                   style={{ backgroundColor: s.color + "1A" }}
                 >
                   <Icon className="h-5 w-5" style={{ color: s.color }} />
                 </div>
-                <span className="flex items-center gap-1 rounded-full bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[500] text-[#2F9E44]">
+                <span className="flex items-center gap-1 rounded-full bg-[var(--primary-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--primary)] tabular-nums">
                   <TrendingUp className="h-3 w-3" /> {s.change}
                 </span>
               </div>
-              <p className="text-[24px] font-[700] text-[#1B1B1B]">{s.value}</p>
-              <p className="mt-0.5 text-[13px] text-[#5C5C5C]">{s.label}</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">
+                {s.value}
+              </p>
+              <p className="mt-0.5 text-[13px] text-[var(--text-secondary)]">
+                {s.label}
+              </p>
             </div>
           );
         })}
@@ -129,25 +150,27 @@ export default function AdminDashboardPage() {
       {/* System Status + Recent */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* System Status */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-6">
-          <h2 className="mb-4 text-[16px] font-[600] text-[#1B1B1B]">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-xs">
+          <h2 className="mb-4 text-base font-semibold text-[var(--text-primary)]">
             Trạng thái hệ thống
           </h2>
           <div className="space-y-3">
             {[
               { label: "API Server", status: "Online" },
-              { label: "AI Model (YOLOv8)", status: "Active" },
+              { label: "AI Inference Service (ONNX)", status: "Active" },
               { label: "RAG Pipeline", status: "Active" },
               { label: "PostgreSQL Database", status: "Connected" },
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center justify-between border-b border-[#F0F2F5] py-2 last:border-0"
+                className="flex items-center justify-between border-b border-[var(--border)] py-2 last:border-0"
               >
-                <span className="text-[14px] text-[#5C5C5C]">{item.label}</span>
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {item.label}
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-[#2F9E44]" />
-                  <span className="text-[13px] font-[500] text-[#2F9E44]">
+                  <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+                  <span className="text-[13px] font-medium text-[var(--primary)]">
                     {item.status}
                   </span>
                 </div>
@@ -157,75 +180,107 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Diagnoses */}
-        <div className="rounded-xl border border-[#E0E0E0] bg-white p-6 lg:col-span-2">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-xs lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[16px] font-[600] text-[#1B1B1B]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">
               Chẩn đoán gần đây
             </h2>
-            <Activity className="h-4 w-4 text-[#5C5C5C]" />
+            <Activity className="h-4 w-4 text-[var(--text-muted)]" />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#E0E0E0]">
-                  <th className="py-3 text-left text-[13px] font-[600] text-[#5C5C5C]">
-                    Nông dân
-                  </th>
-                  <th className="py-3 text-left text-[13px] font-[600] text-[#5C5C5C]">
-                    Bệnh phát hiện
-                  </th>
-                  <th className="py-3 text-center text-[13px] font-[600] text-[#5C5C5C]">
-                    Độ tin cậy
-                  </th>
-                  <th className="py-3 text-right text-[13px] font-[600] text-[#5C5C5C]">
-                    Thời gian
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentDiagnoses.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="py-6 text-center text-[14px] text-[#9E9E9E]"
-                    >
-                      Chưa có lượt chẩn đoán nào được thực hiện.
-                    </td>
-                  </tr>
-                ) : (
-                  recentDiagnoses.map((d: any) => (
-                    <tr
-                      key={d.id}
-                      className="border-b border-[#F0F2F5] last:border-0 hover:bg-[#F7F7F7]"
-                    >
-                      <td className="py-3 text-[14px] font-[500] text-[#1B1B1B]">
+
+          {recentDiagnoses.length === 0 ? (
+            <p className="py-8 text-center text-sm text-[var(--text-muted)]">
+              Chưa có lượt chẩn đoán nào được thực hiện.
+            </p>
+          ) : (
+            <>
+              {/* Mobile card list */}
+              <div className="space-y-3 md:hidden">
+                {recentDiagnoses.map((d: any) => (
+                  <div
+                    key={d.id}
+                    className="rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-3.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">
                         {d.farmer}
-                      </td>
-                      <td className="py-3 text-[14px] text-[#5C5C5C]">
-                        {d.disease}
-                      </td>
-                      <td className="py-3 text-center">
-                        <span
-                          className={`text-[13px] font-[500] ${
-                            d.confidence >= 0.95 || d.confidence >= 95
-                              ? "text-[#2E7D32]"
-                              : d.confidence >= 0.9 || d.confidence >= 90
-                                ? "text-[#FB8C00]"
-                                : "text-[#E53935]"
-                          }`}
-                        >
-                          {formatConfidenceToPercent(d.confidence)}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right text-[13px] text-[#9E9E9E]">
-                        {formatTime(d.time)}
-                      </td>
+                      </span>
+                      <span
+                        className={`text-xs font-semibold tabular-nums ${
+                          d.confidence >= 0.95 || d.confidence >= 95
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : d.confidence >= 0.9 || d.confidence >= 90
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {formatConfidenceToPercent(d.confidence)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                      {d.disease}
+                    </p>
+                    <p className="mt-1 text-[11px] text-[var(--text-muted)] tabular-nums">
+                      {formatTime(d.time)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[var(--border)]">
+                      <th className="py-3 text-left text-[13px] font-semibold text-[var(--text-secondary)]">
+                        Nông dân
+                      </th>
+                      <th className="py-3 text-left text-[13px] font-semibold text-[var(--text-secondary)]">
+                        Bệnh phát hiện
+                      </th>
+                      <th className="py-3 text-center text-[13px] font-semibold text-[var(--text-secondary)]">
+                        Độ tin cậy
+                      </th>
+                      <th className="py-3 text-right text-[13px] font-semibold text-[var(--text-secondary)]">
+                        Thời gian
+                      </th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {recentDiagnoses.map((d: any) => (
+                      <tr
+                        key={d.id}
+                        className="border-b border-[var(--border)] transition-colors last:border-0 hover:bg-[var(--bg-hover)]"
+                      >
+                        <td className="py-3 text-sm font-medium text-[var(--text-primary)]">
+                          {d.farmer}
+                        </td>
+                        <td className="py-3 text-sm text-[var(--text-secondary)]">
+                          {d.disease}
+                        </td>
+                        <td className="py-3 text-center">
+                          <span
+                            className={`text-[13px] font-semibold tabular-nums ${
+                              d.confidence >= 0.95 || d.confidence >= 95
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : d.confidence >= 0.9 || d.confidence >= 90
+                                  ? "text-amber-600 dark:text-amber-400"
+                                  : "text-red-600 dark:text-red-400"
+                            }`}
+                          >
+                            {formatConfidenceToPercent(d.confidence)}
+                          </span>
+                        </td>
+                        <td className="py-3 text-right text-[13px] text-[var(--text-muted)] tabular-nums">
+                          {formatTime(d.time)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

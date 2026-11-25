@@ -1,7 +1,8 @@
 "use client";
 
-import { Image } from "antd";
-import { Download, ImageIcon, Share2 } from "lucide-react";
+import { Image, message } from "antd";
+import { Download, ImageIcon, Share2, ZoomIn } from "lucide-react";
+import { useState } from "react";
 
 interface ResultImagePreviewProps {
   originalImageUrl?: string;
@@ -10,37 +11,78 @@ interface ResultImagePreviewProps {
   diseaseName: string;
 }
 
+interface ImageItem {
+  key: string;
+  url: string;
+  label: string;
+  maskText: string;
+  badgeClass: string;
+}
+
 export function ResultImagePreview({
   originalImageUrl,
   resultImageUrl,
   supplementImageUrl,
   diseaseName,
 }: ResultImagePreviewProps) {
-  const activeImages = [
-    { url: originalImageUrl, label: "Ảnh gốc", maskText: "Phóng to ảnh gốc" },
-    { url: resultImageUrl, label: "AI Phân tích", maskText: "Phóng to ảnh AI" },
-    {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const hasDistinctAiImage =
+    Boolean(resultImageUrl) && resultImageUrl !== originalImageUrl;
+
+  const activeImages: ImageItem[] = [];
+
+  if (hasDistinctAiImage && resultImageUrl) {
+    activeImages.push({
+      key: "ai",
+      url: resultImageUrl,
+      label: "AI Phân tích",
+      maskText: "Phóng to ảnh AI phân tích",
+      badgeClass: "bg-primary text-white",
+    });
+  }
+
+  if (originalImageUrl) {
+    activeImages.push({
+      key: "original",
+      url: originalImageUrl,
+      label: hasDistinctAiImage ? "Ảnh gốc" : "Ảnh lá lúa",
+      maskText: "Phóng to ảnh gốc",
+      badgeClass: "bg-black/70 text-white",
+    });
+  } else if (resultImageUrl && !hasDistinctAiImage) {
+    activeImages.push({
+      key: "result-fallback",
+      url: resultImageUrl,
+      label: "Ảnh chẩn đoán",
+      maskText: "Phóng to ảnh chẩn đoán",
+      badgeClass: "bg-primary text-white",
+    });
+  }
+
+  if (supplementImageUrl) {
+    activeImages.push({
+      key: "supplement",
       url: supplementImageUrl,
       label: "Ảnh cận cảnh",
       maskText: "Phóng to ảnh cận cảnh",
-    },
-  ].filter((item) => Boolean(item.url));
+      badgeClass: "bg-sky-600 text-white",
+    });
+  }
 
-  const count = activeImages.length;
+  if (activeImages.length === 0) {
+    return null;
+  }
 
-  const gridClass =
-    count === 3
-      ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
-      : count === 2
-        ? "grid-cols-1 sm:grid-cols-2"
-        : "grid-cols-1";
-
-  const primaryDownloadUrl =
-    resultImageUrl || originalImageUrl || supplementImageUrl || "";
+  const safeIndex =
+    selectedIndex >= 0 && selectedIndex < activeImages.length
+      ? selectedIndex
+      : 0;
+  const currentImage = activeImages[safeIndex];
 
   const handleDownload = () => {
-    if (primaryDownloadUrl) {
-      window.open(primaryDownloadUrl, "_blank");
+    if (currentImage?.url) {
+      window.open(currentImage.url, "_blank", "noopener,noreferrer");
     }
   };
 
@@ -52,79 +94,142 @@ export function ResultImagePreview({
           url: window.location.href,
         });
       } catch {
-        // user cancelled share
+        // User cancelled native share sheet
       }
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Đã sao chép đường dẫn chia sẻ vào bộ nhớ tạm!");
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        message.success("Đã sao chép đường dẫn chia sẻ vào bộ nhớ tạm!");
+      } catch {
+        message.error("Không thể sao chép đường dẫn.");
+      }
     }
   };
 
-  if (count === 0) {
-    return null;
-  }
-
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#E0E0E0] bg-white p-5 shadow-sm transition-all hover:shadow-md">
-      <div className="mb-4 flex items-center justify-between border-b border-[#F0F0F0] pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F7F7F7] text-[#5C5C5C]">
-            <ImageIcon className="h-4.5 w-4.5" />
-          </div>
-          <h3 className="text-[17px] font-[700] text-[#1B1B1B]">
-            Hình ảnh chẩn đoán chi tiết ({count})
-          </h3>
-        </div>
-        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[12px] font-[600] text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400">
-          💡 Click ảnh để so sánh & thu phóng
-        </span>
-      </div>
-
-      <Image.PreviewGroup>
-        <div className={`grid ${gridClass} gap-4`}>
-          {activeImages.map((img, idx) => (
+    <section className="border-border bg-bg-card flex h-full flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-xs sm:p-5">
+      <div className="space-y-3">
+        {/* Top Switcher Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {activeImages.length > 1 ? (
             <div
-              key={idx}
-              onClick={(e) => e.stopPropagation()}
-              className="relative aspect-[4/3] overflow-hidden rounded-xl border border-[#E0E0E0]/60 bg-gray-50 transition-shadow hover:shadow-sm sm:aspect-[16/10]"
+              role="tablist"
+              aria-label="Chế độ xem hình ảnh"
+              className="bg-bg-subtle inline-flex flex-wrap items-center gap-1 rounded-xl p-1"
             >
-              <Image
-                src={img.url}
-                alt={img.label}
-                className="object-cover"
-                style={{ width: "100%", height: "100%" }}
-                preview={{ mask: img.maskText }}
-              />
-              <div
-                className={`absolute bottom-3 left-3 z-10 rounded-md px-2.5 py-1 text-xs font-[700] text-white shadow-xs select-none ${
-                  img.label === "AI Phân tích"
-                    ? "bg-[#2F9E44]/90"
-                    : img.label === "Ảnh cận cảnh"
-                      ? "bg-blue-600/90"
-                      : "bg-black/60"
-                }`}
-              >
-                {img.label}
-              </div>
+              {activeImages.map((img, idx) => {
+                const isActive = idx === safeIndex;
+                return (
+                  <button
+                    key={img.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setSelectedIndex(idx)}
+                    className={`cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-bg-card text-text-primary shadow-xs"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    {img.label}
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </Image.PreviewGroup>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="bg-bg-subtle text-text-secondary flex h-8 w-8 items-center justify-center rounded-lg">
+                <ImageIcon className="h-4 w-4" />
+              </span>
+              <span className="text-text-primary text-sm font-bold">
+                Hình ảnh mẫu lá lúa
+              </span>
+            </div>
+          )}
 
-      <div className="mt-5 flex flex-wrap justify-end gap-2.5 border-t border-[#F0F0F0] pt-4">
+          <span className="bg-primary-soft text-primary inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold">
+            <ZoomIn className="h-3 w-3" />
+            Phóng to
+          </span>
+        </div>
+
+        {/* Interactive Image Stage */}
+        <Image.PreviewGroup>
+          <div className="border-border bg-bg-subtle relative aspect-[4/3] w-full overflow-hidden rounded-xl border">
+            <Image
+              src={currentImage.url}
+              alt={currentImage.label}
+              className="object-cover"
+              style={{ width: "100%", height: "100%" }}
+              preview={{ mask: currentImage.maskText }}
+            />
+            <span
+              className={`pointer-events-none absolute bottom-2.5 left-2.5 z-10 rounded-md px-2.5 py-1 text-[11px] font-bold shadow-xs select-none ${currentImage.badgeClass}`}
+            >
+              {currentImage.label}
+            </span>
+          </div>
+
+          {/* Keep remaining images mounted inside PreviewGroup for lightbox navigation */}
+          {activeImages.length > 1 && (
+            <div className="hidden" aria-hidden="true">
+              {activeImages.map((img, idx) =>
+                idx === safeIndex ? null : (
+                  <Image key={img.key} src={img.url} alt={img.label} />
+                ),
+              )}
+            </div>
+          )}
+        </Image.PreviewGroup>
+
+        {/* Thumbnail Strip */}
+        {activeImages.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+            {activeImages.map((img, idx) => {
+              const isActive = idx === safeIndex;
+              return (
+                <button
+                  key={img.key}
+                  type="button"
+                  onClick={() => setSelectedIndex(idx)}
+                  className={`relative h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg border-2 transition-all ${
+                    isActive
+                      ? "border-primary ring-primary/25 ring-2"
+                      : "border-border opacity-70 hover:opacity-100"
+                  }`}
+                  aria-label={`Xem ${img.label}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={img.url}
+                    alt={img.label}
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Footer Quick Actions */}
+      <div className="border-border mt-4 flex items-center gap-2.5 border-t pt-3.5">
         <button
+          type="button"
           onClick={handleDownload}
-          className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-[#E0E0E0] px-4 text-[14px] font-[600] text-[#5C5C5C] transition-colors hover:bg-[#F7F7F7] hover:text-[#1B1B1B]"
+          className="border-border bg-bg-subtle/70 text-text-primary hover:bg-bg-hover flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-semibold transition-colors sm:text-sm"
         >
-          <Download className="h-4 w-4" /> Tải ảnh về
+          <Download className="h-4 w-4" /> Tải ảnh
         </button>
         <button
+          type="button"
           onClick={handleShare}
-          className="flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#2F9E44] px-4 text-[14px] font-[600] text-white shadow-sm transition-colors hover:bg-[#1F6F2E]"
+          className="bg-primary hover:bg-primary-hover flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 text-xs font-semibold text-white shadow-xs transition-colors sm:text-sm"
         >
-          <Share2 className="h-4 w-4" /> Chia sẻ kết quả
+          <Share2 className="h-4 w-4" /> Chia sẻ
         </button>
       </div>
-    </div>
+    </section>
   );
 }

@@ -17,25 +17,27 @@ export function ProfileHeaderCard({ user, profile }: ProfileHeaderCardProps) {
       ? `${activeProfile.lastName || ""} ${activeProfile.firstName || ""}`.trim()
       : user?.username || "Người dùng";
 
-  const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : "Farmer";
+  const roleLabel = user?.role === "ADMIN" ? "Quản trị viên" : "Nông dân";
 
   return (
-    <Card className="rounded-2xl border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-      <div className="flex items-center gap-5">
+    <Card className="rounded-2xl border-[var(--border)] bg-[var(--bg-card)] shadow-sm transition-colors duration-200 hover:shadow-md">
+      <div className="flex flex-wrap items-center gap-5">
         <AvatarUpload
           avatarUrl={user?.avatarUrl || ""}
           username={user?.username || ""}
         />
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-gray-800">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-xl font-bold text-[var(--text-primary)]">
               {displayName}
             </span>
-            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-600/20 ring-inset">
+            <span className="inline-flex items-center rounded-full bg-[var(--primary-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--primary)]">
               {roleLabel}
             </span>
           </div>
-          <div className="mt-0.5 text-sm text-gray-500">{user?.email}</div>
+          <div className="mt-0.5 truncate text-sm text-[var(--text-secondary)]">
+            {user?.email}
+          </div>
         </div>
       </div>
     </Card>

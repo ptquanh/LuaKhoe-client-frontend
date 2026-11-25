@@ -90,15 +90,15 @@ export function EditModelModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-      <div className="relative w-full max-w-[500px] overflow-hidden rounded-xl bg-white p-6 shadow-xl transition-all">
+      <div className="relative w-full max-w-[500px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-xl transition-all">
         {/* Full Modal Glassmorphic Lock Overlay to prevent user escape */}
         {isUpdating && (
-          <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-white/90 p-6 text-center backdrop-blur-[1px]">
-            <Loader2 className="h-12 w-12 animate-spin text-[#2F9E44]" />
-            <h4 className="mt-4 text-[16px] font-[600] text-[#1B1B1B]">
+          <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-[var(--bg-card)]/90 p-6 text-center backdrop-blur-[1px]">
+            <Loader2 className="h-12 w-12 animate-spin text-[var(--primary)]" />
+            <h4 className="mt-4 text-base font-semibold text-[var(--text-primary)]">
               Đang chỉnh sửa và cấu hình lại Model AI
             </h4>
-            <p className="mt-2 max-w-[320px] text-[13px] text-[#5C5C5C]">
+            <p className="mt-2 max-w-[320px] text-[13px] text-[var(--text-secondary)]">
               Tệp tin và thông tin mới đang được ghi đè lên Cloudflare R2, hệ
               thống đang tự động thay thế local cache và nạp lại mô hình. Vui
               lòng không đóng trình duyệt hoặc tải lại trang!
@@ -108,12 +108,12 @@ export function EditModelModal({
 
         <div className="mb-4 flex items-center justify-between">
           <div className="flex flex-col">
-            <h3 className="text-[18px] font-[600] text-[#1B1B1B]">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               Chỉnh sửa mô hình AI
             </h3>
-            <span className="text-[12px] text-[#8C8C8C]">
+            <span className="text-xs text-[var(--text-muted)]">
               Model ID:{" "}
-              <span className="rounded bg-[#F5F5F5] px-1 py-0.5 font-mono text-[11px]">
+              <span className="rounded bg-[var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
                 {model.id}
               </span>
             </span>
@@ -121,15 +121,15 @@ export function EditModelModal({
           <button
             onClick={onClose}
             disabled={isUpdating}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <X className="h-5 w-5 text-[#5C5C5C]" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
+            <label className="mb-1.5 block text-sm font-medium text-[var(--text-primary)]">
               Version Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -138,14 +138,14 @@ export function EditModelModal({
               onChange={(e) => setVersionName(e.target.value)}
               disabled={isUpdating}
               placeholder="Ví dụ: v3.3.0"
-              className="h-10 w-full rounded-lg border border-[#E0E0E0] px-3 text-[14px] focus:border-[#2F9E44] focus:outline-none disabled:bg-[#F5F5F5] disabled:text-[#8C8C8C]"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none disabled:bg-[var(--bg-subtle)] disabled:text-[var(--text-muted)] sm:text-sm"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
+            <label className="mb-1.5 block text-sm font-medium text-[var(--text-primary)]">
               Ghi đè ONNX Binary File{" "}
-              <span className="text-[12px] font-[400] text-[#8C8C8C]">
+              <span className="text-xs font-normal text-[var(--text-muted)]">
                 (Tùy chọn)
               </span>
             </label>
@@ -154,14 +154,12 @@ export function EditModelModal({
               onDragOver={!isUpdating ? handleDrag : undefined}
               onDragLeave={!isUpdating ? handleDrag : undefined}
               onDrop={!isUpdating ? handleDrop : undefined}
-              className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-all ${
+              className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-8 transition-colors ${
                 isUpdating
-                  ? "cursor-not-allowed border-[#E0E0E0] bg-[#F5F5F5]"
-                  : dragActive
-                    ? "border-[#2F9E44] bg-[#E6F4EA]"
-                    : selectedFile
-                      ? "border-[#2F9E44] bg-[#F4FBF7]"
-                      : "border-[#E0E0E0] bg-[#FAFAFA] hover:bg-[#F0F2F5]"
+                  ? "cursor-not-allowed border-[var(--border)] bg-[var(--bg-subtle)]"
+                  : dragActive || selectedFile
+                    ? "border-[var(--primary)] bg-[var(--primary-soft)]/50"
+                    : "border-[var(--border-strong)] bg-[var(--bg-subtle)] hover:bg-[var(--bg-hover)]"
               }`}
             >
               {!isUpdating && (
@@ -173,14 +171,14 @@ export function EditModelModal({
                 />
               )}
               <Upload
-                className={`h-8 w-8 ${selectedFile ? "text-[#2F9E44]" : "text-[#8C8C8C]"}`}
+                className={`h-8 w-8 ${selectedFile ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}
               />
-              <p className="mt-2 max-w-[280px] text-center text-[14px] font-[500] text-[#1B1B1B]">
+              <p className="mt-2 max-w-[280px] text-center text-sm font-medium text-[var(--text-primary)]">
                 {selectedFile
                   ? selectedFile.name
                   : "Kéo thả file .onnx mới vào đây để ghi đè file cũ (Bỏ trống để giữ nguyên)"}
               </p>
-              <p className="mt-1 text-[12px] text-[#8C8C8C]">
+              <p className="mt-1 text-xs text-[var(--text-muted)] tabular-nums">
                 {selectedFile
                   ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
                   : "Định dạng cho phép: .onnx"}
@@ -192,7 +190,7 @@ export function EditModelModal({
                     e.stopPropagation();
                     setSelectedFile(null);
                   }}
-                  className="mt-3 rounded bg-[#FFECEB] px-2.5 py-1 text-[12px] font-[500] text-[#E03131] hover:bg-[#FFE3E3]"
+                  className="mt-3 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400"
                 >
                   Bỏ chọn file mới
                 </button>
@@ -201,7 +199,7 @@ export function EditModelModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-[14px] font-[500] text-[#1B1B1B]">
+            <label className="mb-1.5 block text-sm font-medium text-[var(--text-primary)]">
               Release Notes
             </label>
             <textarea
@@ -210,7 +208,7 @@ export function EditModelModal({
               disabled={isUpdating}
               rows={3}
               placeholder="Mô tả các thay đổi hoặc độ chính xác mAP..."
-              className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[14px] focus:border-[#2F9E44] focus:outline-none disabled:bg-[#F5F5F5] disabled:text-[#8C8C8C]"
+              className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2 text-base text-[var(--text-primary)] focus:border-[var(--primary)] focus:outline-none disabled:bg-[var(--bg-subtle)] disabled:text-[var(--text-muted)] sm:text-sm"
             />
           </div>
         </div>
@@ -219,14 +217,14 @@ export function EditModelModal({
           <button
             onClick={onClose}
             disabled={isUpdating}
-            className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] px-4 text-[14px] text-[#5C5C5C] hover:bg-[#F0F2F5] disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 cursor-pointer rounded-xl border border-[var(--border)] px-4 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Hủy
           </button>
           <button
             onClick={handleSave}
             disabled={isUpdating}
-            className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] text-white hover:bg-[#1F6F2E] disabled:opacity-50"
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
           >
             {isUpdating ? (
               <Loader2 className="h-4 w-4 animate-spin" />

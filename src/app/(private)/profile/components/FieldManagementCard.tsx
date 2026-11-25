@@ -193,16 +193,16 @@ export function FieldManagementCard() {
 
   return (
     <Card
-      className="rounded-2xl border-gray-100 font-[Inter,sans-serif] shadow-sm transition-all duration-200 hover:shadow-md"
+      className="rounded-2xl border-[var(--border)] bg-[var(--bg-card)] shadow-sm transition-colors duration-200 hover:shadow-md"
       title={
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-800">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-lg font-bold text-[var(--text-primary)]">
             Quản lý vị trí ruộng đất
           </span>
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 rounded-xl bg-[#22c55e] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-all hover:scale-[1.02] hover:bg-green-600"
+            className="flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--primary)] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)]"
           >
             <Plus className="h-3.5 w-3.5" />
             Thêm ruộng mới
@@ -211,7 +211,7 @@ export function FieldManagementCard() {
       }
     >
       <div className="mb-6">
-        <p className="text-[13.5px] leading-relaxed text-gray-500">
+        <p className="text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
           Đăng ký các ruộng canh tác của bạn để nhận thông tin thời tiết chính
           xác từng khu vực, hỗ trợ tối đa cho việc khoanh vùng dịch tễ và chẩn
           đoán bệnh lúa.
@@ -220,13 +220,15 @@ export function FieldManagementCard() {
 
       {isLoading ? (
         <div className="flex h-36 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-[#22c55e]" />
+          <Loader2 className="h-6 w-6 animate-spin text-[var(--primary)]" />
         </div>
       ) : fields.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 p-8 text-center text-gray-400">
-          <MapPin className="mx-auto mb-3 h-8 w-8 text-gray-300" />
-          <p className="text-sm font-medium">Bạn chưa lưu vị trí ruộng nào</p>
-          <p className="mt-1 text-xs text-gray-400">
+        <div className="rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--bg-subtle)] p-8 text-center text-[var(--text-muted)]">
+          <MapPin className="mx-auto mb-3 h-8 w-8 text-[var(--text-muted)]" />
+          <p className="text-sm font-medium text-[var(--text-primary)]">
+            Bạn chưa lưu vị trí ruộng nào
+          </p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">
             Hãy thêm mảnh ruộng đầu tiên để bắt đầu lưu dữ liệu chẩn đoán nhanh.
           </p>
         </div>
@@ -237,43 +239,43 @@ export function FieldManagementCard() {
               key={field.id}
               className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all duration-200 ${
                 field.isDefault
-                  ? "border-[#22c55e] bg-[#f0fdf4]/40 shadow-xs"
-                  : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-xs"
+                  ? "border-[var(--primary)] bg-[var(--primary-soft)]/40 shadow-xs"
+                  : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--border-strong)] hover:shadow-xs"
               }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <h4 className="line-clamp-1 text-[14.5px] font-bold text-gray-800">
+                  <h4 className="line-clamp-1 text-[14.5px] font-bold text-[var(--text-primary)]">
                     {field.fieldName}
                   </h4>
                   {field.isDefault && (
-                    <span className="flex items-center gap-1 rounded-full bg-[#22c55e] px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
+                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--primary)] px-2 py-0.5 text-[10px] font-bold tracking-wider text-white uppercase">
                       <Check className="h-2.5 w-2.5 stroke-[3]" />
                       Mặc định
                     </span>
                   )}
                 </div>
 
-                <div className="mt-2.5 space-y-1.5 text-[12.5px] text-gray-500">
+                <div className="mt-2.5 space-y-1.5 text-[12.5px] text-[var(--text-secondary)]">
                   <div className="flex items-start gap-1.5">
-                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#22c55e]" />
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--primary)]" />
                     <span className="line-clamp-2">
                       {field.address || "Chưa xác định địa chỉ"}
                     </span>
                   </div>
-                  <div className="pl-5 font-mono text-[11px] text-gray-400">
+                  <div className="pl-5 font-mono text-[11px] text-[var(--text-muted)] tabular-nums">
                     Tọa độ: {Number(field.gpsLat).toFixed(5)},{" "}
                     {Number(field.gpsLng).toFixed(5)}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-gray-50 pt-3">
+              <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3">
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleOpenEditModal(field)}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-gray-100 text-gray-500 transition-all hover:bg-gray-50 hover:text-gray-700"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                     title="Chỉnh sửa"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
@@ -282,7 +284,7 @@ export function FieldManagementCard() {
                     type="button"
                     onClick={() => handleDeleteField(field)}
                     disabled={isDeleting}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-50 text-red-500 transition-all hover:bg-red-50/50"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-red-200 text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
                     title="Xóa"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -293,7 +295,7 @@ export function FieldManagementCard() {
                   <button
                     type="button"
                     onClick={() => handleSetDefault(field)}
-                    className="cursor-pointer text-[12px] font-semibold text-[#22c55e] transition-all hover:text-green-600"
+                    className="min-h-10 cursor-pointer px-2 text-xs font-semibold text-[var(--primary)] transition-colors hover:text-[var(--primary-hover)]"
                   >
                     Đặt mặc định
                   </button>
@@ -307,7 +309,7 @@ export function FieldManagementCard() {
       {/* Unified Add/Edit Modal */}
       <Modal
         title={
-          <span className="text-base font-bold text-gray-800">
+          <span className="text-base font-bold text-[var(--text-primary)]">
             {editingField ? "Chỉnh sửa vị trí ruộng" : "Thêm vị trí ruộng mới"}
           </span>
         }
@@ -316,7 +318,6 @@ export function FieldManagementCard() {
         footer={null}
         width={650}
         destroyOnHidden
-        className="font-[Inter,sans-serif]"
       >
         <div className="mt-4 space-y-4">
           {error && (
@@ -332,25 +333,25 @@ export function FieldManagementCard() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-600">
+              <label className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">
                 Tên gợi nhớ của ruộng <span className="text-red-500">*</span>
               </label>
               <Input
                 placeholder="Ví dụ: Ruộng Thượng Điền 1"
                 value={fieldName}
                 onChange={(e) => setFieldName(e.target.value)}
-                className="h-10 rounded-xl border-gray-200"
+                className="h-11 rounded-xl text-base sm:h-10 sm:text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gray-600">
+              <label className="mb-1 block text-xs font-semibold text-[var(--text-secondary)]">
                 Địa chỉ chữ (Tùy chọn)
               </label>
               <Input
                 placeholder="Tự động điền hoặc tự nhập..."
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="h-10 rounded-xl border-gray-200"
+                className="h-11 rounded-xl text-base sm:h-10 sm:text-sm"
               />
             </div>
           </div>
@@ -361,7 +362,7 @@ export function FieldManagementCard() {
                 type="button"
                 onClick={handleGetCurrentLocation}
                 disabled={isGettingLocation}
-                className="flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#22c55e] bg-white text-[12.5px] font-semibold text-[#22c55e] transition-all hover:bg-green-50/50 disabled:opacity-50"
+                className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--primary)] bg-[var(--bg-card)] text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--primary-soft)] disabled:opacity-50"
               >
                 {isGettingLocation ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -383,13 +384,13 @@ export function FieldManagementCard() {
                     handleSearchAddress();
                   }
                 }}
-                className="h-10 rounded-xl border-gray-200 pr-12"
+                className="h-11 rounded-xl pr-12 text-base sm:h-10 sm:text-sm"
               />
               <button
                 type="button"
                 onClick={handleSearchAddress}
                 disabled={isSearching}
-                className="absolute top-1 right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-[#22c55e] text-white hover:bg-green-600 disabled:opacity-50"
+                className="absolute top-1.5 right-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] disabled:opacity-50 sm:top-1 sm:right-1"
               >
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -401,12 +402,12 @@ export function FieldManagementCard() {
           </div>
 
           {/* Leaflet interactive Map */}
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+          <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)]">
             <div className="h-[280px] w-full">
               <Suspense
                 fallback={
                   <div className="flex h-full w-full items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#22c55e]" />
+                    <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
                   </div>
                 }
               >
@@ -420,12 +421,12 @@ export function FieldManagementCard() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between border-t border-gray-50 py-2">
+          <div className="flex items-center justify-between border-t border-[var(--border)] py-2">
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold text-gray-700">
+              <span className="text-xs font-semibold text-[var(--text-primary)]">
                 Ruộng mặc định
               </span>
-              <span className="text-[11px] text-gray-400">
+              <span className="text-[11px] text-[var(--text-muted)]">
                 Luôn tự động chọn ruộng này lúc chẩn đoán bệnh
               </span>
             </div>
@@ -434,17 +435,16 @@ export function FieldManagementCard() {
               disabled={
                 fields.length === 0 ||
                 (editingField?.isDefault && fields.length > 1)
-              } // Don't allow toggling off if it's the only default field
+              }
               onChange={(checked) => setIsDefault(checked)}
-              className={isDefault ? "bg-[#22c55e]" : ""}
             />
           </div>
 
-          <div className="flex justify-end gap-3 border-t border-gray-50 pt-3">
+          <div className="flex justify-end gap-3 border-t border-[var(--border)] pt-3">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="cursor-pointer rounded-xl border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 transition-all hover:bg-gray-50"
+              className="min-h-11 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-5 py-2 text-sm font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
             >
               Hủy
             </button>
@@ -452,7 +452,7 @@ export function FieldManagementCard() {
               type="button"
               onClick={handleSaveField}
               disabled={isSaving}
-              className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-[#22c55e] px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 disabled:opacity-50"
+              className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl bg-[var(--primary)] px-6 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50"
             >
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               {editingField ? "Lưu thay đổi" : "Lưu ruộng mới"}

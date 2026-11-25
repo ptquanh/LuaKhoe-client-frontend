@@ -96,7 +96,7 @@ export default function CommentInput({
     <div className="flex flex-1 flex-col gap-2">
       {/* Image Preview Thumbnail */}
       {previewUrl && (
-        <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-[var(--border)]">
           <Image
             src={previewUrl || undefined}
             alt="Preview attachment"
@@ -107,7 +107,7 @@ export default function CommentInput({
           <button
             type="button"
             onClick={removeImage}
-            className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-rose-600 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
+            className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-600 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none"
             aria-label="Hủy ảnh đính kèm"
           >
             <X className="h-3 w-3" />
@@ -123,7 +123,7 @@ export default function CommentInput({
             placeholder={placeholder}
             maxLength={1000}
             aria-label={placeholder}
-            className="w-full resize-none rounded-xl border border-[#E0E0E0] bg-[#F7F7F7] p-3 pr-12 pb-8 text-[14px] placeholder-[#9E9E9E] focus:border-[#2F9E44] focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+            className="w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-3 pr-12 pb-8 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--primary)] focus:outline-none sm:text-sm"
             rows={1}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -132,7 +132,7 @@ export default function CommentInput({
               }
             }}
           />
-          <span className="absolute right-3 bottom-2 text-[10px] font-medium text-[#9E9E9E] dark:text-gray-500">
+          <span className="absolute right-3 bottom-2 text-[10px] font-medium text-[var(--text-muted)] tabular-nums">
             {content.length}/1000
           </span>
 
@@ -150,7 +150,7 @@ export default function CommentInput({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Đính kèm ảnh"
-            className="absolute top-2 right-2 rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-green-600 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:outline-none dark:hover:bg-gray-700"
+            className="absolute top-2 right-2 rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none"
           >
             <Camera className="h-4 w-4" />
           </button>
@@ -160,7 +160,7 @@ export default function CommentInput({
           type="button"
           onClick={handleSubmitClick}
           disabled={(!content.trim() && !image) || isPending}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2F9E44] p-3 text-white transition-colors hover:bg-[#1F6F2E] focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 focus-visible:outline-none disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] p-3 text-white transition-colors hover:bg-[var(--primary-hover)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:outline-none disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />

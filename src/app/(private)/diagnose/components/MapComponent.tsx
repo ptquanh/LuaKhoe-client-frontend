@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+import L from "leaflet";
+import { useEffect, useRef } from "react";
 
 // Fix Leaflet's default icon paths
 delete (L.Icon.Default.prototype as any)._getIconUrl;

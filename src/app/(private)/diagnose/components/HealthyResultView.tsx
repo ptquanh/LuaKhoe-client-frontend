@@ -1,23 +1,23 @@
+import { CheckCircle2 } from "lucide-react";
+
 interface HealthyResultViewProps {
   diseaseName: string;
   confidencePercent: number;
 }
 
-export function HealthyResultView({
-  diseaseName,
-  confidencePercent,
-}: HealthyResultViewProps) {
+export function HealthyResultView({ diseaseName }: HealthyResultViewProps) {
   return (
-    <div className="mb-6 rounded-xl border border-[#2F9E44]/30 bg-[#E6F4EA] p-4">
+    <div className="mb-6 rounded-2xl border border-[var(--primary-border)] bg-[var(--primary-soft)] p-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[12px] font-[600] tracking-wider text-[#5C5C5C] uppercase">
+        <span className="text-xs font-semibold tracking-wider text-[var(--text-secondary)] uppercase">
           Tình trạng
         </span>
-        <div className="rounded border border-[#A5D6A7] bg-[#E6F4EA] px-2 py-0.5 text-[12px] font-[600] text-[#2F9E44]">
-          ✅ Khỏe mạnh
+        <div className="inline-flex items-center gap-1 rounded-full border border-[var(--primary-border)] bg-[var(--bg-card)] px-2.5 py-0.5 text-xs font-semibold text-[var(--primary)]">
+          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+          Khỏe mạnh
         </div>
       </div>
-      <h2 className="mb-1 text-[24px] font-[700] text-[#1F6F2E]">
+      <h2 className="mb-1 text-2xl font-bold text-[var(--primary)]">
         {diseaseName}
       </h2>
     </div>

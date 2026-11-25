@@ -3,10 +3,13 @@
 import {
   ArrowUpDown,
   Calendar,
+  ChevronDown,
   Filter,
   MessageSquareHeart,
   Search,
+  SlidersHorizontal,
 } from "lucide-react";
+import { useState } from "react";
 
 interface HistoryFilterBarProps {
   keyword: string;
@@ -65,82 +68,124 @@ export function HistoryFilterBar({
   setSortFilter,
   totalCount,
 }: HistoryFilterBarProps) {
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  const activeFilterCount =
+    (diseaseFilter !== "Tất cả" ? 1 : 0) +
+    (feedbackStatusFilter !== "Tất cả" ? 1 : 0) +
+    (timeFilter !== "all" ? 1 : 0) +
+    (sortFilter !== "-createdAt" ? 1 : 0);
+
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-[#E0E0E0] bg-white p-4 shadow-sm">
-      <div className="relative min-w-[200px] flex-1">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#5C5C5C]" />
-        <input
-          type="text"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Tìm kiếm bệnh, mô tả..."
-          className="h-10 w-full rounded-lg border border-[#E0E0E0] bg-white pr-3 pl-9 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
-        />
-      </div>
+    <div className="border-border bg-bg-card mb-6 rounded-2xl border p-4 shadow-xs">
+      <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+        {/* Search + Mobile Filter Trigger Row */}
+        <div className="flex min-w-[220px] flex-1 items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="text-text-secondary absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Tìm kiếm bệnh, mô tả..."
+              aria-label="Tìm kiếm lịch sử chẩn đoán"
+              className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary h-11 w-full rounded-xl border pr-3 pl-10 text-base focus:outline-none sm:h-10 sm:text-sm"
+            />
+          </div>
 
-      <div className="flex items-center gap-2">
-        <Filter className="h-4 w-4 text-[#5C5C5C]" />
-        <select
-          value={diseaseFilter}
-          onChange={(e) => setDiseaseFilter(e.target.value)}
-          className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters((prev) => !prev)}
+            className="border-border bg-bg-subtle text-text-primary hover:bg-bg-hover flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border px-3 text-sm font-semibold transition-colors md:hidden"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>Lọc</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-primary flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white tabular-nums">
+                {activeFilterCount}
+              </span>
+            )}
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${showMobileFilters ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+
+        {/* Filter Selects */}
+        <div
+          className={`${
+            showMobileFilters ? "grid" : "hidden"
+          } grid-cols-1 gap-2.5 sm:grid-cols-2 md:flex md:flex-wrap md:items-center`}
         >
-          {diseases.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="flex items-center gap-2">
+            <Filter className="text-text-secondary hidden h-4 w-4 shrink-0 md:block" />
+            <select
+              aria-label="Lọc theo loại bệnh"
+              value={diseaseFilter}
+              onChange={(e) => setDiseaseFilter(e.target.value)}
+              className="border-border bg-bg-card text-text-primary focus:border-primary h-11 w-full cursor-pointer rounded-xl border px-3 text-base focus:outline-none sm:h-10 sm:text-sm md:w-auto"
+            >
+              {diseases.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <MessageSquareHeart className="h-4 w-4 text-[#5C5C5C]" />
-        <select
-          value={feedbackStatusFilter}
-          onChange={(e) => setFeedbackStatusFilter(e.target.value)}
-          className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
-        >
-          {feedbackStatuses.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="flex items-center gap-2">
+            <MessageSquareHeart className="text-text-secondary hidden h-4 w-4 shrink-0 md:block" />
+            <select
+              aria-label="Lọc theo trạng thái phản hồi"
+              value={feedbackStatusFilter}
+              onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+              className="border-border bg-bg-card text-text-primary focus:border-primary h-11 w-full cursor-pointer rounded-xl border px-3 text-base focus:outline-none sm:h-10 sm:text-sm md:w-auto"
+            >
+              {feedbackStatuses.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <Calendar className="h-4 w-4 text-[#5C5C5C]" />
-        <select
-          value={timeFilter}
-          onChange={(e) => setTimeFilter(e.target.value)}
-          className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
-        >
-          {times.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="text-text-secondary hidden h-4 w-4 shrink-0 md:block" />
+            <select
+              aria-label="Lọc theo thời gian"
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="border-border bg-bg-card text-text-primary focus:border-primary h-11 w-full cursor-pointer rounded-xl border px-3 text-base focus:outline-none sm:h-10 sm:text-sm md:w-auto"
+            >
+              {times.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="flex items-center gap-2">
-        <ArrowUpDown className="h-4 w-4 text-[#5C5C5C]" />
-        <select
-          value={sortFilter}
-          onChange={(e) => setSortFilter(e.target.value)}
-          className="h-10 cursor-pointer rounded-lg border border-[#E0E0E0] bg-white px-3 text-[14px] text-[#1B1B1B] focus:border-[#2F9E44] focus:outline-none"
-        >
-          {sorts.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="text-text-secondary hidden h-4 w-4 shrink-0 md:block" />
+            <select
+              aria-label="Sắp xếp kết quả"
+              value={sortFilter}
+              onChange={(e) => setSortFilter(e.target.value)}
+              className="border-border bg-bg-card text-text-primary focus:border-primary h-11 w-full cursor-pointer rounded-xl border px-3 text-base focus:outline-none sm:h-10 sm:text-sm md:w-auto"
+            >
+              {sorts.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-      <span className="ml-auto rounded-lg border border-[#E0E0E0] bg-[#F7F7F7] px-3 py-1.5 text-[14px] font-[600] text-[#5C5C5C]">
-        {totalCount} kết quả
-      </span>
+        <span className="border-border bg-bg-subtle text-text-secondary self-start rounded-xl border px-3 py-1.5 text-xs font-semibold tabular-nums md:ml-auto md:self-center md:text-sm">
+          {totalCount} kết quả
+        </span>
+      </div>
     </div>
   );
 }

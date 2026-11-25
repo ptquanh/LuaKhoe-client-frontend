@@ -1,3 +1,5 @@
+import { Star } from "lucide-react";
+
 const TESTIMONIALS = [
   {
     text: "Trước đây tôi mất cả tuần mới biết lúa bị bệnh gì. Giờ chỉ cần chụp ảnh là biết ngay, tiết kiệm rất nhiều chi phí thuốc.",
@@ -18,13 +20,13 @@ const TESTIMONIALS = [
 
 export default function HomeTestimonials() {
   return (
-    <section className="bg-gray-50 py-20">
+    <section className="bg-[var(--bg-page)] py-20">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14 text-center">
-          <h2 className="mb-2 text-3xl font-bold text-gray-800">
+          <h2 className="mb-2 text-3xl font-bold text-[var(--text-primary)]">
             Nông Dân Nói Gì Về Lúa Khoẻ?
           </h2>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-secondary)]">
             Hơn 50,000 nông dân đã tin tưởng sử dụng hệ thống của chúng tôi
           </p>
         </div>
@@ -32,27 +34,31 @@ export default function HomeTestimonials() {
           {TESTIMONIALS.map((t) => (
             <div
               key={t.name}
-              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+              className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-xs"
             >
-              <div className="mb-3 flex">
+              <div className="mb-3 flex gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-lg text-yellow-400">
-                    ★
-                  </span>
+                  <Star
+                    key={i}
+                    className="h-4 w-4 fill-amber-400 text-amber-400"
+                    aria-hidden="true"
+                  />
                 ))}
               </div>
-              <p className="mb-4 text-sm leading-relaxed text-gray-600 italic">
+              <p className="mb-4 text-sm leading-relaxed text-[var(--text-secondary)] italic">
                 &quot;{t.text}&quot;
               </p>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-sm font-bold text-green-700">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary-soft)] text-sm font-bold text-[var(--primary)]">
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {t.name}
                   </p>
-                  <p className="text-xs text-gray-400">{t.location}</p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {t.location}
+                  </p>
                 </div>
               </div>
             </div>

@@ -1,10 +1,5 @@
 "use client";
 
-import PostStatusBadge from "@/components/forum/PostStatusBadge";
-import { useAdminConfigs } from "@/hooks/useAdminConfigs";
-import { useForumPosts, useModeratePost } from "@/hooks/useForum";
-import { adminService } from "@/services/admin.service";
-import { SYSTEM_CONFIG_KEY } from "@/types/admin.type";
 import { SafetyCertificateOutlined, SettingOutlined } from "@ant-design/icons";
 import {
   App,
@@ -21,7 +16,6 @@ import {
   Tabs,
   Typography,
 } from "antd";
-
 import {
   AlertTriangle,
   Calendar,
@@ -34,6 +28,12 @@ import {
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+
+import PostStatusBadge from "@/components/forum/PostStatusBadge";
+import { useAdminConfigs } from "@/hooks/useAdminConfigs";
+import { useForumPosts, useModeratePost } from "@/hooks/useForum";
+import { adminService } from "@/services/admin.service";
+import { SYSTEM_CONFIG_KEY } from "@/types/admin.type";
 
 const { TextArea } = Input;
 type StatusTab = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
@@ -286,26 +286,25 @@ export default function AdminForumModeration() {
       <Card
         title={
           <div className="flex items-center gap-2">
-            <SafetyCertificateOutlined className="mr-2 text-lg text-emerald-600" />
-            <span className="font-semibold text-gray-800">
+            <SafetyCertificateOutlined className="mr-2 text-lg text-[var(--primary)]" />
+            <span className="font-semibold text-[var(--text-primary)]">
               AI Kiểm duyệt Nội dung tự động
             </span>
           </div>
         }
         extra={
-          <SettingOutlined className="cursor-pointer text-gray-400 transition-colors hover:text-emerald-600" />
+          <SettingOutlined className="cursor-pointer text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]" />
         }
-        className="mb-6 border border-gray-200 bg-emerald-50/10 shadow-sm"
+        className="mb-6 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] shadow-xs"
       >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Cấu hình Lọc Trực Tiếp (Realtime) */}
-          <div className="border-gray-150 flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 className="m-0 flex items-center gap-1.5 text-[14px] font-semibold text-emerald-800">
+                <h4 className="m-0 flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)]">
                   <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--primary)]"></span>
                   </span>
                   Lọc trực tiếp (Realtime)
                 </h4>
@@ -318,16 +317,13 @@ export default function AdminForumModeration() {
                 onChange={handleUpdateRealtimeEnabled}
                 checkedChildren="BẬT"
                 unCheckedChildren="TẮT"
-                className={
-                  aiConfig.isEnabled ? "bg-emerald-500" : "bg-gray-300"
-                }
               />
             </div>
 
-            <hr className="my-1 border-gray-100" />
+            <hr className="my-1 border-[var(--border)]" />
 
             <div>
-              <h5 className="mb-2 text-xs font-semibold text-gray-700">
+              <h5 className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">
                 Nhóm bị AI kiểm duyệt Bài viết (Post):
               </h5>
               <Select
@@ -345,7 +341,7 @@ export default function AdminForumModeration() {
             </div>
 
             <div>
-              <h5 className="mb-2 text-xs font-semibold text-gray-700">
+              <h5 className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">
                 Nhóm bị AI kiểm duyệt Bình luận (Comment):
               </h5>
               <Select
@@ -364,11 +360,11 @@ export default function AdminForumModeration() {
           </div>
 
           {/* Cấu hình Quét Chạy Nền (Cron Job) */}
-          <div className="border-gray-155 flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-2xs">
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 rounded-xl border border-[var(--border)] bg-[var(--bg-subtle)] p-5">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 className="m-0 flex items-center gap-1.5 text-[14px] font-semibold text-emerald-800">
-                  <Clock className="h-4 w-4 text-emerald-500" />
+                <h4 className="m-0 flex items-center gap-1.5 text-sm font-semibold text-[var(--primary)]">
+                  <Clock className="h-4 w-4 text-[var(--primary)]" />
                   Quét định kỳ chạy nền (Cron Job)
                 </h4>
                 <Typography.Text type="secondary" className="text-xs">
@@ -381,16 +377,13 @@ export default function AdminForumModeration() {
                 onChange={handleUpdateCronEnabled}
                 checkedChildren="BẬT"
                 unCheckedChildren="TẮT"
-                className={
-                  aiConfig.isCronEnabled ? "bg-emerald-500" : "bg-gray-300"
-                }
               />
             </div>
 
-            <hr className="my-1 border-gray-100" />
+            <hr className="my-1 border-[var(--border)]" />
 
             <div className="flex flex-col gap-2">
-              <h5 className="text-xs font-semibold text-gray-700">
+              <h5 className="text-xs font-semibold text-[var(--text-secondary)]">
                 Thời gian trễ tối thiểu trước khi quét (phút):
               </h5>
               <div className="flex items-center gap-3">
@@ -407,7 +400,7 @@ export default function AdminForumModeration() {
                   </Button>
                 </Space.Compact>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-gray-500">
+              <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
                 Hệ thống chạy tác vụ ngầm kiểm tra mỗi 5 phút một lần để xử lý
                 các bản ghi đang chờ duyệt quá thời gian thiết lập.
               </p>
@@ -420,12 +413,12 @@ export default function AdminForumModeration() {
       <Tabs
         activeKey={activeSubTab}
         onChange={(key) => setActiveSubTab(key as StatusTab)}
-        className="custom-tabs border-b border-gray-200 dark:border-gray-800"
+        className="custom-tabs border-b border-[var(--border)]"
         items={[
           {
             key: "PENDING",
             label: (
-              <span className="flex items-center gap-2 text-[14px] font-semibold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <Clock className="h-4 w-4" aria-hidden="true" />
                 Chờ duyệt
               </span>
@@ -434,7 +427,7 @@ export default function AdminForumModeration() {
           {
             key: "APPROVED",
             label: (
-              <span className="flex items-center gap-2 text-[14px] font-semibold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <CheckCircle className="h-4 w-4" aria-hidden="true" />
                 Đã duyệt
               </span>
@@ -443,7 +436,7 @@ export default function AdminForumModeration() {
           {
             key: "REJECTED",
             label: (
-              <span className="flex items-center gap-2 text-[14px] font-semibold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <XCircle className="h-4 w-4" aria-hidden="true" />
                 Đã từ chối
               </span>
@@ -452,7 +445,7 @@ export default function AdminForumModeration() {
           {
             key: "EXPIRED",
             label: (
-              <span className="flex items-center gap-2 text-[14px] font-semibold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                 Đã hết hạn
               </span>
@@ -463,19 +456,19 @@ export default function AdminForumModeration() {
 
       {/* Main Content List */}
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--bg-card)]">
           <Spin size="large" description="Đang tải dữ liệu bài đăng…" />
         </div>
       ) : posts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white py-16 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--bg-card)] py-16">
           <MessageSquare
-            className="h-12 w-12 text-gray-300 dark:text-gray-700"
+            className="h-12 w-12 text-[var(--text-muted)]"
             aria-hidden="true"
           />
-          <h3 className="mt-4 text-[15px] font-semibold text-gray-900 dark:text-white">
+          <h3 className="mt-4 text-[15px] font-semibold text-[var(--text-primary)]">
             Không có bài viết nào
           </h3>
-          <p className="mt-1 text-[13px] text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
             Mục này hiện đang trống sạch sẽ.
           </p>
         </div>
@@ -484,10 +477,10 @@ export default function AdminForumModeration() {
           {posts.map((post) => (
             <div
               key={post.id}
-              className="group relative overflow-hidden rounded-xl border border-[#E0E0E0] bg-white p-5 transition-all hover:border-[#2F9E44]/40 dark:border-gray-800 dark:bg-gray-900"
+              className="group relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-5 transition-colors hover:border-[var(--primary)]/50"
             >
               {/* Header Info */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex gap-3">
                   <div className="relative">
                     <img
@@ -497,34 +490,36 @@ export default function AdminForumModeration() {
                           : "https://res.cloudinary.com/ptquanh/image/upload/v1779947161/default-avatar.png"
                       }
                       alt={post.author?.name}
-                      className="h-11 w-11 rounded-full border border-gray-100 object-cover dark:border-gray-800"
+                      className="h-11 w-11 rounded-full border border-[var(--border)] object-cover"
                     />
-                    <span className="absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-extrabold text-white ring-2 ring-white">
-                      🌾
+                    <span className="absolute -right-0.5 -bottom-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--primary)] text-[9px] font-extrabold text-white ring-2 ring-[var(--bg-card)]">
+                      {post.isAdminPost ? "B" : "L"}
                     </span>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-[15px] font-semibold text-gray-900 transition-colors group-hover:text-[#2F9E44] dark:text-white">
+                      <h4 className="text-[15px] font-semibold text-[var(--text-primary)] transition-colors group-hover:text-[var(--primary)]">
                         {post.author?.name}
                       </h4>
                       {post.isAdminPost && (
-                        <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1 rounded bg-[var(--primary-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--primary)]">
                           <Shield className="h-3 w-3" aria-hidden="true" /> BQT
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2.5 text-[12px] text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-2.5 text-xs text-[var(--text-muted)]">
+                      <span className="flex items-center gap-1 tabular-nums">
                         <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
                         {new Date(post.createdAt).toLocaleString("vi-VN")}
                       </span>
-                      <span>•</span>
                       {post.category && (
-                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-                          <Tag className="h-3 w-3" aria-hidden="true" />
-                          {post.category}
-                        </span>
+                        <>
+                          <span>•</span>
+                          <span className="inline-flex items-center gap-1 font-semibold text-[var(--primary)]">
+                            <Tag className="h-3 w-3" aria-hidden="true" />
+                            {post.category}
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -538,7 +533,7 @@ export default function AdminForumModeration() {
               </div>
 
               {/* Content body */}
-              <div className="mt-4 text-[14px] leading-relaxed whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+              <div className="mt-4 text-sm leading-relaxed break-words whitespace-pre-wrap text-[var(--text-primary)]">
                 {activeSubTab === "PENDING" || activeSubTab === "REJECTED"
                   ? highlightBannedWords(post.content)
                   : post.content}
@@ -551,7 +546,7 @@ export default function AdminForumModeration() {
                     {post.images.map((imgUrl, idx) => (
                       <div
                         key={idx}
-                        className="relative aspect-video w-full overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800"
+                        className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--border)]"
                       >
                         <Image
                           src={imgUrl || undefined}
@@ -568,9 +563,9 @@ export default function AdminForumModeration() {
 
               {/* Flagged reasons */}
               {post.flaggedReason && (
-                <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-100/50 bg-rose-50/70 p-3.5 text-[13px] text-rose-900 dark:border-rose-950/30 dark:bg-rose-950/10 dark:text-rose-400">
+                <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50/70 p-3.5 text-[13px] text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
                   <AlertTriangle
-                    className="h-4 w-4 shrink-0 text-rose-500"
+                    className="h-4 w-4 shrink-0 text-red-500"
                     aria-hidden="true"
                   />
                   <div>
@@ -582,12 +577,12 @@ export default function AdminForumModeration() {
 
               {/* Controls */}
               {activeSubTab === "PENDING" && (
-                <div className="dark:border-gray-850 mt-5 flex items-center justify-end gap-3 border-t border-gray-100 pt-4">
+                <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-[var(--border)] pt-4">
                   <Button
                     danger
                     icon={<XCircle className="h-4 w-4" aria-hidden="true" />}
                     onClick={() => handleRejectClick(post.id)}
-                    className="flex items-center gap-1.5 rounded-lg border-rose-200 bg-white font-semibold text-rose-600 hover:bg-rose-50"
+                    className="flex min-h-10 items-center gap-1.5 rounded-xl font-semibold"
                   >
                     Từ chối bài viết
                   </Button>
@@ -597,7 +592,7 @@ export default function AdminForumModeration() {
                       <CheckCircle className="h-4 w-4" aria-hidden="true" />
                     }
                     onClick={() => handleApprove(post.id)}
-                    className="flex items-center gap-1.5 rounded-lg border-none bg-[#2F9E44] font-semibold shadow-xs hover:bg-[#208234]"
+                    className="flex min-h-10 items-center gap-1.5 rounded-xl font-semibold"
                   >
                     Phê duyệt đăng bài
                   </Button>
@@ -612,7 +607,7 @@ export default function AdminForumModeration() {
               <Button
                 onClick={() => fetchNextPage()}
                 loading={isFetchingNextPage}
-                className="flex items-center gap-1.5 rounded-xl border border-gray-300 px-6 py-2 text-[14px] font-semibold text-gray-700 hover:border-[#2F9E44] hover:text-[#2F9E44]"
+                className="flex min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-6 py-2 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
               >
                 <span>Xem thêm bài viết</span>
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -625,9 +620,9 @@ export default function AdminForumModeration() {
       {/* Reject Modal */}
       <Modal
         title={
-          <div className="flex items-center gap-2 border-b border-gray-100 pb-3 text-rose-600">
+          <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3 text-red-600 dark:text-red-400">
             <XCircle className="h-5 w-5" aria-hidden="true" />
-            <span className="text-[16px] font-bold">
+            <span className="text-base font-bold">
               Nhập lý do từ chối đăng bài
             </span>
           </div>
@@ -642,7 +637,7 @@ export default function AdminForumModeration() {
         destroyOnHidden
       >
         <div className="space-y-3 py-4">
-          <p className="text-[13px] text-gray-500 dark:text-gray-400">
+          <p className="text-[13px] text-[var(--text-secondary)]">
             Lý do này sẽ được hiển thị công khai tới người dùng gửi đăng bài,
             giúp họ sửa đổi và hiểu rõ quy tắc của hệ thống.
           </p>
@@ -652,7 +647,7 @@ export default function AdminForumModeration() {
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder="Ví dụ: Chứa các từ quảng cáo thuốc giả chưa kiểm chứng hoặc thô tục…"
             aria-label="Lý do từ chối bài viết"
-            className="rounded-lg border border-gray-300 p-2.5 text-[14px] focus:border-[#2F9E44] focus:ring-1 focus:ring-[#2F9E44]"
+            className="rounded-xl p-2.5 text-base sm:text-sm"
           />
         </div>
       </Modal>

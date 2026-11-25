@@ -1,10 +1,13 @@
 "use client";
 
 import { Alert, Button, Form, Input, message, Typography } from "antd";
+import { Clock, KeyRound, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/hooks/useAuth";
 import { VERIFY_OTP_ACTION } from "@/types/auth.type";
@@ -25,10 +28,9 @@ function VerifyOtpContent() {
       : VERIFY_OTP_ACTION.REGISTER;
 
   const [countdown, setCountdown] = useState(60);
-  const [otpExpiry, setOtpExpiry] = useState(600); // 10 minutes in seconds
+  const [otpExpiry, setOtpExpiry] = useState(600);
   const [isResending, setIsResending] = useState(false);
 
-  // Countdown timer for resending OTP
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setTimeout(() => {
@@ -37,7 +39,6 @@ function VerifyOtpContent() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Countdown for OTP Expiration
   useEffect(() => {
     if (otpExpiry <= 0) return;
     const timer = setTimeout(() => {
@@ -86,7 +87,7 @@ function VerifyOtpContent() {
       await resendEmail({ email }, () => {
         message.success("Mã OTP mới đã được gửi tới email của bạn.");
         setCountdown(60);
-        setOtpExpiry(600); // Reset expiry to 10 minutes
+        setOtpExpiry(600);
       });
     } catch {
       // Handled in useAuth hook
@@ -96,37 +97,47 @@ function VerifyOtpContent() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10 sm:px-6">
-      <div className="w-full max-w-[480px] rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+    <main className="bg-bg-page relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle />
+      </div>
+
+      <div className="border-border bg-bg-card w-full max-w-[480px] rounded-2xl border p-6 shadow-xs sm:p-8">
+        <div className="mb-6 flex justify-center">
+          <Link href={ROUTES.HOME}>
+            <BrandLogo size="md" />
+          </Link>
+        </div>
+
         {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="mb-6 flex justify-center gap-2">
-            <span className="text-3xl">🔑</span>
+        <div className="mb-6 text-center">
+          <div className="bg-primary-light text-primary mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
+            <KeyRound className="h-7 w-7" />
           </div>
-          <Title level={2} className="mb-2! text-gray-800!">
+          <Title level={2} className="font-heading text-text-primary! mb-2!">
             Xác thực OTP
           </Title>
-          <Text className="text-gray-500">
+          <Text className="text-text-secondary!">
             Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến email:
           </Text>
-          <div className="mt-1 font-semibold text-gray-800">
+          <div className="text-text-primary mt-1 font-semibold">
             {email || "chưa xác định"}
           </div>
         </div>
 
         {/* Countdown Expiry */}
-        <div className="mb-6 flex items-center justify-center gap-2.5 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-amber-800 shadow-xs">
-          <span className="animate-pulse text-base">⏳</span>
+        <div className="border-warning/35 bg-accent-light/50 text-accent mb-6 flex items-center justify-center gap-2.5 rounded-xl border px-4 py-3">
+          <Clock className="h-4 w-4 shrink-0" />
           <span className="text-sm font-medium">
             {otpExpiry > 0 ? (
               <>
                 Mã xác thực sẽ hết hạn sau:{" "}
-                <span className="font-mono text-base font-bold text-amber-600">
+                <span className="font-mono text-base font-bold tabular-nums">
                   {formatTime(otpExpiry)}
                 </span>
               </>
             ) : (
-              <span className="animate-pulse font-semibold text-red-600">
+              <span className="text-error font-semibold">
                 Mã xác thực đã hết hạn. Vui lòng gửi lại mã!
               </span>
             )}
@@ -138,7 +149,7 @@ function VerifyOtpContent() {
             message={error}
             type="error"
             showIcon
-            className="mb-6 rounded-lg font-medium"
+            className="mb-6 rounded-xl font-medium"
           />
         )}
 
@@ -166,11 +177,7 @@ function VerifyOtpContent() {
               htmlType="submit"
               block
               loading={isLoading}
-              style={{
-                backgroundColor: "#22c55e",
-                borderColor: "#22c55e",
-              }}
-              className="h-12 rounded-lg text-base font-medium shadow-sm hover:!border-green-600 hover:!bg-green-600"
+              className="h-12 rounded-xl text-base font-semibold shadow-xs"
             >
               Xác nhận kích hoạt
             </Button>
@@ -178,9 +185,9 @@ function VerifyOtpContent() {
 
           <div className="mt-6 text-center">
             {countdown > 0 ? (
-              <Text className="text-gray-400">
+              <Text className="text-text-secondary!">
                 Gửi lại mã sau{" "}
-                <span className="font-semibold text-green-600">
+                <span className="text-primary font-semibold tabular-nums">
                   {countdown}s
                 </span>
               </Text>
@@ -189,17 +196,17 @@ function VerifyOtpContent() {
                 type="link"
                 onClick={handleResend}
                 loading={isResending}
-                className="p-0 font-medium text-green-600 hover:text-green-700"
+                className="text-primary! hover:text-primary-hover! p-0 font-semibold"
               >
                 Gửi lại mã OTP
               </Button>
             )}
           </div>
 
-          <div className="mt-8 border-t border-gray-100 pt-6 text-center">
+          <div className="border-border mt-8 border-t pt-6 text-center">
             <Link
               href={ROUTES.REGISTER}
-              className="text-sm font-medium text-gray-400 hover:text-gray-600"
+              className="text-text-secondary hover:text-text-primary text-sm font-medium"
             >
               Quay lại Đăng ký
             </Link>
@@ -214,10 +221,12 @@ export default function VerifyOtpPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="bg-bg-page flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <span className="animate-bounce text-4xl">🌱</span>
-            <p className="mt-2 font-medium text-gray-500">Đang tải...</p>
+            <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+            <p className="text-text-secondary mt-2 text-sm font-medium">
+              Đang tải...
+            </p>
           </div>
         </div>
       }

@@ -15,6 +15,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ACCESS_TOKEN } from "@/constants/auth";
 import { ROUTES } from "@/constants/routes";
 import { getErrorMessage, useAuth } from "@/hooks/useAuth";
@@ -100,7 +102,7 @@ function LoginContent() {
   };
 
   return (
-    <main className="flex min-h-screen bg-white">
+    <main className="bg-bg-card flex min-h-screen">
       {/* Left side: Image banner (hidden on mobile) */}
       <div className="relative hidden w-1/2 flex-col justify-end overflow-hidden p-12 lg:flex">
         <div
@@ -112,7 +114,7 @@ function LoginContent() {
         <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent" />
 
         <div className="relative z-10 max-w-lg text-white">
-          <h1 className="mb-4 text-4xl leading-tight font-bold">
+          <h1 className="font-heading mb-4 text-4xl leading-tight font-bold">
             Chẩn đoán bệnh lúa
             <br />
             bằng trí tuệ nhân tạo
@@ -124,18 +126,24 @@ function LoginContent() {
       </div>
 
       {/* Right side: Login form */}
-      <div className="flex w-full items-center justify-center p-8 sm:p-12 lg:w-1/2">
-        <div className="w-full max-w-md">
+      <div className="bg-bg-page lg:bg-bg-card relative flex w-full items-center justify-center px-4 py-10 sm:p-10 lg:w-1/2">
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+          <ThemeToggle />
+        </div>
+
+        <div className="border-border bg-bg-card w-full max-w-md rounded-2xl border p-6 shadow-xs sm:p-8 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           {/* Header */}
-          <div className="mb-10">
-            <div className="mb-8 flex items-center gap-2">
-              <span className="text-2xl">🌿</span>
-              <span className="text-lg font-bold text-green-800">Lúa Khoẻ</span>
-            </div>
-            <Title level={2} className="mb-2! text-gray-800!">
+          <div className="mb-8">
+            <Link href={ROUTES.HOME} className="mb-6 inline-block">
+              <BrandLogo size="md" />
+            </Link>
+            <Title
+              level={2}
+              className="font-heading text-text-primary! mb-1.5!"
+            >
               Đăng nhập
             </Title>
-            <Text className="text-gray-500">Chào mừng bạn trở lại!</Text>
+            <Text className="text-text-secondary!">Chào mừng bạn trở lại!</Text>
           </div>
 
           {error && (
@@ -143,7 +151,7 @@ function LoginContent() {
               message={error}
               type="error"
               showIcon
-              className="mb-6 rounded-lg font-medium"
+              className="mb-6 rounded-xl font-medium"
             />
           )}
 
@@ -156,7 +164,7 @@ function LoginContent() {
           >
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">
+                <span className="text-text-primary font-medium">
                   Email hoặc tên đăng nhập
                 </span>
               }
@@ -171,13 +179,13 @@ function LoginContent() {
             >
               <Input
                 placeholder="Nhập email hoặc tên đăng nhập"
-                className="h-11 rounded-lg"
+                className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
               />
             </Form.Item>
 
             <Form.Item
               label={
-                <span className="font-medium text-gray-700">Mật khẩu</span>
+                <span className="text-text-primary font-medium">Mật khẩu</span>
               }
               name="password"
               rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
@@ -185,18 +193,20 @@ function LoginContent() {
             >
               <Input.Password
                 placeholder="Nhập mật khẩu"
-                className="h-11 rounded-lg"
+                className="h-12 rounded-xl text-base sm:h-11 sm:text-sm"
               />
             </Form.Item>
 
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex items-center justify-between gap-2">
               <Form.Item name="remember" valuePropName="checked" noStyle>
-                <Checkbox className="text-gray-500">Ghi nhớ đăng nhập</Checkbox>
+                <Checkbox className="text-text-secondary">
+                  Ghi nhớ đăng nhập
+                </Checkbox>
               </Form.Item>
 
               <Link
                 href={ROUTES.FORGOT_PASSWORD}
-                className="text-sm font-medium text-green-600 hover:text-green-700"
+                className="text-primary hover:text-primary-hover text-sm font-semibold"
               >
                 Quên mật khẩu?
               </Link>
@@ -208,11 +218,7 @@ function LoginContent() {
                 htmlType="submit"
                 block
                 loading={isLoading}
-                style={{
-                  backgroundColor: "#22c55e",
-                  borderColor: "#22c55e",
-                }}
-                className="h-12 rounded-lg text-base font-medium shadow-sm hover:border-green-600! hover:bg-green-600!"
+                className="h-12 rounded-xl text-base font-semibold shadow-xs"
               >
                 Đăng nhập
               </Button>
@@ -232,16 +238,16 @@ function LoginContent() {
                   />
                 </svg>
               }
-              className="mb-6 h-12 rounded-lg border-gray-300 font-medium shadow-sm hover:bg-gray-50!"
+              className="mb-6 h-12 rounded-xl font-medium shadow-xs"
             >
               Đăng nhập bằng Google
             </Button>
 
             <div className="text-center">
-              <Text className="text-gray-500">Chưa có tài khoản? </Text>
+              <Text className="text-text-secondary!">Chưa có tài khoản? </Text>
               <Link
                 href={ROUTES.REGISTER}
-                className="font-medium text-green-600 hover:text-green-700"
+                className="text-primary hover:text-primary-hover font-semibold"
               >
                 Đăng ký ngay
               </Link>

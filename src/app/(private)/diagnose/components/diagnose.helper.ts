@@ -34,37 +34,37 @@ export function getSeverityStyle(severity: string): SeverityStyle {
   switch (severity) {
     case "critical":
       return {
-        color: "text-[#E53935]",
-        bg: "bg-[#FFEBEE]",
-        border: "border-[#FFCDD2]",
+        color: "text-[var(--severity-critical-text)]",
+        bg: "bg-[var(--severity-critical-bg)]",
+        border: "border-red-300 dark:border-red-800/70",
         label: "Cấp bách",
       };
     case "high":
       return {
-        color: "text-[#FB8C00]",
-        bg: "bg-[#FFF3E0]",
-        border: "border-[#FFE0B2]",
+        color: "text-[var(--severity-high-text)]",
+        bg: "bg-[var(--severity-high-bg)]",
+        border: "border-orange-300 dark:border-orange-800/70",
         label: "Nghiêm trọng",
       };
     case "medium":
       return {
-        color: "text-[#FBC02D]",
-        bg: "bg-[#FFFDE7]",
-        border: "border-[#FFF9C4]",
+        color: "text-[var(--severity-medium-text)]",
+        bg: "bg-[var(--severity-medium-bg)]",
+        border: "border-amber-300 dark:border-amber-800/70",
         label: "Trung bình",
       };
     case "low":
       return {
-        color: "text-[#2F9E44]",
-        bg: "bg-[#E6F4EA]",
-        border: "border-[#A5D6A7]",
+        color: "text-[var(--severity-low-text)]",
+        bg: "bg-[var(--severity-low-bg)]",
+        border: "border-[var(--primary-border)]",
         label: "Nhẹ",
       };
     default:
       return {
-        color: "text-[#1976D2]",
-        bg: "bg-[#E3F2FD]",
-        border: "border-[#BBDEFB]",
+        color: "text-sky-700 dark:text-sky-300",
+        bg: "bg-sky-50 dark:bg-sky-950/50",
+        border: "border-sky-200 dark:border-sky-800/70",
         label: "Bình thường",
       };
   }

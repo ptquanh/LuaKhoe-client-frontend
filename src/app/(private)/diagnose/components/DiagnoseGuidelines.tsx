@@ -44,43 +44,44 @@ export function DiagnoseGuidelines({
 }: DiagnoseGuidelinesProps) {
   return (
     <>
-      <div className="mb-6 rounded-xl border border-[#2F9E44]/20 bg-[#E6F4EA] p-4">
-        <div className="mb-3 flex items-center justify-between">
+      <div className="border-primary-border bg-primary-light/60 mb-6 rounded-2xl border p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-[#2F9E44]" />
-            <h4 className="text-[14px] font-[600] text-[#1F6F2E]">
+            <Info className="text-primary h-5 w-5 shrink-0" />
+            <h4 className="font-heading text-primary-dark dark:text-primary text-sm font-semibold">
               Hướng dẫn chụp ảnh lá lúa rõ nét
             </h4>
           </div>
           <button
+            type="button"
             onClick={() => setShowExamples(!showExamples)}
-            className="cursor-pointer text-[12px] font-[500] text-[#2F9E44] underline hover:text-[#1F6F2E]"
+            className="text-primary hover:text-primary-hover min-h-9 cursor-pointer px-1 text-xs font-semibold underline underline-offset-2"
           >
             {showExamples ? "Ẩn ảnh mẫu" : "Xem ảnh mẫu"}
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
           <div className="flex items-start gap-2">
-            <Sun className="mt-0.5 h-4 w-4 shrink-0 text-[#2F9E44]" />
-            <p className="text-[12px] text-[#1B1B1B]">
+            <Sun className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-text-primary text-xs leading-relaxed">
               Chụp ngoài trời, đủ ánh sáng tự nhiên
             </p>
           </div>
           <div className="flex items-start gap-2">
-            <Maximize className="mt-0.5 h-4 w-4 shrink-0 text-[#2F9E44]" />
-            <p className="text-[12px] text-[#1B1B1B]">
+            <Maximize className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-text-primary text-xs leading-relaxed">
               Chụp gần, rõ vết bệnh trên lá (15-30cm)
             </p>
           </div>
           <div className="flex items-start gap-2">
-            <Droplets className="mt-0.5 h-4 w-4 shrink-0 text-[#2F9E44]" />
-            <p className="text-[12px] text-[#1B1B1B]">
+            <Droplets className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-text-primary text-xs leading-relaxed">
               Tránh chụp khi lá ướt sương hoặc mưa
             </p>
           </div>
           <div className="flex items-start gap-2">
-            <Leaf className="mt-0.5 h-4 w-4 shrink-0 text-[#2F9E44]" />
-            <p className="text-[12px] text-[#1B1B1B]">
+            <Leaf className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+            <p className="text-text-primary text-xs leading-relaxed">
               Đặt lá trên nền phẳng nếu có thể
             </p>
           </div>
@@ -88,28 +89,30 @@ export function DiagnoseGuidelines({
       </div>
 
       {showExamples && (
-        <div className="mb-6 rounded-xl border border-[#E0E0E0] bg-white p-4">
+        <div className="border-border bg-bg-card mb-6 rounded-2xl border p-4 shadow-xs">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-[#2F9E44]" />
-                <h5 className="text-[14px] font-[600] text-[#2F9E44]">
+                <CheckCircle className="text-success h-5 w-5" />
+                <h5 className="font-heading text-success text-sm font-semibold">
                   Ảnh tốt — AI phân tích chính xác
                 </h5>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 {goodExamples.map((ex, i) => (
                   <div
                     key={i}
-                    className="relative overflow-hidden rounded-lg border-2 border-[#2F9E44]/30"
+                    className="border-primary-border relative overflow-hidden rounded-xl border-2"
                   >
                     <ImageWithFallback
                       src={ex.url}
                       alt={ex.label}
                       className="h-[120px] w-full object-cover"
                     />
-                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 p-2">
-                      <p className="text-[11px] text-white">{ex.label}</p>
+                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/75 p-2">
+                      <p className="text-xs font-medium text-white">
+                        {ex.label}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -117,24 +120,26 @@ export function DiagnoseGuidelines({
             </div>
             <div>
               <div className="mb-3 flex items-center gap-2">
-                <XCircle className="h-5 w-5 text-[#E53935]" />
-                <h5 className="text-[14px] font-[600] text-[#E53935]">
+                <XCircle className="text-error h-5 w-5" />
+                <h5 className="font-heading text-error text-sm font-semibold">
                   Ảnh xấu — Kết quả không chính xác
                 </h5>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 {badExamples.map((ex, i) => (
                   <div
                     key={i}
-                    className="relative overflow-hidden rounded-lg border-2 border-[#E53935]/30"
+                    className="border-error/35 relative overflow-hidden rounded-xl border-2"
                   >
                     <ImageWithFallback
                       src={ex.url}
                       alt={ex.label}
                       className="h-[120px] w-full object-cover"
                     />
-                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 p-2">
-                      <p className="text-[11px] text-white">{ex.label}</p>
+                    <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/75 p-2">
+                      <p className="text-xs font-medium text-white">
+                        {ex.label}
+                      </p>
                     </div>
                   </div>
                 ))}

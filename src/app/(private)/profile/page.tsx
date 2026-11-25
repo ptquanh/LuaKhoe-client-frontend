@@ -80,12 +80,12 @@ export default function ProfilePage() {
   const isScreenLoading = isProfileLoading || isAuthLoading;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 pb-20 sm:px-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 pb-8 sm:px-6">
       <div>
-        <Title level={2} className="mb-1! text-gray-800!">
+        <Title level={2} className="mb-1! text-[var(--text-primary)]!">
           Thông tin cá nhân
         </Title>
-        <Text className="text-gray-500">
+        <Text className="text-[var(--text-secondary)]!">
           Quản lý thông tin hồ sơ và bảo mật tài khoản của bạn
         </Text>
       </div>
@@ -98,7 +98,7 @@ export default function ProfilePage() {
         onFinish={handleSaveProfile}
         size="large"
         requiredMark={false}
-        className="flex flex-col gap-8"
+        className="flex flex-col gap-6"
       >
         <BasicInfoCard user={user || null} profileError={profileError} />
 
@@ -106,7 +106,7 @@ export default function ProfilePage() {
           <button
             type="submit"
             disabled={isUpdating}
-            className="flex h-11 items-center gap-2 rounded-xl bg-[#22c55e] px-6 text-sm font-semibold text-white shadow-sm transition-all hover:bg-green-600 disabled:opacity-50"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-[var(--primary)] px-6 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50"
           >
             {isUpdating ? "Đang lưu..." : "Lưu thay đổi hồ sơ"}
           </button>

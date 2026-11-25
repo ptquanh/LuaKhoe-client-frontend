@@ -1,3 +1,24 @@
+import { message } from "antd";
+import {
+  Brain,
+  Camera,
+  ChevronDown,
+  Compass,
+  Loader2,
+  MapPin,
+  Search,
+  Upload,
+  X,
+} from "lucide-react";
+import React, {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
 import {
   DENSITY_OPTIONS,
   GROWTH_OPTIONS,
@@ -6,19 +27,9 @@ import {
 import { useActiveAiModels } from "@/hooks/useActiveAiModels";
 import { useUserFields } from "@/hooks/useUserFields";
 import { FieldParams } from "@/types/diagnose.type";
-import { message } from "antd";
-import {
-  Brain,
-  ChevronDown,
-  Compass,
-  Loader2,
-  Search,
-  Upload,
-  X,
-} from "lucide-react";
-import React, { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 const LazyMapComponent = lazy(() => import("./MapComponent"));
+const emptySubscribe = () => () => {};
 
 interface DiagnoseUploadSectionProps {
   file: { raw: File; url: string } | null;
@@ -70,10 +81,13 @@ export function DiagnoseUploadSection({
   modelVersionId,
   setModelVersionId,
   handleReset,
-  handleFullReset,
   handlePredict,
 }: DiagnoseUploadSectionProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [showAdvance, setShowAdvance] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -87,7 +101,6 @@ export function DiagnoseUploadSection({
     (fieldParams.fog === null || fieldParams.fog === undefined) &&
     (fieldParams.pesticide === null || fieldParams.pesticide === undefined);
 
-  // Default Location UX states
   const { fields, isLoading: isFieldsLoading, createField } = useUserFields();
   const { data: activeModels = [], isLoading: isModelsLoading } =
     useActiveAiModels();
@@ -106,33 +119,28 @@ export function DiagnoseUploadSection({
 
   useEffect(() => {
     if (!isLoading) {
-      setLoadingTextIdx(0);
       return;
     }
 
     const interval = setInterval(() => {
       setLoadingTextIdx((prev) => (prev + 1) % loadingTexts.length);
-    }, 4000); // Rotate text every 4 seconds for engaging farmer experience
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [isLoading, loadingTexts.length]);
 
   useEffect(() => {
     if (activeModels.length > 0 && !modelVersionId) {
       setModelVersionId(activeModels[0].id);
     }
   }, [activeModels, modelVersionId, setModelVersionId]);
+
   const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [currentProvince, setCurrentProvince] = useState("");
   const [geocoding, setGeocoding] = useState(false);
 
   const defaultField = fields.find((f) => f.isDefault);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Sync mode with fields load
   useEffect(() => {
     if (fields.length > 0) {
       if (defaultField) {
@@ -152,7 +160,6 @@ export function DiagnoseUploadSection({
     }
   }, [fields, defaultField, setFieldId, setGpsLat, setGpsLng]);
 
-  // Track coordinates reverse geocoding to resolve province
   useEffect(() => {
     if (gpsLat === undefined || gpsLng === undefined) return;
 
@@ -293,20 +300,24 @@ export function DiagnoseUploadSection({
     setFieldParams((prev) => ({ ...prev, [key]: value }));
   };
 
+  const activeLoadingText = isLoading
+    ? loadingTexts[loadingTextIdx]
+    : loadingTexts[0];
+
   return (
-    <div className="flex flex-col gap-4 font-[Inter,sans-serif]">
+    <div className="flex flex-col gap-4">
       {!isMounted ? (
-        <div className="min-h-[320px] animate-pulse rounded-xl bg-black/5" />
+        <div className="bg-bg-subtle min-h-[260px] animate-pulse rounded-2xl sm:min-h-[300px]" />
       ) : !file ? (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => document.getElementById("file-input")?.click()}
-          className={`flex min-h-[320px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-colors ${
+          className={`flex min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors sm:min-h-[300px] sm:p-10 ${
             isDragging
-              ? "border-[#2F9E44] bg-[#E6F4EA]"
-              : "border-[#E0E0E0] bg-white hover:border-[#2F9E44] hover:bg-[#E6F4EA]/30"
+              ? "border-primary bg-primary-light"
+              : "border-border bg-bg-card hover:border-primary hover:bg-primary-light/30"
           }`}
         >
           <input
@@ -316,62 +327,91 @@ export function DiagnoseUploadSection({
             onChange={handleInputChange}
             className="hidden"
           />
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#E6F4EA]">
-            <Upload className="h-7 w-7 text-[#2F9E44]" />
+          <input
+            id="camera-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleInputChange}
+            className="hidden"
+          />
+          <div className="bg-primary-light mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+            <Camera className="text-primary h-7 w-7" />
           </div>
-          <h3 className="mb-2 text-[18px] font-[600] text-[#1B1B1B]">
-            Kéo thả hoặc chọn file
+          <h3 className="font-heading text-text-primary mb-1.5 text-lg font-semibold">
+            Chụp hoặc kéo thả ảnh lá lúa
           </h3>
-          <p className="mb-6 text-[14px] text-[#5C5C5C]">
+          <p className="text-text-secondary mb-6 text-sm">
             Hỗ trợ JPG, PNG, WEBP. Tối đa 10MB
           </p>
-          <button className="flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#2F9E44] px-4 text-[14px] text-white hover:bg-[#1F6F2E]">
-            <Upload className="h-4 w-4" /> Chọn ảnh
-          </button>
+          <div className="flex w-full max-w-sm flex-col gap-2.5 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById("camera-input")?.click();
+              }}
+              className="bg-primary hover:bg-primary-hover flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold text-white shadow-xs transition-colors sm:flex-initial"
+            >
+              <Camera className="h-4 w-4" /> Chụp ảnh ngay
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById("file-input")?.click();
+              }}
+              className="border-border bg-bg-card text-text-primary hover:bg-bg-hover flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition-colors sm:flex-initial"
+            >
+              <Upload className="h-4 w-4" /> Chọn từ thư viện
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white shadow-xs">
-          <div className="relative flex aspect-video w-full items-center justify-center bg-black/5 p-2">
-            <div className="absolute top-2 left-2 z-10 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-              <span className="text-[11px] font-[600] tracking-wide text-white uppercase">
+        <div className="border-border bg-bg-card overflow-hidden rounded-2xl border shadow-xs">
+          <div className="bg-bg-subtle relative flex aspect-video w-full items-center justify-center p-2">
+            <div className="absolute top-2.5 left-2.5 z-10 rounded-md bg-black/65 px-2.5 py-1 backdrop-blur-sm">
+              <span className="text-[11px] font-semibold tracking-wide text-white uppercase">
                 Ảnh gốc
               </span>
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={file.url}
               alt="Preview"
               className="max-h-[300px] rounded-lg object-contain shadow-sm"
             />
             <button
+              type="button"
               onClick={handleReset}
-              className="absolute top-2 right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+              aria-label="Xóa ảnh đã chọn"
+              className="absolute top-2.5 right-2.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/75"
             >
               <X className="h-4 w-4" />
             </button>
             {isLoading && (
-              <div className="animate-in fade-in absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm duration-200">
-                <Loader2 className="mb-3 h-8 w-8 animate-spin text-[#2F9E44]" />
-                <p className="animate-pulse px-4 text-center text-[14px] font-[700] text-[#2F9E44] transition-all duration-500">
-                  {loadingTexts[loadingTextIdx]}
+              <div className="animate-in fade-in bg-bg-card/85 absolute inset-0 z-10 flex flex-col items-center justify-center backdrop-blur-sm duration-200">
+                <Loader2 className="text-primary mb-3 h-8 w-8 animate-spin" />
+                <p className="text-primary animate-pulse px-4 text-center text-sm font-bold transition-all duration-500">
+                  {activeLoadingText}
                 </p>
               </div>
             )}
           </div>
 
-          <div className="border-t border-[#E0E0E0] bg-[#FAFAFA] p-4">
+          <div className="border-border bg-bg-subtle/60 border-t p-4 sm:p-5">
             {/* Location Section */}
             <div className="mb-4">
-              <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+              <label className="text-text-primary mb-2 block text-xs font-semibold tracking-wide uppercase">
                 Vị trí ruộng chẩn đoán
               </label>
 
               {isFieldsLoading ? (
-                <div className="flex h-16 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#2F9E44]" />
+                <div className="border-border bg-bg-card flex h-16 items-center justify-center rounded-xl border">
+                  <Loader2 className="text-primary h-5 w-5 animate-spin" />
                 </div>
               ) : fields.length > 0 ? (
-                <div className="flex flex-col gap-3.5 rounded-xl border border-[#E0E0E0] bg-white p-3.5 shadow-xs">
-                  {/* Option 1: Default Location */}
+                <div className="border-border bg-bg-card flex flex-col gap-3.5 rounded-xl border p-3.5 shadow-xs">
                   {defaultField && (
                     <label className="flex cursor-pointer items-start gap-2.5">
                       <input
@@ -385,13 +425,13 @@ export function DiagnoseUploadSection({
                           setGpsLat(Number(defaultField.gpsLat));
                           setGpsLng(Number(defaultField.gpsLng));
                         }}
-                        className="mt-1 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                        className="accent-primary mt-1 h-4 w-4 cursor-pointer"
                       />
-                      <div>
-                        <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                      <div className="min-w-0">
+                        <span className="text-text-primary text-sm font-semibold">
                           Sử dụng ruộng mặc định ({defaultField.fieldName})
                         </span>
-                        <p className="text-[11px] text-[#5C5C5C]">
+                        <p className="text-text-secondary text-xs tabular-nums">
                           Địa chỉ: {defaultField.address || "Chưa xác định"} |
                           Tọa độ: {Number(defaultField.gpsLat).toFixed(5)},{" "}
                           {Number(defaultField.gpsLng).toFixed(5)}
@@ -400,9 +440,8 @@ export function DiagnoseUploadSection({
                     </label>
                   )}
 
-                  {/* Option 2: Select from Saved Fields */}
                   <div
-                    className={`flex flex-col gap-2 ${defaultField ? "border-t border-gray-100 pt-3" : ""}`}
+                    className={`flex flex-col gap-2 ${defaultField ? "border-border border-t pt-3" : ""}`}
                   >
                     <label className="flex cursor-pointer items-start gap-2.5">
                       <input
@@ -412,7 +451,6 @@ export function DiagnoseUploadSection({
                         checked={locationMode === "saved"}
                         onChange={() => {
                           setLocationMode("saved");
-                          // Find first field to select
                           const selected = fields[0];
                           if (selected) {
                             setFieldId(selected.id);
@@ -420,10 +458,10 @@ export function DiagnoseUploadSection({
                             setGpsLng(Number(selected.gpsLng));
                           }
                         }}
-                        className="mt-1.5 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                        className="accent-primary mt-1.5 h-4 w-4 cursor-pointer"
                       />
-                      <div className="flex-1">
-                        <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-text-primary text-sm font-semibold">
                           Chọn từ danh sách ruộng đã lưu
                         </span>
                         {locationMode === "saved" && (
@@ -439,7 +477,7 @@ export function DiagnoseUploadSection({
                                   setGpsLng(Number(match.gpsLng));
                                 }
                               }}
-                              className="w-full rounded-lg border border-[#E0E0E0] bg-white px-2.5 py-1.5 text-[12.5px] font-[500] text-gray-700 focus:border-[#2F9E44] focus:outline-none"
+                              className="border-border bg-bg-card text-text-primary focus:border-primary min-h-10 w-full rounded-xl border px-3 py-2 text-base font-medium focus:outline-none sm:text-sm"
                             >
                               {fields.map((f) => (
                                 <option key={f.id} value={f.id}>
@@ -456,8 +494,7 @@ export function DiagnoseUploadSection({
                     </label>
                   </div>
 
-                  {/* Option 3: Pin New Location */}
-                  <label className="flex cursor-pointer items-start gap-2.5 border-t border-gray-100 pt-3">
+                  <label className="border-border flex cursor-pointer items-start gap-2.5 border-t pt-3">
                     <input
                       type="radio"
                       name="locationMode"
@@ -467,13 +504,13 @@ export function DiagnoseUploadSection({
                         setLocationMode("custom");
                         setFieldId(undefined);
                       }}
-                      className="mt-1 h-4 w-4 cursor-pointer accent-[#2F9E44]"
+                      className="accent-primary mt-1 h-4 w-4 cursor-pointer"
                     />
                     <div>
-                      <span className="text-[13px] font-[600] text-[#1B1B1B]">
+                      <span className="text-text-primary text-sm font-semibold">
                         Chẩn đoán tại vị trí mới (Chưa lưu)
                       </span>
-                      <p className="text-[11px] text-[#5C5C5C]">
+                      <p className="text-text-secondary text-xs">
                         Chọn vị trí mới trên bản đồ hoặc định vị trực tiếp ngoài
                         ruộng
                       </p>
@@ -483,10 +520,10 @@ export function DiagnoseUploadSection({
               ) : fields.length === 0 &&
                 gpsLat === undefined &&
                 gpsLng === undefined ? (
-                <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 text-amber-800">
-                  <div className="flex gap-2">
-                    <span className="text-base">📍</span>
-                    <span className="text-[12px] font-[500]">
+                <div className="border-warning/30 bg-accent-light/50 text-accent rounded-xl border p-3.5">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span className="text-xs leading-relaxed font-medium">
                       Bạn chưa lưu vị trí ruộng nào. Vui lòng ghim vị trí ruộng
                       trên bản đồ hoặc định vị GPS để chẩn đoán.
                     </span>
@@ -494,27 +531,27 @@ export function DiagnoseUploadSection({
                 </div>
               ) : null}
 
-              {/* Collapsible custom map container using smooth Tailwind transitions */}
+              {/* Collapsible custom map container */}
               <div
                 className={`overflow-hidden transition-all duration-300 ease-in-out ${
                   locationMode === "custom"
-                    ? "max-h-[580px] opacity-100"
+                    ? "max-h-[600px] opacity-100"
                     : "pointer-events-none max-h-0 opacity-0"
                 }`}
               >
                 <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between text-[12px] font-[500] text-[#5C5C5C]">
+                  <div className="text-text-secondary flex items-center justify-between text-xs font-medium">
                     <span>Tìm hoặc chọn trên bản đồ:</span>
                     <button
                       onClick={handleGetCurrentLocation}
                       type="button"
                       disabled={isGettingLocation}
-                      className="flex cursor-pointer items-center gap-1 font-[600] text-[#2F9E44] hover:underline"
+                      className="text-primary flex min-h-9 cursor-pointer items-center gap-1.5 font-semibold hover:underline"
                     >
                       {isGettingLocation ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <Compass className="h-3.5 w-3.5" />
+                        <Compass className="h-4 w-4" />
                       )}
                       Lấy GPS thiết bị
                     </button>
@@ -530,12 +567,14 @@ export function DiagnoseUploadSection({
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleSearchAddress();
                       }}
-                      className="w-full rounded-xl border border-[#E0E0E0] bg-white py-2 pr-12 pl-3.5 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                      className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary min-h-11 w-full rounded-xl border py-2 pr-12 pl-3.5 text-base focus:outline-none sm:min-h-10 sm:text-sm"
                     />
                     <button
+                      type="button"
                       onClick={handleSearchAddress}
                       disabled={isSearching}
-                      className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center rounded-lg bg-[#2F9E44] text-white hover:bg-[#1F6F2E] disabled:opacity-50"
+                      aria-label="Tìm kiếm địa chỉ"
+                      className="bg-primary hover:bg-primary-hover absolute top-1 right-1 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-white disabled:opacity-50 sm:h-8 sm:w-8"
                     >
                       {isSearching ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -546,11 +585,11 @@ export function DiagnoseUploadSection({
                   </div>
 
                   {/* Map container */}
-                  <div className="overflow-hidden rounded-xl border border-[#E0E0E0] shadow-sm">
+                  <div className="border-border overflow-hidden rounded-xl border shadow-sm">
                     <Suspense
                       fallback={
-                        <div className="flex h-[280px] w-full items-center justify-center bg-gray-50">
-                          <Loader2 className="h-6 w-6 animate-spin text-[#2F9E44]" />
+                        <div className="bg-bg-subtle flex h-[280px] w-full items-center justify-center">
+                          <Loader2 className="text-primary h-6 w-6 animate-spin" />
                         </div>
                       }
                     >
@@ -563,29 +602,28 @@ export function DiagnoseUploadSection({
                     </Suspense>
                   </div>
 
-                  {/* Geolocation status / coordinates display */}
                   {gpsLat !== undefined && gpsLng !== undefined && (
                     <div className="animate-in fade-in slide-in-from-top-2 space-y-3">
-                      <div className="rounded-lg border border-[#E6F4EA] bg-[#E6F4EA]/30 p-3 text-[12.5px] text-[#2E7D32]">
-                        <span className="font-[600]">
-                          📍 Đã ghim vị trí ruộng:{" "}
-                        </span>
+                      <div className="border-primary-border bg-primary-light/60 text-primary rounded-xl border p-3 text-xs tabular-nums">
+                        <span className="inline-flex items-center gap-1.5 font-semibold">
+                          <MapPin className="h-3.5 w-3.5 shrink-0" />
+                          Đã ghim vị trí ruộng:
+                        </span>{" "}
                         {gpsLat.toFixed(6)}, {gpsLng.toFixed(6)}{" "}
-                        <span className="mt-0.5 block font-semibold text-[#1B1B1B]">
+                        <span className="text-text-primary mt-0.5 block font-semibold">
                           Khu vực:{" "}
                           {geocoding ? "Đang xác định..." : currentProvince}
                         </span>
                       </div>
 
-                      {/* Save Location Checkbox */}
-                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 bg-white p-3 transition-colors hover:bg-gray-50">
+                      <label className="border-border-strong bg-bg-card hover:bg-bg-hover flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-dashed p-3 transition-colors">
                         <input
                           type="checkbox"
                           checked={saveAsDefault}
                           onChange={(e) => setSaveAsDefault(e.target.checked)}
-                          className="h-4 w-4 cursor-pointer rounded accent-[#2F9E44]"
+                          className="accent-primary h-4 w-4 cursor-pointer rounded"
                         />
-                        <span className="text-[12.5px] font-[500] text-[#1B1B1B]">
+                        <span className="text-text-primary text-xs font-medium">
                           Lưu vị trí này làm ruộng mặc định của tôi
                         </span>
                       </label>
@@ -597,19 +635,19 @@ export function DiagnoseUploadSection({
 
             {/* AI Model Selection */}
             <div className="mb-4">
-              <label className="mb-2 flex items-center gap-1.5 text-[13px] font-[600] text-[#1B1B1B]">
-                <Brain className="h-4 w-4 text-[#2F9E44]" />
+              <label className="text-text-primary mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase">
+                <Brain className="text-primary h-4 w-4" />
                 Phiên bản mô hình AI chẩn đoán
               </label>
               {isModelsLoading ? (
-                <div className="flex h-10 items-center justify-center rounded-xl border border-[#E0E0E0] bg-white">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#2F9E44]" />
+                <div className="border-border bg-bg-card flex h-11 items-center justify-center rounded-xl border">
+                  <Loader2 className="text-primary h-4 w-4 animate-spin" />
                 </div>
               ) : activeModels.length > 0 ? (
                 <select
                   value={modelVersionId}
                   onChange={(e) => setModelVersionId(e.target.value)}
-                  className="w-full cursor-pointer rounded-xl border border-[#E0E0E0] bg-white px-3.5 py-2.5 text-[13px] font-[500] text-gray-700 shadow-xs transition-colors focus:border-[#2F9E44] focus:outline-none"
+                  className="border-border bg-bg-card text-text-primary focus:border-primary min-h-11 w-full cursor-pointer rounded-xl border px-3.5 py-2 text-base font-medium shadow-xs transition-colors focus:outline-none sm:min-h-10 sm:text-sm"
                 >
                   {activeModels.map((model) => (
                     <option key={model.id} value={model.id}>
@@ -619,17 +657,17 @@ export function DiagnoseUploadSection({
                   ))}
                 </select>
               ) : (
-                <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3.5 text-[12px] font-[500] text-amber-800">
+                <div className="border-warning/30 bg-accent-light/50 text-accent rounded-xl border p-3.5 text-xs font-medium">
                   Không tìm thấy mô hình AI hoạt động nào trong hệ thống.
                 </div>
               )}
             </div>
 
             <div className="mb-4">
-              <label className="mb-0.5 block text-[13px] font-[600] text-[#1B1B1B]">
+              <label className="text-text-primary mb-0.5 block text-sm font-semibold">
                 Mô tả triệu chứng (Tùy chọn)
               </label>
-              <p className="mb-2 text-[11px] text-[#5C5C5C]">
+              <p className="text-text-secondary mb-2 text-xs">
                 Dùng để AI đưa ra lời khuyên điều trị chính xác hơn. Không ảnh
                 hưởng đến kết quả nhận diện bệnh.
               </p>
@@ -638,22 +676,23 @@ export function DiagnoseUploadSection({
                 onChange={(e) => setFieldDescription(e.target.value)}
                 placeholder="Ví dụ: Mép lá xuất hiện vết héo màu xanh xám, lan nhanh từ chóp lá xuống..."
                 rows={2}
-                className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary w-full resize-none rounded-xl border px-3 py-2 text-base focus:outline-none sm:text-sm"
               />
             </div>
 
-            <label className="mb-2 block text-[13px] font-[600] text-[#1B1B1B]">
+            <label className="text-text-primary mb-2 block text-sm font-semibold">
               Nhãn triệu chứng nhanh
             </label>
-            <div className="mb-3 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap gap-2">
               {suggestedTags.map((tag) => (
                 <button
+                  type="button"
                   key={tag}
                   onClick={() => toggleTag(tag)}
-                  className={`h-7 cursor-pointer rounded-full px-2.5 text-[12px] font-[500] transition-colors ${
+                  className={`min-h-9 cursor-pointer rounded-full px-3 text-xs font-medium transition-colors sm:text-sm ${
                     selectedTags.includes(tag)
-                      ? "bg-[#2F9E44] text-white"
-                      : "border border-[#E0E0E0] bg-white text-[#5C5C5C] hover:bg-[#F0F2F5]"
+                      ? "bg-primary text-white"
+                      : "border-border bg-bg-card text-text-secondary hover:bg-bg-hover border"
                   }`}
                 >
                   {tag}
@@ -662,10 +701,10 @@ export function DiagnoseUploadSection({
             </div>
 
             <div className="mb-4">
-              <label className="mb-0.5 block text-[13px] font-[600] text-[#1B1B1B]">
+              <label className="text-text-primary mb-0.5 block text-sm font-semibold">
                 Mô tả thời tiết hôm nay (Tùy chọn)
               </label>
-              <p className="mb-2 text-[11px] text-[#5C5C5C]">
+              <p className="text-text-secondary mb-2 text-xs">
                 Bổ sung nếu thời tiết bất thường. Hệ thống tự động lấy dữ liệu
                 thời tiết theo vị trí ruộng.
               </p>
@@ -674,33 +713,34 @@ export function DiagnoseUploadSection({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Ví dụ: Sáng có sương mù dày, chiều nắng gắt, độ ẩm cao bất thường..."
                 rows={2}
-                className="w-full resize-none rounded-lg border border-[#E0E0E0] px-3 py-2 text-[13px] focus:border-[#2F9E44] focus:outline-none"
+                className="border-border bg-bg-card text-text-primary placeholder:text-text-muted focus:border-primary w-full resize-none rounded-xl border px-3 py-2 text-base focus:outline-none sm:text-sm"
               />
             </div>
 
             {/* Field Params Accordion */}
-            <div className="mb-6 overflow-hidden rounded-lg border border-[#E0E0E0] bg-white">
+            <div className="border-border bg-bg-card mb-6 overflow-hidden rounded-xl border">
               <button
+                type="button"
                 onClick={() => setShowAdvance(!showAdvance)}
-                className="flex w-full items-center justify-between px-3 py-2.5 text-[13px] font-[600] text-[#1B1B1B] hover:bg-[#F8F9FA]"
+                className="text-text-primary hover:bg-bg-hover flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm font-semibold transition-colors"
               >
-                <span>
-                  Thông số thực địa (Tăng độ chính xác)
+                <span className="flex flex-wrap items-center gap-2">
+                  <span>Thông số thực địa (Tăng độ chính xác)</span>
                   {isUnfilled && (
-                    <span className="ml-2 rounded-full bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-[500] text-[#E65100]">
-                      Chưa điền — AI dùng dữ liệu mặc định
+                    <span className="bg-accent-light text-accent rounded-full px-2 py-0.5 text-[11px] font-medium">
+                      Chưa điền — dùng mặc định
                     </span>
                   )}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showAdvance ? "rotate-180" : ""}`}
+                  className={`text-text-secondary h-4 w-4 shrink-0 transition-transform ${showAdvance ? "rotate-180" : ""}`}
                 />
               </button>
 
               {showAdvance && (
-                <div className="grid grid-cols-1 gap-4 border-t border-[#E0E0E0] p-3 md:grid-cols-2">
+                <div className="border-border grid grid-cols-1 gap-4 border-t p-3.5 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-[12px] font-[500] text-[#5C5C5C]">
+                    <label className="text-text-secondary mb-1 block text-xs font-medium">
                       Trạng thái nước
                     </label>
                     <select
@@ -708,7 +748,7 @@ export function DiagnoseUploadSection({
                       onChange={(e) =>
                         updateFieldParam("water", e.target.value || undefined)
                       }
-                      className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
+                      className="border-border bg-bg-card text-text-primary focus:ring-primary min-h-10 w-full rounded-lg border px-2.5 py-1.5 text-base focus:ring-1 focus:outline-none sm:text-sm"
                     >
                       <option value="">-- Chọn tình trạng --</option>
                       {WATER_OPTIONS.map((opt) => (
@@ -719,7 +759,7 @@ export function DiagnoseUploadSection({
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[12px] font-[500] text-[#5C5C5C]">
+                    <label className="text-text-secondary mb-1 block text-xs font-medium">
                       Giai đoạn sinh trưởng
                     </label>
                     <select
@@ -727,7 +767,7 @@ export function DiagnoseUploadSection({
                       onChange={(e) =>
                         updateFieldParam("growth", e.target.value || undefined)
                       }
-                      className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
+                      className="border-border bg-bg-card text-text-primary focus:ring-primary min-h-10 w-full rounded-lg border px-2.5 py-1.5 text-base focus:ring-1 focus:outline-none sm:text-sm"
                     >
                       <option value="">-- Chọn giai đoạn --</option>
                       {GROWTH_OPTIONS.map((opt) => (
@@ -738,7 +778,7 @@ export function DiagnoseUploadSection({
                     </select>
                   </div>
                   <div>
-                    <label className="mb-1 block text-[12px] font-[500] text-[#5C5C5C]">
+                    <label className="text-text-secondary mb-1 block text-xs font-medium">
                       Mật độ gieo sạ
                     </label>
                     <select
@@ -746,7 +786,7 @@ export function DiagnoseUploadSection({
                       onChange={(e) =>
                         updateFieldParam("density", e.target.value || undefined)
                       }
-                      className="w-full rounded-md border border-[#E0E0E0] px-2 py-1.5 text-[12px] focus:ring-1 focus:ring-[#2F9E44] focus:outline-none"
+                      className="border-border bg-bg-card text-text-primary focus:ring-primary min-h-10 w-full rounded-lg border px-2.5 py-1.5 text-base focus:ring-1 focus:outline-none sm:text-sm"
                     >
                       <option value="">-- Chọn mật độ --</option>
                       {DENSITY_OPTIONS.map((opt) => (
@@ -757,8 +797,9 @@ export function DiagnoseUploadSection({
                     </select>
                   </div>
 
-                  <div className="col-span-full grid grid-cols-2 gap-2 pt-2">
+                  <div className="col-span-full grid grid-cols-2 gap-2.5 pt-1">
                     <button
+                      type="button"
                       onClick={() => {
                         if (
                           fieldParams.fog === null ||
@@ -769,17 +810,17 @@ export function DiagnoseUploadSection({
                           updateFieldParam("fog", false);
                         else updateFieldParam("fog", null);
                       }}
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
+                      className={`flex min-h-12 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border p-2 transition-colors ${
                         fieldParams.fog === null ||
                         fieldParams.fog === undefined
-                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
+                          ? "border-border bg-bg-card text-text-muted"
                           : fieldParams.fog
-                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
-                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
+                            ? "border-primary bg-primary-light text-primary"
+                            : "border-error/40 bg-error/10 text-error"
                       }`}
                     >
-                      <span className="text-[11px] font-[600]">Sương mù</span>
-                      <span className="text-[10px]">
+                      <span className="text-xs font-semibold">Sương mù</span>
+                      <span className="text-[11px]">
                         {fieldParams.fog === null ||
                         fieldParams.fog === undefined
                           ? "Chưa chọn"
@@ -789,6 +830,7 @@ export function DiagnoseUploadSection({
                       </span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         if (
                           fieldParams.pesticide === null ||
@@ -799,19 +841,19 @@ export function DiagnoseUploadSection({
                           updateFieldParam("pesticide", false);
                         else updateFieldParam("pesticide", null);
                       }}
-                      className={`flex flex-col items-center gap-1 rounded-md border p-2 transition-colors ${
+                      className={`flex min-h-12 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border p-2 transition-colors ${
                         fieldParams.pesticide === null ||
                         fieldParams.pesticide === undefined
-                          ? "border-[#E0E0E0] bg-white text-[#9E9E9E]"
+                          ? "border-border bg-bg-card text-text-muted"
                           : fieldParams.pesticide
-                            ? "border-[#2F9E44] bg-[#E6F4EA] text-[#2F9E44]"
-                            : "border-[#E53935] bg-[#FFEBEE] text-[#E53935]"
+                            ? "border-primary bg-primary-light text-primary"
+                            : "border-error/40 bg-error/10 text-error"
                       }`}
                     >
-                      <span className="text-[11px] font-[600]">
+                      <span className="text-xs font-semibold">
                         Đã phun thuốc
                       </span>
-                      <span className="text-[10px]">
+                      <span className="text-[11px]">
                         {fieldParams.pesticide === null ||
                         fieldParams.pesticide === undefined
                           ? "Chưa chọn"
@@ -827,17 +869,19 @@ export function DiagnoseUploadSection({
 
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={handleReset}
                 disabled={isLoading}
-                className="h-11 flex-1 cursor-pointer rounded-lg border border-[#E0E0E0] text-[15px] font-[500] text-[#5C5C5C] transition-colors hover:bg-[#F0F2F5] disabled:opacity-50"
+                className="border-border bg-bg-card text-text-secondary hover:bg-bg-hover min-h-12 flex-1 cursor-pointer rounded-xl border text-sm font-semibold transition-colors disabled:opacity-50"
               >
                 Hủy
               </button>
               {!result && (
                 <button
+                  type="button"
                   onClick={handlePredictWrapper}
                   disabled={isLoading}
-                  className="h-11 flex-1 cursor-pointer rounded-lg bg-[#2F9E44] text-[15px] font-[500] text-white transition-colors hover:bg-[#1F6F2E] disabled:opacity-50"
+                  className="bg-primary hover:bg-primary-hover min-h-12 flex-1 cursor-pointer rounded-xl text-sm font-semibold text-white shadow-xs transition-colors disabled:opacity-50"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">

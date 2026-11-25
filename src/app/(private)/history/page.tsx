@@ -1,8 +1,13 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { History } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ROUTES } from "@/constants/routes";
 import { diagnosisService } from "@/services/diagnosis.service";
 import { DiagnosisResponse } from "@/types/diagnose.type";
 
@@ -21,11 +26,6 @@ export default function DiagnosisHistoryPage() {
   const [items, setItems] = useState<DiagnosisResponse[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Reset page when filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [keyword, diseaseFilter, feedbackStatusFilter, timeFilter, sortFilter]);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -66,7 +66,7 @@ export default function DiagnosisHistoryPage() {
         } else {
           throw new Error("Failed to load or empty");
         }
-      } catch (err) {
+      } catch {
         setItems([]);
         setTotalCount(0);
       } finally {
@@ -87,46 +87,71 @@ export default function DiagnosisHistoryPage() {
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
   return (
-    <div className="mx-auto max-w-[1200px] pb-20">
-      <div className="mb-6">
-        <h1 className="text-[28px] font-[700] text-[#1B1B1B]">
-          Lịch sử chẩn đoán
-        </h1>
-        <p className="mt-1 text-[14px] text-[#5C5C5C]">
-          Tất cả kết quả chẩn đoán của bạn
-        </p>
-      </div>
+    <div className="mx-auto max-w-[1200px] pb-6">
+      <PageHeader
+        title="Lịch sử chẩn đoán"
+        description="Tất cả kết quả chẩn đoán và phác đồ điều trị của bạn"
+      />
 
       <HistoryFilterBar
         keyword={keyword}
-        setKeyword={setKeyword}
+        setKeyword={(val) => {
+          setKeyword(val);
+          setPage(1);
+        }}
         diseaseFilter={diseaseFilter}
-        setDiseaseFilter={setDiseaseFilter}
+        setDiseaseFilter={(val) => {
+          setDiseaseFilter(val);
+          setPage(1);
+        }}
         feedbackStatusFilter={feedbackStatusFilter}
-        setFeedbackStatusFilter={setFeedbackStatusFilter}
+        setFeedbackStatusFilter={(val) => {
+          setFeedbackStatusFilter(val);
+          setPage(1);
+        }}
         timeFilter={timeFilter}
-        setTimeFilter={setTimeFilter}
+        setTimeFilter={(val) => {
+          setTimeFilter(val);
+          setPage(1);
+        }}
         sortFilter={sortFilter}
-        setSortFilter={setSortFilter}
+        setSortFilter={(val) => {
+          setSortFilter(val);
+          setPage(1);
+        }}
         totalCount={totalCount}
       />
 
       {isLoading ? (
-        <div className="flex h-60 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#2F9E44]" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }, (_, idx) => (
+            <div
+              key={idx}
+              className="border-border bg-bg-card overflow-hidden rounded-2xl border p-3"
+            >
+              <Skeleton className="mb-3 aspect-video w-full rounded-xl sm:aspect-square" />
+              <Skeleton className="mb-2 h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="flex h-60 flex-col items-center justify-center rounded-xl border border-dashed border-[#E0E0E0] bg-white p-6 text-center">
-          <p className="text-[16px] font-[600] text-[#1B1B1B]">
-            Không tìm thấy kết quả nào
-          </p>
-          <p className="mt-1 text-[14px] text-[#5C5C5C]">
-            Vui lòng thử thay đổi điều kiện lọc hoặc từ khóa tìm kiếm.
-          </p>
-        </div>
+        <EmptyState
+          icon={<History className="h-6 w-6" />}
+          title="Không tìm thấy kết quả nào"
+          description="Vui lòng thử thay đổi điều kiện lọc hoặc bắt đầu chẩn đoán ảnh mới."
+          action={
+            <Link
+              href={ROUTES.DIAGNOSE}
+              className="bg-primary hover:bg-primary-hover inline-flex min-h-11 items-center rounded-xl px-5 text-sm font-semibold text-white transition-colors"
+            >
+              Chẩn đoán ngay
+            </Link>
+          }
+        />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {items.map((item) => (
               <HistoryCard key={item.id} item={item} />
             ))}
@@ -135,19 +160,21 @@ export default function DiagnosisHistoryPage() {
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
               <button
+                type="button"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
-                className="rounded-lg border border-[#E0E0E0] bg-white px-3 py-1.5 text-[14px] font-[600] text-[#1B1B1B] hover:bg-[#F7F7F7] disabled:opacity-50"
+                className="border-border bg-bg-card text-text-primary hover:bg-bg-hover min-h-11 cursor-pointer rounded-xl border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Trang trước
               </button>
-              <span className="px-2 text-[14px] text-[#5C5C5C]">
+              <span className="text-text-secondary px-2 text-sm tabular-nums">
                 Trang {page} / {totalPages}
               </span>
               <button
+                type="button"
                 disabled={page >= totalPages}
                 onClick={() => setPage(page + 1)}
-                className="rounded-lg border border-[#E0E0E0] bg-white px-3 py-1.5 text-[14px] font-[600] text-[#1B1B1B] hover:bg-[#F7F7F7] disabled:opacity-50"
+                className="border-border bg-bg-card text-text-primary hover:bg-bg-hover min-h-11 cursor-pointer rounded-xl border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Trang sau
               </button>

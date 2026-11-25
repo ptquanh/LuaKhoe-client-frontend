@@ -9,17 +9,18 @@ interface HistoryCardProps {
   item: DiagnosisResponse;
 }
 
-const sevColors: Record<string, { bg: string; text: string }> = {
-  low: { bg: "#E6F4EA", text: "#2E7D32" },
-  medium: { bg: "#FFF8E1", text: "#F57F17" },
-  high: { bg: "#FFF3E0", text: "#E65100" },
-  critical: { bg: "#FFEBEE", text: "#C62828" },
+const sevBadgeClasses: Record<string, string> = {
+  low: "bg-primary-light text-primary border border-primary-border",
+  medium:
+    "bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60",
+  high: "bg-orange-50 text-orange-800 border border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800/60",
+  critical:
+    "bg-red-50 text-red-800 border border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800/60",
 };
 
 export function HistoryCard({ item }: HistoryCardProps) {
   const router = useRouter();
 
-  // Sort results by confidence descending and deduplicate by disease name
   const uniqueResults = item.results
     ? item.results
         .reduce((acc: any[], curr: any) => {
@@ -50,34 +51,44 @@ export function HistoryCard({ item }: HistoryCardProps) {
     displayResults[0].disease?.name === "Khỏe mạnh";
 
   const feedback = item.feedbacks?.[0];
-  const rawStatus = feedback?.status?.toLowerCase();
+  const rawStatus = feedback?.status?.toUpperCase();
 
   let fbStatusText = "Chưa gửi phản hồi";
-  let fbBadgeClass = "bg-[#F3F4F6] text-[#6B7280]";
+  let fbBadgeClass = "bg-bg-subtle text-text-secondary";
 
   if (rawStatus === "PENDING") {
     fbStatusText = "Chờ phản hồi";
-    fbBadgeClass = "bg-[#FFF8E1] text-[#F57F17]";
+    fbBadgeClass = "bg-accent-light text-accent";
   } else if (rawStatus === "APPROVED") {
     fbStatusText = "Đã duyệt";
-    fbBadgeClass = "bg-[#E6F4EA] text-[#2E7D32]";
+    fbBadgeClass = "bg-primary-light text-primary";
   } else if (rawStatus === "REJECTED") {
     fbStatusText = "Đã từ chối";
-    fbBadgeClass = "bg-[#FFEBEE] text-[#C62828]";
+    fbBadgeClass = "bg-error/15 text-error";
   }
+
+  const primaryDiseaseName = displayResults[0].disease?.name || "Khỏe mạnh";
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={() => router.push(`/result?id=${item.id}`)}
-      className="group cursor-pointer overflow-hidden rounded-xl border border-[#E0E0E0] bg-white transition-all hover:shadow-md"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          router.push(`/result?id=${item.id}`);
+        }
+      }}
+      className="group border-border bg-bg-card focus-visible:ring-primary flex cursor-pointer flex-row overflow-hidden rounded-2xl border shadow-xs transition-all hover:shadow-md focus-visible:ring-2 focus-visible:outline-none sm:flex-col"
     >
-      <div className="relative aspect-square overflow-hidden bg-[#F7F7F7]">
+      <div className="bg-bg-subtle relative h-32 w-28 shrink-0 overflow-hidden sm:aspect-square sm:h-auto sm:w-full">
         <ImageWithFallback
           src={item.resultImageUrl || item.originalImageUrl}
-          alt="Diagnosis Result"
+          alt={`Kết quả chẩn đoán ${primaryDiseaseName}`}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute right-0 bottom-0 left-0 flex flex-wrap gap-1.5 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8">
+        <div className="absolute right-0 bottom-0 left-0 hidden flex-wrap gap-1.5 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8 sm:flex">
           {displayResults.map((res: any, idx: number) => {
             const dName = res.disease?.name || "Khỏe mạnh";
             let severity = "low";
@@ -90,7 +101,7 @@ export function HistoryCard({ item }: HistoryCardProps) {
             ) {
               severity = "medium";
             }
-            const sc = sevColors[severity] || sevColors.low;
+            const sc = sevBadgeClasses[severity] || sevBadgeClasses.low;
             const rawConf = res.confidence ?? 0;
             const confPercent =
               rawConf <= 1 ? Math.round(rawConf * 100) : Math.round(rawConf);
@@ -98,12 +109,11 @@ export function HistoryCard({ item }: HistoryCardProps) {
             return (
               <span
                 key={idx}
-                className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-[600] shadow-sm backdrop-blur-sm"
-                style={{ backgroundColor: sc.bg, color: sc.text }}
+                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold shadow-xs backdrop-blur-sm ${sc}`}
               >
                 {dName}
                 {dName !== "Khỏe mạnh" && (
-                  <span className="text-[9px] font-bold opacity-80">
+                  <span className="text-[10px] font-bold tabular-nums opacity-85">
                     ({confPercent}%)
                   </span>
                 )}
@@ -112,19 +122,33 @@ export function HistoryCard({ item }: HistoryCardProps) {
           })}
         </div>
       </div>
-      <div className="p-3">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-[12px] text-[#5C5C5C]">{dateStr}</span>
-          <span
-            className={`text-[12px] font-[600] ${isHealthy ? "text-[#2F9E44]" : "text-[#E65100]"}`}
-          >
-            {isHealthy ? "Cây khỏe mạnh" : `${displayResults.length} phát hiện`}
-          </span>
+
+      <div className="flex min-w-0 flex-1 flex-col justify-between p-3.5">
+        <div>
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <span className="text-text-secondary text-xs tabular-nums">
+              {dateStr}
+            </span>
+            <span
+              className={`text-xs font-semibold ${isHealthy ? "text-primary" : "text-accent"}`}
+            >
+              {isHealthy
+                ? "Cây khỏe mạnh"
+                : `${displayResults.length} phát hiện`}
+            </span>
+          </div>
+
+          <p className="text-text-primary line-clamp-1 text-sm font-bold sm:hidden">
+            {displayResults
+              .map((r: any) => r.disease?.name || "Khỏe mạnh")
+              .join(", ")}
+          </p>
         </div>
-        <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2">
-          <span className="text-[11px] text-[#5C5C5C]">Phản hồi AI:</span>
+
+        <div className="border-border mt-2 flex items-center justify-between gap-2 border-t pt-2">
+          <span className="text-text-secondary text-[11px]">Phản hồi AI:</span>
           <span
-            className={`rounded px-2 py-0.5 text-[11px] font-[600] ${fbBadgeClass}`}
+            className={`rounded-md px-2 py-0.5 text-[11px] font-semibold ${fbBadgeClass}`}
           >
             {fbStatusText}
           </span>
